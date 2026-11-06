@@ -1,0 +1,8 @@
+node_modules/
+out/
+build/
+__pycache__/
+*.pyc
+.pytest_cache/
+films/
+work/

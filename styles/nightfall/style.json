@@ -1,0 +1,8 @@
+{
+  "name": "nightfall",
+  "sky": { "top": "#05060f", "bottom": "#1b2347" },
+  "fog": [10, 55],
+  "ambient": { "color": "#6f7fff", "intensity": 0.55 },
+  "sun": { "color": "#9fb4ff", "intensity": 0.9, "dir": [0.3, 1, -0.5] },
+  "shadows": true, "clouds": false, "pixelate": 1, "letterbox": true, "vignette": true, "fov": 55
+}

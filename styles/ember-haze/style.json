@@ -1,0 +1,8 @@
+{
+  "name": "ember-haze",
+  "sky": { "top": "#4a2a3a", "bottom": "#b86a5a" },
+  "fog": [8, 45],
+  "ambient": { "color": "#ff9a7a", "intensity": 0.65 },
+  "sun": { "color": "#ffb36b", "intensity": 0.8, "dir": [0.5, 0.6, -0.6] },
+  "shadows": true, "clouds": false, "pixelate": 1, "letterbox": true, "vignette": true, "fov": 48
+}

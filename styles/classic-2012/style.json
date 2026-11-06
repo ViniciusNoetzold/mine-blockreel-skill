@@ -1,0 +1,8 @@
+{
+  "name": "classic-2012",
+  "sky": { "top": "#6fb2ff", "bottom": "#d6ecff" },
+  "fog": [40, 110],
+  "ambient": { "color": "#ffffff", "intensity": 1.25 },
+  "sun": { "color": "#fff4d6", "intensity": 1.6, "dir": [0.5, 1, 0.35] },
+  "shadows": true, "clouds": true, "pixelate": 1, "letterbox": false, "vignette": false, "fov": 62
+}

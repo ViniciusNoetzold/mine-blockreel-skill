@@ -1,0 +1,8 @@
+{
+  "name": "golden-hour",
+  "sky": { "top": "#3d4a8f", "bottom": "#ffb36b" },
+  "fog": [25, 90],
+  "ambient": { "color": "#ffd9b0", "intensity": 0.95 },
+  "sun": { "color": "#ff9a4a", "intensity": 2.2, "dir": [-0.9, 0.35, 0.4] },
+  "shadows": true, "clouds": true, "pixelate": 1, "letterbox": true, "vignette": true, "fov": 48
+}

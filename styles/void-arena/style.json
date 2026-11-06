@@ -1,0 +1,8 @@
+{
+  "name": "void-arena",
+  "sky": { "top": "#0a0618", "bottom": "#3a2466" },
+  "fog": [18, 80],
+  "ambient": { "color": "#a58cff", "intensity": 0.6 },
+  "sun": { "color": "#cdbfff", "intensity": 0.85, "dir": [-0.4, 1, 0.3] },
+  "shadows": true, "clouds": false, "pixelate": 1, "letterbox": true, "vignette": true, "fov": 50
+}

@@ -1,0 +1,14 @@
+{
+  "name": "blockreel",
+  "version": "0.1.0",
+  "description": "Make Minecraft-style animations from a prompt: your skin, your blocks, rendered in code.",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "render:demo": "python3 tools/render.py examples/hello-world/story.json --out out/hello.mp4"
+  },
+  "dependencies": {
+    "three": "^0.170.0"
+  },
+  "type": "module"
+}

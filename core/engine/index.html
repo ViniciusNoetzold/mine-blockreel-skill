@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"><link rel="icon" href="data:,">
+<title>BlockReel engine</title>
+<style>
+  html, body { margin: 0; background: #000; overflow: hidden; }
+  #stage { position: relative; width: 1280px; height: 720px; overflow: hidden; }
+  #c { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+  .ov { position: absolute; left: 0; right: 0; pointer-events: none; font-family: "Minecraftia","Press Start 2P",ui-monospace,Menlo,Consolas,monospace; color: #fff; }
+  #sub { bottom: 9%; text-align: center; }
+  #sub span { display: inline-block; max-width: 78%; padding: .35em .8em; background: rgba(0,0,0,.55); font-size: 26px; line-height: 1.25; text-shadow: 2px 2px 0 #3f3f3f; }
+  #sub b { color: #ffd84a; }
+  #title { top: 0; bottom: 0; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 64px; text-shadow: 4px 4px 0 #3f3f3f; }
+  #bars .bar { position: absolute; left: 0; right: 0; height: 11%; background: #000; }
+  #vig { inset: 0; background: radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,.45) 100%); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <svg width="0" height="0" style="position:absolute"><filter id="hb" x="-20%" y="0" width="140%" height="100%"><feGaussianBlur id="hbBlur" stdDeviation="0 0"/></filter></svg>
+  <canvas id="c"></canvas>
+  <div id="flash" class="ov" style="inset:0;opacity:0"></div>
+  <div id="vig" class="ov"></div>
+  <div id="bars" class="ov" style="inset:0"><div class="bar" style="top:0"></div><div class="bar" style="bottom:0"></div></div>
+  <div id="fade" class="ov" style="inset:0;opacity:0"></div>
+  <div id="title" class="ov"></div>
+  <div id="sub" class="ov"></div>
+</div>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+<script type="module" src="/core/engine/engine.js"></script>
+</body>
+</html>

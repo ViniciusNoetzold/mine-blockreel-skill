@@ -1,0 +1,61 @@
+{
+  "blocks": {
+    "grass": {
+      "top": "grass_top",
+      "side": "grass_side",
+      "bottom": "dirt"
+    },
+    "dirt": "dirt",
+    "stone": "stone",
+    "cobblestone": "cobble",
+    "planks": "planks",
+    "log": {
+      "top": "log_top",
+      "side": "log_side",
+      "bottom": "log_top"
+    },
+    "leaves": {
+      "all": "leaves",
+      "transparent": true
+    },
+    "sand": "sand",
+    "bricks": "bricks",
+    "obsidian": "obsidian",
+    "glowstone": {
+      "all": "glowstone",
+      "emissive": true
+    },
+    "snow": "snow",
+    "water": {
+      "all": "water",
+      "transparent": true,
+      "flow": [
+        0,
+        0.12
+      ]
+    },
+    "lava": {
+      "all": "lava",
+      "flow": [
+        0,
+        0.22
+      ],
+      "emissive": true
+    },
+    "chest": "chest",
+    "glass": {
+      "all": "glass",
+      "transparent": true
+    },
+    "tnt": {
+      "top": "tnt_top",
+      "side": "tnt_side",
+      "bottom": "tnt_top"
+    },
+    "wool_white": "wool_white",
+    "wool_red": "wool_red",
+    "wool_blue": "wool_blue",
+    "gold": "gold",
+    "diamond": "diamond"
+  }
+}
