@@ -64,7 +64,7 @@ def compose(duration, sections, bpm, key):
     beat = 60 / bpm; bar = 4 * beat
     melody = [7, 9, 12, 11, 12, 16, 14, 12]
     for mood, s0, s1 in sections:
-        if mood == "silence":
+        if mood == "silence" or s1 - s0 < 0.05:
             continue
         prog = major if mood == "dawn" else minor
         shift = 3 if mood == "dawn" else 0  # dawn: relative major (C for A minor)

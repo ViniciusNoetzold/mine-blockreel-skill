@@ -3,7 +3,8 @@
 
   python tools/voice.py fetch                    # neural offline voices (Piper, CC0 datasets) -> work/voices/ (~63 MB each)
   python tools/voice.py list
-  python tools/voice.py say "O farol cai esta noite." --voice piper:faber --preset villain --out vigia.wav
+  python tools/voice.py say "O farol cai esta noite." --voice piper:faber --preset villain --rate=-35% --out vigia.wav
+  (a negative rate must be written with "=", e.g. --rate=-20%; measure each line and fit it to its shot / lip-sync window)
   python tools/voice.py say "O farol cai <break time='150ms'/> esta <emphasis>noite</emphasis>." --voice daniel --preset villain --out vigia.wav
   python tools/voice.py say "Não enquanto eu respirar!" --voice maria --preset hero --out brasa.wav
 

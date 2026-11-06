@@ -1,6 +1,6 @@
 ---
 name: blockreel
-description: Make Minecraft-style animated videos (the classic blocky "Minecraft animation" look) from a story idea, using the user's own skins and block textures, rendered in code. Runs a pre-production flow (briefing, web research, script, shot list), builds the film, and does a mandatory visual QA before delivering. Use when the user wants a Minecraft animation, a short film, or a scene with blocky characters. Skins and texture packs have their own skills.
+description: Make Minecraft-style animated videos from an idea, about anything - cinematic shorts, YouTube channel openings and dialogue episodes - rendered in code with the original game look and sound by default (textures and sound effects fetched locally), the user's own skins when they send them, an original score and offline character voices. Runs briefing, web research, script and shot list, builds the film, does a mandatory visual QA (including a dense check that nobody walks through blocks) and delivers the film with its sound. Use when the user wants a Minecraft animation, short film, intro/opening, episode or scene with blocky characters. Skins and texture packs have their own skills.
 ---
 
 # BlockReel
@@ -42,6 +42,9 @@ folder the user started in; never write inside `core/`.
 | `docs/COVERAGE.md` | what the engine can and cannot animate yet: check it before promising a scene |
 
 ## Genres (pick one first, like a style)
+
+For an **opening**, start from `python tools/opening.py "<CHANNEL>" --out films/<name>` (name in blocks, blast, orbit, logo hold,
+game sounds and an original score) and then adapt the generated `story.json` (block, skin, timing, extra shots).
 
 Read `docs/GENRES.md`: **opening** (YouTube channel intro, 5-12 s), **cinematic short** (an epic or dramatic 20-60 s film,
 e.g. `examples/` and the "Farol Negro" production), **series episode** (talking characters, comedy or adventure, 1-5 min, the

@@ -8,6 +8,11 @@ description: Design a polished Minecraft player skin (64x64 PNG, classic or slim
 Work in the BlockReel folder (`$BLOCKREEL_HOME`, see the `blockreel` skill bootstrap). Put each skin in `work/skins/<name>/`
 (gitignored) or `films/<name>/skins/`. **Never copy someone else's skin**; take ideas, not pixels.
 
+## 0. The user sent a skin
+
+Use it exactly as sent: copy it into the film folder, `python core/skin.py validate` it (convert legacy 64x32 into a NEW file),
+and reference it in `story.json`. Never repaint a user's skin unless they ask. Only design a new skin when there is none.
+
 ## 1. Briefing (at most one short question)
 
 Settle: the **character** (who, role, mood), the **style** and **model**.

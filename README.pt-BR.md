@@ -17,6 +17,17 @@ Sem modelo de vídeo: cada quadro é desenhado pelo Three.js num Chrome headless
 
 ---
 
+
+### Novidades
+
+- **Visual e som do jogo por padrão:** `python tools/vanilla.py fetch` (texturas originais) e `python tools/vanilla.py sounds` (efeitos sonoros originais)
+  baixam das fontes da própria Mojang para um cache local (`work/vanilla/`, nunca vai para o git).
+- **Gêneros** ([docs/GENRES.md](docs/GENRES.md)): curta cinematográfico, **opening de canal** (`python tools/opening.py "MEU CANAL" --out films/intro`) e episódio de série.
+- **Produção sonora:** trilha original composta em código (`tools/score.py`), vozes offline com presets de personagem (`tools/voice.py`, vozes neurais Piper pt-BR
+  ou as vozes do Windows) e mixagem com ducking.
+- **Sua skin no vídeo:** se você mandar uma skin, ela é usada exatamente como veio (validada para funcionar no jogo também).
+- **QA mais rígida:** checagem densa a cada 0,05 s pega personagem dentro de bloco, árvore ou parede.
+
 ## Veja funcionando
 
 <p align="center"><img src="docs/media/demo.gif" alt="Trecho de The Last Torch: impasse, olhos brilhantes, armadilha de TNT e explosão" width="720"></p>

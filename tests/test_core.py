@@ -72,3 +72,20 @@ def test_snap_roundtrip_is_exact(tmp_path):
     skin.snap(tmp_path / "big.png", tmp_path / "back.png")
     a, b = Image.open(p).convert("RGBA"), Image.open(tmp_path / "back.png").convert("RGBA")
     assert list(a.getdata()) == list(b.getdata())
+
+
+def test_opening_builds_the_name_from_blocks(tmp_path):
+    """tools/opening.py writes a valid story whose placed blocks spell a readable bitmap of the name, plus its music."""
+    import json, sys
+    from pathlib import Path
+    root = Path(__file__).resolve().parent.parent
+    sys.path.insert(0, str(root / "tools"))
+    import opening
+    grid = opening.text_pixels("AB")
+    assert len(grid) >= 6 and len(grid[0]) >= 8 and sum(map(sum, grid)) > 20
+    opening.build("AB", tmp_path / "op", block="gold", duration=7)
+    s = json.loads((tmp_path / "op" / "story.json").read_text(encoding="utf-8"))
+    places = [c for c in s["changes"] if "place" in c]
+    assert len(places) == sum(map(sum, grid)) and all(c["block"] == "gold" for c in places)
+    assert all(0 < c["t"] < 3.6 for c in places) and s["duration"] == 7
+    assert (tmp_path / "op" / "assets" / "audio" / "score.wav").exists() and (tmp_path / "op" / "host.png").exists()

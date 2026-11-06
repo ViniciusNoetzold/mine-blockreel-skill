@@ -70,6 +70,7 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 | Voices | done (offline): `tools/voice.py` with Piper neural pt-BR voices (CC0 datasets, fetched to `work/voices/`) or Windows OneCore voices with SSML, plus character presets. Piper has no female pt-BR voice; no audio-driven lip-sync |
 | Voice generation, audio-driven lip-sync | missing |
 | GIF / social crops (9:16), subtitles export (SRT) | missing |
+| YouTube-style channel openings | done: `tools/opening.py` (name in blocks, blast, orbit, logo hold, sound) |
 | Parallel rendering, 1080p60, GPU | done / untested GPU |
 
 ## Suggested order to close the gaps (highest impact first)

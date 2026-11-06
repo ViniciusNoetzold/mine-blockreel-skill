@@ -9,12 +9,29 @@
   <img src="https://img.shields.io/badge/video%20model-none-success" alt="no video model">
 </p>
 
-<p align="center"><b>Describe a story. Claude briefs it, researches references, writes a shot list, builds the blocky world, animates it, reviews its own frames and renders an MP4.</b><br>
-No video model: every frame is drawn by Three.js in headless Chrome and encoded by ffmpeg. Your skins, your textures, your story.</p>
+<p align="center"><b>Describe a story. Claude briefs it, researches references, writes a shot list, builds the blocky world, animates it, scores it, reviews its own frames and renders an MP4.</b><br>
+Cinematic shorts, YouTube channel openings, dialogue episodes, about anything. It looks and sounds like the game by default (original textures and sound
+effects, fetched to your own machine), uses <i>your</i> skins when you send them, and needs no video model: every frame is drawn by Three.js in headless
+Chrome and encoded by ffmpeg.</p>
 
 <p align="center"><a href="README.pt-BR.md">Leia em português</a> · <a href="#-install">Install</a> · <a href="#-the-three-skills">Skills</a> · <a href="docs/PROMPTS.md">Prompts</a> · <a href="docs/COVERAGE.md">What is missing</a> · <a href="docs/STORYBOARD.md">Schema</a></p>
 
-> Unofficial fan tool. Not affiliated with Mojang or Microsoft. Ships no game assets (see [docs/LEGAL.md](docs/LEGAL.md)).
+> Unofficial fan tool. Not affiliated with Mojang or Microsoft. The repo ships **no** game assets: `tools/vanilla.py` downloads the original
+> textures and sounds from Mojang's own sources into a gitignored cache on your machine (see [docs/LEGAL.md](docs/LEGAL.md)).
+
+### What you can ask for
+
+| Genre ([docs/GENRES.md](docs/GENRES.md)) | Example prompt | What you get |
+|---|---|---|
+| 🎬 **Cinematic short** | *"30 s epic: a warrior defends the last beacon against a zombie horde, TNT trap, dawn."* | brief, web research with links, shot list, skins, the film, QA report, key stills, a GIF |
+| 📺 **Channel opening** | *"An 8 s intro for my channel MEU CANAL, gold blocks, a blast, my skin waving."* | `tools/opening.py` builds the name from blocks, blast, orbit, logo hold, game sounds + original music |
+| 💬 **Series episode** | *"2 min comedy: Steve and Alex try to tame a creeper, use my two skins."* | singles for every line, voices (your recordings or offline TTS), lip-sync, chat-style subtitles |
+
+### Sound is part of the film
+
+Original game sound effects (explosions, doors, chests, mobs, hits, steps, rain, fire) from `tools/vanilla.py sounds`, an **original score** composed in
+code that follows the film's energy (`tools/score.py`: calm → build → battle → silence → dawn), and **character voices** offline
+(`tools/voice.py`: Piper neural pt-BR voices or Windows OneCore voices, presets hero / villain / monster / child / narrator / radio), mixed with ducking.
 
 ---
 
@@ -188,6 +205,29 @@ python tools/render.py examples/last-torch/story.json --workers 4 --out film.mp4
 python tools/preview.py examples/camera-lab/story.json                                          # live preview with a time slider
 python tools/qa.py examples/last-torch/story.json --out out/qa                                  # quality review frames + checks
 ```
+
+Look and sound like the game, and the production tools:
+
+```bash
+python tools/vanilla.py fetch          # original block, mob, chest and Steve/Alex textures -> work/vanilla (local, ~45 KB)
+python tools/vanilla.py sounds         # original sound effects -> work/vanilla/sounds (local, ~1 MB, no music)
+python tools/voice.py fetch            # offline neural voices (Piper pt-BR, CC0 datasets) -> work/voices
+python tools/opening.py "MEU CANAL" --out films/intro && python tools/render.py films/intro/story.json --out films/intro/opening.mp4
+python tools/score.py --out music.wav --duration 30 --sections calm:0:7,build:7:15,battle:15:23,silence:23:26,dawn:26:30
+python tools/voice.py say "O farol cai esta noite." --voice piper:faber --preset villain --rate=-35% --out vigia.wav
+```
+
+| Tool | Job |
+|---|---|
+| `tools/render.py` | story.json → MP4 (stills, preview preset, `--scale`, `--workers`, audio mux) |
+| `tools/qa.py` | spread frames + contact sheet + checks: camera/actor inside blocks, **dense path check every 0.05 s**, framing, subtitles, pacing |
+| `tools/vanilla.py` | original textures and sound effects into a local cache (never committed) |
+| `tools/opening.py` | YouTube-style channel opening from a name |
+| `tools/score.py` | original background score that follows the energy shape |
+| `tools/voice.py` | offline character voices with presets, trimmed to start on cue |
+| `tools/audio.py` | music + sfx + dialogue mix with ducking |
+| `tools/turntable.py`, `core/skin.py` | skin preview from 4 angles; validate / convert / paint skins that also work in the real game |
+| `core/tilecheck.py`, `tools/pack_preview.py`, `core/pack.py` | texture set checks, in-scene preview, resource-pack zip |
 
 ## How it works
 
