@@ -1,0 +1,34 @@
+{
+  "title": "Faces lab",
+  "fps": 30, "size": [1280, 720], "duration": 10,
+  "style": "golden-hour",
+  "actors": {
+    "hero":    { "skin": "/core/builtin/skins/hero.png",    "pos": [0, 1, 0],   "face": 0, "nametag": "Hero" },
+    "villain": { "skin": "/core/builtin/skins/villain.png", "pos": [-3, 1, 0],  "face": 0, "nametag": "Villain" },
+    "explorer":{ "skin": "/core/builtin/skins/explorer.png","pos": [3, 1, 0],   "face": 0, "nametag": "Explorer" }
+  },
+  "world": [
+    { "fill": ["sand", [-12, 0, -8], [12, 0, 8]] },
+    { "fill": ["obsidian", [-12, 1, -9], [12, 4, -9]] },
+    { "set": ["glowstone", [-4, 1, 3]] }, { "set": ["glowstone", [4, 1, 3]] }
+  ],
+  "faces": [
+    { "t": 0.0, "actor": "villain", "eyes": "glow" },
+    { "t": 2.0, "actor": "hero", "eyes": "wide", "mouth": "shout", "dur": 1.5 },
+    { "t": 3.8, "actor": "hero", "eyes": "angry", "mouth": "frown" },
+    { "t": 5.5, "actor": "hero", "eyes": "open", "mouth": "smile", "hurt": 2 },
+    { "t": 7.0, "actor": "explorer", "eyes": "half", "mouth": "open" },
+    { "t": 8.5, "actor": "explorer", "eyes": "dead", "mouth": "half" }
+  ],
+  "timeline": [
+    { "t": 0, "actor": "villain", "do": "stance", "dur": 10, "hold": true, "lookAt": "hero" },
+    { "t": 0, "actor": "explorer", "do": "idle", "lookAt": "hero" }
+  ],
+  "camera": [
+    { "t": 0.0, "dur": 2,   "pos": [-3, 2.7, 2.2], "look": [-3, 2.6, 0], "fov": 40 },
+    { "t": 2.0, "dur": 3.5, "pos": [0, 2.7, 2.2],  "look": [0, 2.6, 0], "fov": 40 },
+    { "t": 5.5, "dur": 1.5, "pos": [0, 2.7, 2.0],  "look": [0, 2.6, 0], "fov": 40, "handheld": 1 },
+    { "t": 7.0, "dur": 3,   "pos": [3, 2.7, 2.2],  "look": [3, 2.6, 0], "fov": 40 }
+  ],
+  "subtitles": [ { "t": 5.6, "dur": 1.3, "who": "Hero", "text": "Aha, boa noite amigos!" } ]
+}

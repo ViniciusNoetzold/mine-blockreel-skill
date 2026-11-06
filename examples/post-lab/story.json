@@ -1,0 +1,30 @@
+{
+  "title": "Post-processing lab",
+  "fps": 30, "size": [1280, 720], "duration": 10, "seed": 3,
+  "style": "golden-hour",
+  "post": { "bloom": { "strength": 0.7, "radius": 0.6, "threshold": 0.8 }, "grain": 0.05, "chroma": 0.002,
+            "grade": { "contrast": 1.08, "saturation": 1.1 } },
+  "weather": { "type": "rain", "density": 0.8 },
+  "actors": {
+    "hero":    { "skin": "/core/builtin/skins/hero.png",    "pos": [-1.5, 1, 0], "face": 90 },
+    "villain": { "skin": "/core/builtin/skins/villain.png", "pos": [ 3.5, 1, -3], "face": -90 }
+  },
+  "world": [
+    { "fill": ["grass", [-10, 0, -10], [10, 0, 8]] },
+    { "set": ["glowstone", [0, 1, 2]] }, { "set": ["glowstone", [5, 1, -1]] }, { "set": ["glowstone", [-4, 1, -2]] },
+    { "tree": [-6, 1, -5], "height": 5 }
+  ],
+  "lighting": [
+    { "t": 0, "sky": { "top": "#ff9a5a", "bottom": "#ffd9a0" }, "ambient": { "color": "#ffd9b0", "intensity": 0.7 }, "sun": { "color": "#ffb36b", "intensity": 1.0, "dir": [0.6, 0.35, 0.4] } },
+    { "t": 9, "sky": { "top": "#050818", "bottom": "#1a2350" }, "ambient": { "color": "#6f7fff", "intensity": 0.45 }, "sun": { "color": "#9fb4ff", "intensity": 0.7, "dir": [0.3, 1, -0.5] }, "fog": [10, 50] }
+  ],
+  "faces": [ { "t": 0, "actor": "villain", "eyes": "glow" } ],
+  "timeline": [
+    { "t": 0, "actor": "hero", "do": "idle", "lookAt": "villain" },
+    { "t": 0, "actor": "villain", "do": "stance", "dur": 10, "hold": true, "lookAt": "hero" }
+  ],
+  "camera": [
+    { "t": 0, "dur": 5, "pos": [-3.2, 2.7, 3.2], "look": "hero", "fov": 38, "focus": "hero", "focusTo": "villain", "post": { "dof": { "aperture": 0.0005, "maxblur": 0.02 } } },
+    { "t": 5, "dur": 5, "pos": [1, 2.8, 4], "look": [2.5, 2.4, -2], "fov": 45 }
+  ]
+}

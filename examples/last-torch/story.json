@@ -1,0 +1,113 @@
+{
+  "title": "The Last Torch",
+  "fps": 30, "size": [1280, 720], "duration": 34, "seed": 21,
+  "style": "nightfall",
+  "styleOverride": { "letterbox": 2.37, "fog": [16, 70], "ambient": { "color": "#7f8fff", "intensity": 0.85 }, "sun": { "color": "#9fb4ff", "intensity": 1.1, "dir": [0.3, 1, -0.5] } },
+  "post": { "bloom": { "strength": 0.6, "radius": 0.55, "threshold": 0.8 }, "grain": 0.045, "chroma": 0.0015, "grade": { "contrast": 1.06, "saturation": 1.08 } },
+  "weather": { "type": "rain", "density": 0.7, "wind": 2 },
+
+  "actors": {
+    "courier": { "skin": "/core/builtin/skins/explorer.png", "pos": [-8, 1, 3], "face": 90, "holding": "glowstone", "dust": true },
+    "warden":  { "skin": "/core/builtin/skins/villain.png",  "pos": [5, 1, 2],  "face": -90, "nametag": "Warden" }
+  },
+
+  "world": [
+    { "fill": ["grass", [-14, 0, -12], [14, 0, 10]] },
+    { "fill": ["dirt", [-14, -3, -12], [14, -1, 10]] },
+    { "hollow": ["cobblestone", [-1, 1, -7], [3, 6, -3]] },
+    { "set": ["air", [1, 1, -3]] }, { "set": ["air", [1, 2, -3]] },
+    { "set": ["air", [-1, 3, -5]] }, { "set": ["air", [-1, 4, -5]] }, { "set": ["air", [-1, 4, -4]] },
+    { "set": ["air", [3, 3, -5]] }, { "set": ["air", [3, 4, -5]] },
+    { "set": ["air", [2, 6, -7]] }, { "set": ["air", [3, 6, -7]] },
+    { "set": ["stone", [-1, 7, -7]] }, { "set": ["stone", [3, 7, -3]] }, { "set": ["stone", [-1, 7, -3]] },
+    { "set": ["obsidian", [1, 7, -5]] }, { "set": ["obsidian", [1, 8, -5]] },
+    { "set": ["cobblestone", [4, 1, -5]] }, { "set": ["cobblestone", [5, 1, -4]] }, { "set": ["cobblestone", [-3, 1, -4]] }, { "set": ["cobblestone", [-4, 1, -5]] },
+    { "set": ["tnt", [1, 1, 2]] },
+    { "set": ["glowstone", [0, 2, -3]] }, { "set": ["glowstone", [2, 2, -3]] },
+    { "tree": [-9, 1, -4], "height": 5 }, { "tree": [9, 1, -7], "height": 6 }
+  ],
+
+  "changes": [
+    { "t": 14.0, "tnt": [1, 1, 2], "fuse": 0.63, "radius": 2.0 },
+    { "t": 25.6, "place": [1, 9, -5], "block": "glowstone" }
+  ],
+
+  "lighting": [
+    { "t": 25.3, "sky": { "top": "#05060f", "bottom": "#1b2347" }, "ambient": { "color": "#7f8fff", "intensity": 0.85 }, "sun": { "color": "#9fb4ff", "intensity": 1.1, "dir": [0.3, 1, -0.5] }, "fog": [16, 70] },
+    { "t": 28.0, "sky": { "top": "#3b2a5e", "bottom": "#f0985e" }, "ambient": { "color": "#ffd2a0", "intensity": 0.75 }, "sun": { "color": "#ffb36b", "intensity": 1.0, "dir": [0.6, 0.4, 0.3] }, "fog": [24, 90] }
+  ],
+
+  "fx": [
+    { "t": 14.0, "kind": "sparks", "pos": [1.5, 1.6, 2.5], "scale": 0.8, "seed": 1 },
+    { "t": 16.2, "kind": "sparks", "pos": [6.5, 2.0, 2.4], "scale": 1.0, "seed": 2 },
+    { "t": 25.6, "kind": "sparks", "pos": [1.5, 9.8, -4.5], "scale": 1.5, "seed": 3 },
+    { "t": 25.6, "kind": "fire", "pos": [1.5, 9.1, -4.5], "dur": 9, "scale": 0.9 },
+    { "t": 28.0, "kind": "sparks", "pos": [1.5, 10.0, -4.5], "scale": 1.0, "seed": 4 }
+  ],
+
+  "timeRemap": [ { "t": 14.5, "dur": 1.8, "slow": 0.8 } ],
+
+  "timeline": [
+    { "t": 2.6,  "actor": "courier", "do": "walk", "to": [-2, 1, 3], "dur": 3.4 },
+    { "t": 6.0,  "actor": "courier", "do": "idle", "dur": 6.0, "face": "warden", "lookAt": "warden" },
+    { "t": 12.2, "actor": "courier", "do": "run",  "to": [0.6, 1, 5.0], "dur": 1.3 },
+    { "t": 13.5, "actor": "courier", "do": "idle", "dur": 0.2, "face": [1.5, 1, 2.5] },
+    { "t": 13.7, "actor": "courier", "do": "swing", "dur": 0.7 },
+    { "t": 14.6, "actor": "courier", "do": "idle", "dur": 1.6, "face": "warden", "lookAt": "warden" },
+    { "t": 16.4, "actor": "courier", "do": "idle", "dur": 1.2, "face": [1, 1, -5], "lookAt": [1, 6, -5] },
+    { "t": 21.5, "actor": "courier", "do": "walk", "to": [-2.2, 1, 1.5], "dur": 1.6 },
+    { "t": 23.1, "actor": "courier", "do": "walk", "to": [1, 1, -2.3], "dur": 1.4 },
+    { "t": 24.5, "actor": "courier", "do": "idle", "dur": 0.4, "face": [1, 1, -5] },
+    { "t": 25.0, "actor": "courier", "do": "raise", "dur": 6.0, "hold": true },
+
+    { "t": 0.0,  "actor": "warden", "hide": true },
+    { "t": 5.95, "actor": "warden", "show": true, "do": "stance", "dur": 6.85, "hold": true, "lookAt": "courier" },
+    { "t": 12.8, "actor": "warden", "do": "lunge", "dur": 0.8 },
+    { "t": 13.6, "actor": "warden", "do": "run",   "to": [2, 1, 2.4], "dur": 1.03, "face": -90 },
+    { "t": 14.63,"actor": "warden", "do": "hit",   "to": [6.5, 1, 2.4], "dur": 0.9, "ease": "out", "face": -90 },
+    { "t": 16.2, "actor": "warden", "hide": true }
+  ],
+
+  "faces": [
+    { "t": 5.95, "actor": "warden", "eyes": "glow" },
+    { "t": 12.8, "actor": "warden", "mouth": "shout", "dur": 1.0 },
+    { "t": 14.7, "actor": "warden", "eyes": "dead", "hurt": 2 },
+    { "t": 6.0,  "actor": "courier", "eyes": "wide", "mouth": "open", "dur": 1.2 },
+    { "t": 10.4, "actor": "courier", "eyes": "angry", "dur": 2.2 },
+    { "t": 14.8, "actor": "courier", "eyes": "wide", "dur": 1.2 }
+  ],
+
+  "camera": [
+    { "t": 0.0,  "dur": 3.0, "pos": [-5, 1.4, 9], "to": [-4, 1.2, 8], "look": [1, 2.5, -5], "lookTo": [1, 9, -5], "fov": 62, "handheld": 0.8 },
+    { "t": 3.0,  "dur": 3.0, "pos": [-6, 2.2, 8.5], "to": [-1, 2.2, 8.5], "look": "courier", "fov": 50, "handheld": 0.4 },
+    { "t": 6.0,  "dur": 2.0, "pos": [-0.3, 2.7, 4.3], "look": [-2, 2.55, 3], "fov": 38, "handheld": 0.3 },
+    { "t": 8.0,  "dur": 2.4, "pos": [1.8, 1.4, 4.3], "look": [5, 2.6, 2], "fov": 45, "handheld": 0.6 },
+    { "t": 10.4, "dur": 2.2, "pos": [1.5, 2.2, 9], "to": [1.5, 2.2, 7.6], "look": [1.5, 2, 2.5], "fov": 52 },
+    { "t": 12.6, "tone": "action", "dur": 1.0, "pos": [3.5, 1.3, 5.5], "look": [5, 2.2, 2], "fov": 55, "shake": 0.03, "handheld": 0.8 },
+    { "t": 13.6, "tone": "action", "dur": 0.8, "pos": [3.8, 2.5, 4.4], "look": "courier", "fov": 40, "handheld": 1.0 },
+    { "t": 14.4, "tone": "action", "dur": 1.8, "pos": [-3.6, 2.0, 0.8], "look": [2.6, 1.8, 2.4], "fov": 58, "shake": 0.06 },
+    { "t": 16.2, "tone": "action", "dur": 1.3, "pos": [3.5, 2.2, 6.2], "look": [6.5, 2.0, 2.4], "fov": 45, "handheld": 0.5 },
+    { "t": 17.5, "tone": "calm", "dur": 4.0, "pos": [-1, 2.4, 9.5], "to": [0.2, 2.4, 8.2], "look": [0.6, 2, 5], "fov": 50 },
+    { "t": 21.5, "dur": 3.0, "pos": [-3.5, 2.2, 7], "to": [-2, 2.0, 2.5], "look": "courier", "fov": 55, "handheld": 0.3 },
+    { "t": 24.5, "tone": "calm", "dur": 3.0, "pos": [-1.2, 1.2, 4.6], "look": [1.3, 6, -4], "fov": 60, "focus": "courier", "focusTo": [1, 9, -5], "post": { "dof": { "aperture": 0.0004, "maxblur": 0.014 } } },
+    { "t": 27.5, "tone": "calm", "dur": 3.5, "pos": [-3, 3, 8], "to": [-8, 6, 13], "look": [1, 7, -5], "fov": 55 },
+    { "t": 31.0, "tone": "calm", "dur": 3.0, "pos": [-8, 6, 13], "look": [1, 7, -5], "fov": 55 }
+  ],
+
+  "transitions": [
+    { "t": 5.9,  "type": "flash", "dur": 0.3, "peak": 0.8 },
+    { "t": 12.5, "type": "whip",  "dur": 0.25, "dir": "right", "strength": 36 },
+    { "t": 14.55,"type": "flash", "dur": 0.5, "peak": 1 },
+    { "t": 25.5, "type": "flash", "dur": 0.5, "color": "#ffe2a8", "peak": 0.7 },
+    { "t": 32.4, "type": "fade",  "dur": 1.6, "dir": "out", "color": "#000" }
+  ],
+
+  "subtitles": [
+    { "t": 8.3,  "dur": 1.6, "who": "Warden",  "text": "Turn back." },
+    { "t": 10.6, "dur": 1.5, "who": "Courier", "text": "I cannot." }
+  ],
+  "titles": [
+    { "t": 0.5,  "dur": 2.0, "text": "THE LAST TORCH", "size": 58 },
+    { "t": 29.5, "dur": 3.0, "text": "The light holds.", "size": 44, "color": "#ffe2a8" }
+  ]
+}

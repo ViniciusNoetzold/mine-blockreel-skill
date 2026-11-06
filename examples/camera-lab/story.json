@@ -1,0 +1,37 @@
+{
+  "title": "Camera lab",
+  "fps": 30, "size": [1280, 720], "duration": 14,
+  "style": "void-arena", "styleOverride": { "letterbox": 2.37 },
+  "actors": {
+    "hero":    { "skin": "/core/builtin/skins/hero.png",    "pos": [-2, 1, 0], "face": 90 },
+    "villain": { "skin": "/core/builtin/skins/villain.png", "pos": [ 2, 1, 0], "face": -90 }
+  },
+  "world": [
+    { "fill": ["sand", [-12, 0, -10], [12, 0, 10]] },
+    { "fill": ["obsidian", [-6, 1, -5], [-6, 5, -5]] }, { "fill": ["obsidian", [6, 1, -5], [6, 4, -5]] }
+  ],
+  "faces": [ { "t": 0, "actor": "villain", "eyes": "glow" } ],
+  "timeline": [
+    { "t": 0,   "actor": "hero",    "do": "stance", "dur": 14, "hold": true, "lookAt": "villain" },
+    { "t": 0,   "actor": "villain", "do": "stance", "dur": 14, "hold": true, "lookAt": "hero" },
+    { "t": 8.0, "actor": "hero",    "do": "swing", "dur": 1.0 },
+    { "t": 8.4, "actor": "villain", "do": "hit",   "dur": 1.0 },
+    { "t": 10.5,"actor": "hero",    "do": "walk",  "to": [0, 1, 3], "dur": 2.0 }
+  ],
+  "camera": [
+    { "t": 0.0, "dur": 2.0, "pos": [-8, 2.5, 6], "to": [-5, 2.2, 5], "look": "hero", "fov": 55, "handheld": 1.0, "ease": "outCubic" },
+    { "t": 2.0, "dur": 2.0, "pos": [8, 2.0, 5], "look": "villain", "fov": 40, "fovTo": 30, "dutch": 6, "handheld": 0.6 },
+    { "t": 4.0, "dur": 2.0, "pos": [0, 4.5, 9], "look": [0, 2, 0], "fov": 60 },
+    { "t": 6.0, "dur": 2.0, "first": "hero", "fov": 80, "handheld": 0.5 },
+    { "t": 8.0, "dur": 3.0, "orbit": { "center": [0, 2, 0], "radius": 6, "height": 1.5, "from": -50, "to": 40 }, "fov": 50, "shake": 0.02 },
+    { "t": 11.0,"dur": 3.0, "pos": [-3, 2.2, 6], "to": [3, 2.2, 6], "look": [0, 2, 0], "fov": 55, "ease": "inOutBack" }
+  ],
+  "transitions": [
+    { "t": 1.85, "type": "whip", "dur": 0.3, "dir": "right", "strength": 40 },
+    { "t": 3.95, "type": "flash", "dur": 0.5, "color": "#ffffff", "peak": 1 },
+    { "t": 5.9,  "type": "whip", "dur": 0.25, "dir": "left", "strength": 36 },
+    { "t": 12.5, "type": "fade", "dur": 1.4, "dir": "out", "color": "#000" }
+  ],
+  "timeRemap": [ { "t": 8.0, "dur": 2.0, "slow": 0.85 } ],
+  "titles": [ { "t": 0.5, "dur": 1.5, "text": "CAMERA LAB", "size": 54 } ]
+}

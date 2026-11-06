@@ -1,0 +1,32 @@
+{
+  "title": "World actions lab",
+  "fps": 30, "size": [1280, 720], "duration": 12, "seed": 5,
+  "style": "classic-2012",
+  "post": { "bloom": { "strength": 0.4, "radius": 0.5, "threshold": 0.85 } },
+  "actors": {
+    "hero": { "skin": "/core/builtin/skins/hero.png", "pos": [-4, 1, 3], "face": 0, "holding": "tnt" }
+  },
+  "world": [
+    { "fill": ["grass", [-10, 0, -8], [10, 0, 6]] },
+    { "fill": ["stone", [-3, 1, -2], [-1, 3, -2]] },
+    { "set": ["tnt", [2, 1, -2]] },
+    { "fill": ["cobblestone", [1, 1, -3], [3, 2, -3]] }, { "fill": ["cobblestone", [3, 1, -2], [3, 2, -2]] }, { "fill": ["cobblestone", [1, 1, -2], [1, 2, -2]] },
+    { "fill": ["lava", [5, 0, -2], [7, 0, 0]] },
+    { "fill": ["water", [-8, 0, -3], [-6, 0, 0]] }
+  ],
+  "changes": [
+    { "t": 1.0, "break": [-2, 2, -2], "crack": 0.9 },
+    { "t": 2.6, "place": [-2, 2, -2], "block": "gold" },
+    { "t": 3.5, "place": [-2, 4, -2], "block": "diamond" },
+    { "t": 5.0, "tnt": [2, 1, -2], "fuse": 1.6, "radius": 3 }
+  ],
+  "props": {
+    "door1":  { "type": "door",  "pos": [-1, 1, 1], "axis": "x", "hinge": "min", "block": "planks", "events": [ { "t": 7.5, "do": "open" }, { "t": 10, "do": "close" } ] },
+    "chest1": { "type": "chest", "pos": [4, 1, 1],  "face": 180, "events": [ { "t": 8, "do": "open" } ] }
+  },
+  "camera": [
+    { "t": 0,  "dur": 4.9, "pos": [-5, 4, 8], "to": [-3, 3.2, 6], "look": [-1, 2, -2], "fov": 55 },
+    { "t": 4.9,"dur": 3,   "pos": [2, 3.2, 6], "look": [2, 1.8, -2.5], "fov": 55, "shake": 0.05 },
+    { "t": 7.9,"dur": 4.1, "pos": [2, 3, 6], "look": [2.5, 1.4, 0.5], "fov": 55 }
+  ]
+}

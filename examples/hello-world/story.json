@@ -1,0 +1,43 @@
+{
+  "title": "Hello, BlockReel",
+  "fps": 30, "size": [1280, 720], "duration": 12,
+  "style": "classic-2012",
+  "actors": {
+    "hero":     { "skin": "/core/builtin/skins/hero.png",     "pos": [-4.5, 1, 0.5], "face": 90, "nametag": "Hero", "holding": "planks" },
+    "explorer": { "skin": "/core/builtin/skins/explorer.png", "pos": [ 4.5, 1, 0.5], "face": -90, "nametag": "Explorer" }
+  },
+  "world": [
+    { "fill": ["grass", [-10, 0, -8], [10, 0, 8]] },
+    { "fill": ["dirt", [-10, -1, -8], [10, -1, 8]] },
+    { "tree": [-7, 1, -4], "height": 4 },
+    { "tree": [8, 1, -3], "height": 5 },
+    { "hollow": ["planks", [-2, 1, -6], [2, 3, -3]] },
+    { "set": ["glass", [0, 2, -3]] },
+    { "fill": ["water", [5, 0, 4], [9, 0, 7]] },
+    { "fill": ["stone", [-9, 1, 5], [-7, 1, 7]] },
+    { "set": ["tnt", [-8, 2, 6]] },
+    { "set": ["glowstone", [3, 1, -5]] }
+  ],
+  "timeline": [
+    { "t": 0.5, "actor": "hero",     "do": "walk",  "to": [-1.2, 1, 0.5], "dur": 3.0 },
+    { "t": 3.5, "actor": "hero",     "do": "wave",  "dur": 2.5, "face": "explorer" },
+    { "t": 0.5, "actor": "explorer", "do": "look",  "dur": 3.0 },
+    { "t": 3.5, "actor": "explorer", "do": "wave",  "dur": 2.0, "face": "hero" },
+    { "t": 6.2, "actor": "hero",     "do": "talk",  "dur": 2.2 },
+    { "t": 8.4, "actor": "explorer", "do": "talk",  "dur": 2.0 },
+    { "t": 10.4, "actor": "hero",    "do": "jump",  "dur": 0.7, "height": 1.0 },
+    { "t": 10.4, "actor": "explorer","do": "dance", "dur": 1.6 }
+  ],
+  "camera": [
+    { "t": 0,   "dur": 3.5, "pos": [-9, 3.2, 9], "to": [-4, 2.4, 7], "look": [-3, 1.5, 0], "lookTo": "hero", "ease": "smooth" },
+    { "t": 3.5, "dur": 2.7, "orbit": { "center": [1.6, 1.4, 0.5], "radius": 8, "height": 2.0, "from": -25, "to": 25 } },
+    { "t": 6.2, "dur": 2.2, "pos": { "actor": "hero", "offset": [2.3, 1.9, 1.4] }, "look": "hero", "fov": 45 },
+    { "t": 8.4, "dur": 2.0, "pos": { "actor": "explorer", "offset": [-2.3, 1.9, 1.4] }, "look": "explorer", "fov": 45 },
+    { "t": 10.4,"dur": 1.6, "pos": [0, 2.5, 9], "to": [0, 3.5, 11], "look": [0, 1.6, 0] }
+  ],
+  "subtitles": [
+    { "t": 6.2, "dur": 2.0, "who": "Hero", "text": "Did you see that creeper-looking tree?" },
+    { "t": 8.4, "dur": 1.9, "who": "Explorer", "text": "It's just a tree! ...I think." }
+  ],
+  "titles": [ { "t": 0.4, "dur": 2.2, "text": "BLOCKREEL" } ]
+}
