@@ -1,0 +1,12 @@
+{
+  "_note": "Starter labels for the first contact sheet (unique tiles #0-#63) of a 27x52-cell block/item sheet. Only tiles that were identified by eye are listed; verify against your own sheet.",
+  "0": "stone", "1": "cobblestone", "2": "grass_block", "3": "dirt", "4": "planks", "5": "sapling",
+  "6": "mossy_cobblestone", "7": "bedrock", "8": "sand", "9": "gravel", "10": "log", "11": "leaves",
+  "12": "coal_ore", "13": "iron_ore", "14": "gold_ore", "15": "iron_block", "16": "gold_block",
+  "17": "bricks", "18": "bookshelf", "19": "obsidian", "20": "sponge", "21": "glass", "22": "stone_slab",
+  "23": "tnt", "24": "brown_mushroom", "25": "red_mushroom", "26": "dandelion", "27": "poppy",
+  "28": "diamond_ore", "29": "diamond_block", "30": "torch", "32": "painting", "33": "crafting_table",
+  "34": "furnace", "35": "chest", "37": "coal", "38": "iron_ingot", "39": "gold_ingot", "40": "diamond",
+  "41": "stick", "43": "wheat", "44": "feather", "45": "string", "46": "gunpowder", "47": "apple",
+  "48": "bread", "49": "mushroom_stew"
+}
