@@ -66,6 +66,7 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 | Skins and textures: skills, turntable, tile checker, pack builder, in-scene preview | done (not tested in the game) |
 | Music, sfx, dialogue mix with ducking | done (you supply the audio) |
 | Original game textures and sound effects | done: `tools/vanilla.py fetch` / `sounds` into a local cache (not shipped) |
+| Background music | done: `tools/score.py` composes an original score from a section list (calm, build, battle, silence, dawn); synthesised, not orchestral |
 | Voices | partial: local TTS (Windows voices) in the Farol Negro recipe; no generic cross-platform TTS tool yet |
 | Voice generation, audio-driven lip-sync | missing |
 | GIF / social crops (9:16), subtitles export (SRT) | missing |

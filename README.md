@@ -23,7 +23,7 @@ No video model: every frame is drawn by Three.js in headless Chrome and encoded 
 <p align="center"><img src="docs/media/farol-negro.gif" alt="Excerpt of Farol Negro: a creeper charges, a slow-motion punch, the TNT trap and the blast" width="720"></p>
 
 <p align="center">
-  <a href="docs/media/farol-negro.mp4"><b>▶ Watch the 30 s film: <i>Farol Negro</i></b></a> (4 MB mp4, 720p, no audio in the repo copy)
+  <a href="docs/media/farol-negro.mp4"><b>▶ Watch the 30 s film: <i>Farol Negro</i></b></a> (3 MB mp4, 2.37:1, with the original score and voices)
 </p>
 
 <table>
@@ -40,8 +40,9 @@ No video model: every frame is drawn by Three.js in headless Chrome and encoded 
 <sub><i>Farol Negro</i> is a 30 s, 1920x1080 cinematic short produced end to end by the skill: briefing, web research, shot list,
 two original skins painted and reviewed in 3 turntable rounds, a custom 13-texture block set, 18 shots with handheld, dutch, orbit,
 first-person, rack focus and slow motion, three lighting acts, 3 QA rounds (0 FAIL), a 22 min software render with 4 workers, and a
-sound mix built from the original game sound effects (fetched locally, not in this repo), synthesised whooshes and music beds,
-and TTS voices. The repo copy has no audio so that no game sound is redistributed.</sub>
+sound mix built from the original game sound effects (fetched locally, not in this repo), an original score composed in code
+(`tools/score.py`), synthesised whooshes and TTS voices. The repo copy keeps the score, voices and whooshes but leaves the game's
+sound effects out, so that no game sound is redistributed.</sub>
 
 The earlier demo, <a href="docs/media/the-last-torch.mp4"><i>The Last Torch</i></a> (34 s), lives in [`examples/last-torch`](examples/last-torch):
 

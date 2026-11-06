@@ -91,14 +91,18 @@ energy shape (quiet → loud → quiet), shot lengths per the tone, every line s
    - Mobs: `docs/MOBS.md` (you need the user's textures; creeper-, pig-, spider-shaped rigs and a zombie via the player rig).
    - No skin → `python core/skin.py make ...` or the originals in `core/builtin/skins/`.
    - Sheet of blocks/items → `python core/atlas.py slice|label|faces` (see `docs/BLOCK-ATLAS.md`). Label only what you can identify.
-2. **Storyboard.** Write `story.json` from the shot list (`docs/STORYBOARD.md`). Start from the nearest `examples/*/story.json`.
+2. **Storyboard.** Letterbox bars and the vignette (darkened corners) come from the style (`letterbox`, `vignette`); for a
+   2.37:1 delivery crop the bars away at the end (`ffmpeg -vf crop=iw:iw/2.37`) so players do not show black bars, and turn the
+   vignette off (`styleOverride.vignette: false`) if the user does not want it.
+    Write `story.json` from the shot list (`docs/STORYBOARD.md`). Start from the nearest `examples/*/story.json`.
    Camera offsets are world-space: put the camera in front of the face you want to see.
 3. **Test stills.** `python tools/render.py story.json --frame <t> --out check.png` and LOOK at the image
    (framing first, then light, then acting).
 4. **Preview.** `python tools/render.py story.json --out preview.mp4 --fps 12 --scale 0.5`.
 5. **Sound (not optional).** Build every file the `audio` block points at: original game effects from `work/vanilla/sounds/`
    (explosions, doors, chests, mobs, hits, steps, rain, thunder, fire), made-up sounds only where the game has none (whoosh,
-   riser, music beds: the game's music has other rights holders), and voices (the user's recordings, or local TTS, e.g. the
+   riser: the game's music has other rights holders), an ORIGINAL score that follows the energy shape
+   (`python tools/score.py --out music.wav --duration 30 --sections calm:0:7,build:7:15,battle:15:23,silence:23:26,dawn:26:30`), and voices (the user's recordings, or local TTS, e.g. the
    Windows voice "Microsoft Maria" for pt-BR; pitch-shift for villains). See `films/`-style `make_audio.py` in `docs/GENRES.md`.
    `python tools/audio.py story.json --out mix.wav`, listen, then render with audio (or mux the mix into the silent render).
 6. **Final render.** `python tools/render.py story.json --out film.mp4`. Software GL is about 1 s/frame at 960x540:

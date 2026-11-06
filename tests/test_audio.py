@@ -62,3 +62,20 @@ def test_ducking_and_timing_in_a_real_mix(tmp_path):
     assert goertzel(seg(1.0, 2.5), 1000) < 0.02   # and absent before it
     assert goertzel(seg(6.05, 6.45), 800) > 0.1   # sfx at 6 s
     assert goertzel(seg(1.0, 2.5), 800) < 0.02
+
+
+def test_score_follows_sections(tmp_path):
+    """tools/score.py writes a stereo wav of the right length, with a real silence window and a louder battle than calm."""
+    import subprocess, sys, wave
+    import numpy as np
+    from pathlib import Path
+    root = Path(__file__).resolve().parent.parent
+    out = tmp_path / "s.wav"
+    subprocess.run([sys.executable, str(root / "tools" / "score.py"), "--out", str(out), "--duration", "12",
+                    "--sections", "calm:0:4,battle:4:8,silence:8:10,dawn:10:12"], check=True)
+    with wave.open(str(out)) as w:
+        assert w.getnchannels() == 2 and abs(w.getnframes() / w.getframerate() - 12) < 0.01
+        x = np.frombuffer(w.readframes(w.getnframes()), "<i2").reshape(-1, 2)[:, 0].astype(float)
+    sr = 44100; rms = lambda a, b: float(np.sqrt(np.mean(x[int(a * sr):int(b * sr)] ** 2)))
+    assert rms(8.5, 9.9) < 1.0
+    assert rms(5, 7.5) > rms(1, 3.5) > 0
