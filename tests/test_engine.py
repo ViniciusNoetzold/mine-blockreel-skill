@@ -91,3 +91,35 @@ def test_mobs_render_with_their_textures(render, tmp_path):
     red = sum(1 for x in range(0, w, 2) for y in range(0, h, 2) if px[x, y][0] > 130 and px[x, y][1] < 80 and px[x, y][2] < 80)
     assert pink > 10, "pig texture missing"
     assert red > 2, "spider eyes missing"
+
+
+def test_qa_path_check_catches_walking_through_blocks(render, tmp_path):
+    """The dense path check must FAIL an actor that spawns inside a tree trunk and one that crosses a wall between two
+    sampled frames, and stay quiet for an actor that walks around the wall and for a wall that was broken first."""
+    import json
+    import qa
+    story = {
+        "fps": 30, "size": [320, 180], "duration": 4, "style": "classic-2012", "textures": "builtin",
+        "world": [{"fill": ["grass", [-8, 0, -8], [8, 0, 8]]}, {"fill": ["stone", [0, 1, -3], [0, 2, 3]]},
+                  {"tree": [-5, 1, 5], "height": 4}, {"set": ["stone", [3, 1, 0]]}],
+        "changes": [{"t": 0.5, "break": [3, 1, 0]}],
+        "actors": {
+            "intree": {"skin": "/core/builtin/skins/hero.png", "pos": [-4.5, 1, 5.5]},
+            "ghost": {"skin": "/core/builtin/skins/hero.png", "pos": [-2.5, 1, 0.5]},
+            "polite": {"skin": "/core/builtin/skins/villain.png", "pos": [-2.5, 1, 6]},
+            "after": {"skin": "/core/builtin/skins/explorer.png", "pos": [3.5, 1, -2]},
+        },
+        "timeline": [
+            {"t": 0, "actor": "ghost", "do": "walk", "to": [2.5, 1, 0.5], "dur": 0.9},
+            {"t": 0, "actor": "polite", "do": "walk", "to": [2.5, 1, 6], "dur": 3},
+            {"t": 1.0, "actor": "after", "do": "walk", "to": [3.5, 1, 2], "dur": 2},
+        ],
+        "camera": [{"t": 0, "dur": 4, "pos": [0, 6, 14], "look": [0, 1, 0]}],
+    }
+    sp = tmp_path / "story.json"; sp.write_text(json.dumps(story))
+    rc = qa.main([str(sp), "--out", str(tmp_path / "qa"), "--min-frames", "2", "--no-md", "--scale", "0.5"])
+    assert rc == 1
+    fails = [i[2] for i in json.loads((tmp_path / "qa" / "auto.json").read_text())["issues"] if i[0] == "FAIL"]
+    assert any(f.startswith("intree is inside log") for f in fails), fails
+    assert any(f.startswith("ghost is inside stone at [0,") for f in fails), fails
+    assert not any(f.startswith(("polite", "after")) for f in fails), fails

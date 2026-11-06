@@ -74,6 +74,8 @@ No paragraphs on screen.
 
 - Two characters talking in the same shot with no framing change → cut to singles.
 - Camera inside a block (clips through the wall) → check stills.
+- A character inside a block: `hollow` builds a floor and a roof too, so clear the inside (`fill` air) before standing anyone in it;
+  walk through door gaps along the gap's centre line, never diagonally past a corner. `tools/qa.py` FAILs every such interval.
 - Subtitles that overlap titles → separate by time.
 - Everything moving at once → give the eye one thing to follow.
 

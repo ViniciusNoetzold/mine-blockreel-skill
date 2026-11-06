@@ -39,7 +39,7 @@ let story, style, renderer, scene, camera, sun;
 const actors = {};
 const clouds = [];
 let blockDefs = {}; let projBlocksDir = null;
-let vanillaDir = null; let grid = new Map(); let particles = null; let lastQA = null; let dyn = [], cracks = [], flowTex = [], props = null, worldFx = []; let post = null, weather = null, ambientL = null, skyTex = null, bgBase = null;
+let vanillaDir = null; let dynByKey = new Map(), dynKeys = new Set(); let grid = new Map(); let particles = null; let lastQA = null; let dyn = [], cracks = [], flowTex = [], props = null, worldFx = []; let post = null, weather = null, ambientL = null, skyTex = null, bgBase = null;
 const texCache = new Map();
 
 // ------------------------------------------------------------ textures ----
@@ -96,6 +96,7 @@ function expandWorld(ops) {
 async function buildWorld() {
   grid = expandWorld(story.world);
   const ch = parseChanges(story, grid); worldFx = ch.fx;
+  dynByKey = new Map(); for (const it of ch.insts) { const k = it.pos.join(','); (dynByKey.get(k) || dynByKey.set(k, []).get(k)).push(it); } dynKeys = ch.dynKeys;
   const by = {};
   for (const [k, b] of grid) if (!ch.dynKeys.has(k)) (by[b] ||= []).push(k.split(',').map(Number));
   const geo = new THREE.BoxGeometry(1, 1, 1); const m = new THREE.Matrix4();
@@ -459,6 +460,42 @@ window.renderAt = (t) => {
 };
 window.__qa = (t) => { window.renderAt(t); return collectQA(t, lastQA.camPos); };
 window.__story = () => story;
+
+// Dense path check (tools/qa.py): walks the whole film every `step` seconds WITHOUT rendering and reports every interval in which
+// an actor's body or the camera is inside a solid block of the world as it is at that moment (breaks, places and blasts included).
+// Catches characters that spawn in a tree, cut through a wall between two sampled frames, or a camera that clips through a roof.
+const PASSABLE = new Set(['water', 'lava']);
+function blockAt(k, t) {
+  const its = dynByKey.get(k);
+  if (its) { for (const it of its) if (blockState(it.evs, it.vis0, t).vis) return it.block; if (dynKeys.has(k)) return null; }
+  return grid.get(k) ?? null;
+}
+window.__pathCheck = (step = 0.05) => {
+  const dur = story.duration ?? 10; const open = {}; const out = { actors: [], camera: [] };
+  const close = (key, list, t) => { const o = open[key]; if (o) { list.push({ ...o, t1: +t.toFixed(2) }); delete open[key]; } };
+  for (let i = 0; i * step <= dur + 1e-6; i++) {
+    const t = i * step, wt = worldTime(story, t);
+    for (const a of Object.values(actors)) applyActor(a, wt);
+    for (const [n, a] of Object.entries(actors)) {
+      let hit = null;
+      if (a.root.visible) {
+        const r = 0.22 * (a.cfg.scale ?? 1), ys = [0.15, a.headY * 0.5, a.headY * 0.9];
+        outer: for (const y of ys) for (const [dx, dz] of [[0, 0], [r, r], [r, -r], [-r, r], [-r, -r]]) {
+          const k = `${Math.floor(a._pos[0] + dx)},${Math.floor(a._pos[1] + y)},${Math.floor(a._pos[2] + dz)}`; const b = blockAt(k, wt);
+          if (b && !PASSABLE.has(b)) { hit = { block: b, pos: k.split(',').map(Number) }; break outer; }
+        }
+      }
+      if (hit && !open[n]) open[n] = { actor: n, t0: +t.toFixed(2), ...hit };
+      else if (!hit) close(n, out.actors, t);
+    }
+    const cp = applyCamera(t, wt); const ck = `${Math.floor(cp.x)},${Math.floor(cp.y)},${Math.floor(cp.z)}`; const cb = blockAt(ck, wt);
+    if (cb && !PASSABLE.has(cb)) { if (!open.__cam) open.__cam = { t0: +t.toFixed(2), block: cb, pos: ck.split(',').map(Number) }; }
+    else close('__cam', out.camera, t);
+  }
+  for (const n of Object.keys(open)) close(n, n === '__cam' ? out.camera : out.actors, dur);
+  window.renderAt(0);
+  return out;
+};
 
 // live preview (tools/preview.py): ?live=1 adds a time slider and a play button, re-rendering with renderAt(t)
 function liveControls() {

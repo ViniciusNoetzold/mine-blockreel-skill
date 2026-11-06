@@ -16,6 +16,7 @@ story if it does not exist. Exit code 1 if any FAIL.
 | Severity | Check |
 |---|---|
 | FAIL | camera inside a block; an actor standing inside a block |
+| FAIL | **path check** (every 0.05 s, no rendering): an actor's body (feet, waist, head; centre and 4 corners) or the camera inside a solid block at that moment, breaks/places/blasts included. Catches a character that spawns in a tree or the floor of a `hollow`, cuts a wall corner, or falls through a ledge between two sampled frames. Water and lava do not count |
 | WARN | an acting actor is out of frame; the shot's subject is cropped; the subject faces away from the camera in a medium/close shot; camera very close to an actor; subtitle clipped by the frame |
 | WARN | a shot is longer than the tone allows (calm 6 s, dialogue 4.5 s, action 2.5 s, +1.5 s if the camera moves); subtitle > 10 words; subtitle shown shorter than reading time; subtitle overlaps a title |
 | INFO | shot count and average shot length |

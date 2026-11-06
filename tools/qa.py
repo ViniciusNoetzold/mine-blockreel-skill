@@ -153,6 +153,13 @@ def main(argv=None):
         missing = page.evaluate("window.__missing || []")
         if missing:
             issues.append(("FAIL", None, "missing block textures (they render as magenta/black): " + ", ".join(sorted(set(missing)))))
+        # dense path check: every 0.05 s, actors' bodies and the camera against the world at that moment
+        pc = page.evaluate("window.__pathCheck(0.05)")
+        for h in pc["actors"]:
+            issues.append(("FAIL", h["t0"], f"{h['actor']} is inside {h['block']} at {h['pos']} from {h['t0']:.2f} s to {h['t1']:.2f} s "
+                                            "(spawns in or walks through a block/tree/wall: move it or route the walk around it)"))
+        for h in pc["camera"]:
+            issues.append(("FAIL", h["t0"], f"camera passes through {h['block']} at {h['pos']} from {h['t0']:.2f} s to {h['t1']:.2f} s"))
         page.add_style_tag(content=f"#stage{{transform:scale({a.scale});transform-origin:0 0}}")
         for t in times:
             q = page.evaluate(f"window.__qa({t})")

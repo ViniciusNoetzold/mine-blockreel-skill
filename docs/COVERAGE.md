@@ -83,7 +83,9 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 
 ## Polish log
 
-- **Walking through blocks (open):** `tools/qa.py` only checks sampled frames, so a walk path that crosses a wall or a tree between samples is not caught. Next step: a dense path check for every `to` segment.
+- **Walking through blocks (2026-11):** `tools/qa.py` now runs a dense path check (`window.__pathCheck`, every 0.05 s). On its first run it found
+  real bugs in two films: in *The Last Torch* the courier ended the film inside the tower wall (fixed in `examples/last-torch`, the README
+  media still show the old render), and in *Farol Negro* the warrior started inside the floor of a `hollow` (a hollow box also has a floor and a roof).
 
 - **Shoulders / neck (2026-11):** arms were drawn 2 px lower than the torso top, so the torso showed above the shoulders and the head looked like it sat on a neck.
   Fixed: the arm box now extends 2 px above its pivot (flush with the torso top), as in the game.
