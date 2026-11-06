@@ -1,0 +1,214 @@
+<p align="center"><img src="docs/media/banner.jpg" alt="BlockReel: Minecraft-style animations, skins and texture packs made from a prompt, rendered in code" width="100%"></p>
+
+<p align="center">
+  <a href="https://github.com/ViniciusNoetzold/mine-blockreel-skill-/actions/workflows/ci.yml"><img src="https://github.com/ViniciusNoetzold/mine-blockreel-skill-/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
+  <img src="https://img.shields.io/badge/Claude%20Code-plugin-8A5CF6" alt="Claude Code plugin">
+  <img src="https://img.shields.io/badge/skills-3-orange" alt="3 skills">
+  <img src="https://img.shields.io/badge/engine-Three.js-black" alt="Three.js">
+  <img src="https://img.shields.io/badge/video%20model-none-success" alt="no video model">
+</p>
+
+<p align="center"><b>Describe a story. Claude briefs it, researches references, writes a shot list, builds the blocky world, animates it, reviews its own frames and renders an MP4.</b><br>
+No video model: every frame is drawn by Three.js in headless Chrome and encoded by ffmpeg. Your skins, your textures, your story.</p>
+
+<p align="center"><a href="README.pt-BR.md">Leia em português</a> · <a href="#-install">Install</a> · <a href="#-the-three-skills">Skills</a> · <a href="docs/PROMPTS.md">Prompts</a> · <a href="docs/COVERAGE.md">What is missing</a> · <a href="docs/STORYBOARD.md">Schema</a></p>
+
+> Unofficial fan tool. Not affiliated with Mojang or Microsoft. Ships no game assets (see [docs/LEGAL.md](docs/LEGAL.md)).
+
+---
+
+## See it
+
+<p align="center"><img src="docs/media/demo.gif" alt="Excerpt of The Last Torch: a standoff, glowing eyes, a TNT trap and the blast" width="720"></p>
+
+<p align="center">
+  <a href="docs/media/the-last-torch.mp4"><b>▶ Watch the full 34 s film: <i>The Last Torch</i></b></a> (5 MB mp4)
+</p>
+
+<table>
+  <tr>
+    <td><img src="docs/media/torch-1-tower.jpg" alt="The ruined tower in the rain"></td>
+    <td><img src="docs/media/torch-2-warden.jpg" alt="The Warden with glowing eyes"></td>
+  </tr>
+  <tr>
+    <td><img src="docs/media/torch-3-blast.jpg" alt="The TNT blast with bloom"></td>
+    <td><img src="docs/media/torch-4-beacon.jpg" alt="The lit beacon at dawn"></td>
+  </tr>
+</table>
+
+<sub><i>The Last Torch</i> ([`examples/last-torch`](examples/last-torch)) is an original 34 s short made **with the skill itself**, following its own flow:
+[brief](examples/last-torch/brief.md) → [web research with links](examples/last-torch/research.md) → [shot list](examples/last-torch/shotlist.md) → build → [QA log](examples/last-torch/qa.md) (three review rounds that caught a hidden beacon, a character floating over a crater and cropped feet).
+960x540, 30 fps, post-processing on, rendered in 7.5 minutes with 4 workers. No game assets are used.</sub>
+
+---
+
+## 🧰 The three skills
+
+| Skill | What it does | Proof |
+|---|---|---|
+| **`blockreel`** | Films. **Briefing → web research (with links) → script and shot list → build → mandatory visual QA → MP4.** | [`examples/last-torch`](examples/last-torch) |
+| **`blockreel-skins`** | Player skins. Research → palette plan (4-tone ramps) → layered painting in code → validate → **4-angle turntable** you iterate on. Classic and slim. | [`examples/skin-demo`](examples/skin-demo) |
+| **`blockreel-textures`** | Block/item texture sets. One palette for the whole set → tileable tiles → **seam and palette checker** → **in-scene preview** → resource-pack `.zip` with a researched, cited pack format. | [`examples/texture-pack-demo`](examples/texture-pack-demo) |
+
+```mermaid
+flowchart LR
+  A[Briefing<br/>premise, tone, length, cast] --> B[Web research<br/>links + principles]
+  B --> C[Script + shot list<br/>intent per shot]
+  C --> D[Build<br/>skins, textures, story.json]
+  D --> E{Visual QA<br/>8+ frames, auto checks}
+  E -- problems --> D
+  E -- clean --> F[Render MP4<br/>parallel workers, audio mix]
+```
+
+---
+
+## 🎬 What the engine can do
+
+Each picture below is a real render from the matching `examples/*-lab` storyboard (regenerate them with `python tools/make_media.py`).
+
+**Acting that feels alive.** Clips with anticipation, overshoot and follow-through, crossfades between clips, shortest-arc turning, and heads that follow a target.
+<img src="docs/media/gallery-animation.jpg" alt="The swing clip: stance, wind-up, strike, overshoot, lunge, scared">
+
+**Faces.** Eyes, mouth and wounds change over time on any skin; blinking is automatic; the mouth follows the subtitle text; glowing eyes with a light streak.
+<img src="docs/media/gallery-faces.jpg" alt="Face states: glowing eyes, wide eyes with shout, angry, smile with wounds and lip-sync, dead eyes">
+
+<details open>
+<summary><b>Cameras and transitions</b>: handheld, Dutch, zoom, first person, orbit, rack focus; flash, whip pan, fade; speed ramps; 2.37:1 letterbox</summary>
+<img src="docs/media/gallery-camera.jpg" alt="Camera features">
+</details>
+
+<details>
+<summary><b>Particles</b>: seeded cube particles (break, explosion, smoke, fire, sparks, dust, blood, confetti), deterministic frame by frame</summary>
+<img src="docs/media/gallery-particles.jpg" alt="Particles">
+</details>
+
+<details>
+<summary><b>World actions</b>: crack stages, place, TNT with fuse, explosions that dig craters, doors, chests, flowing water and lava</summary>
+<img src="docs/media/gallery-world.jpg" alt="World actions">
+</details>
+
+<details>
+<summary><b>Look</b>: day-night lighting, rain and snow, bloom, depth of field, grain, colour grade</summary>
+<img src="docs/media/gallery-post.jpg" alt="Post-processing and lighting">
+</details>
+
+<details>
+<summary><b>Mobs</b>: box rigs for creeper-, pig-, spider-shaped mobs (your textures) and zombies through the player rig</summary>
+<img src="docs/media/gallery-mobs.jpg" alt="Mobs">
+</details>
+
+Also: music, sound effects and dialogue with ducking ([`tools/audio.py`](tools/audio.py)), parallel rendering, 1080p60, a live browser preview with a time slider, and a QA tool that renders a contact sheet and flags a camera inside a block, a character out of frame, a face turned away, clipped subtitles and shots that run too long.
+
+---
+
+## 🧍 Skins
+
+`blockreel-skins` paints a skin the way a pixel artist would, then forces a look at the result from four angles. Four review rounds of the demo skin, with what was wrong each time:
+
+<img src="docs/media/skin-iterations.jpg" alt="Four turntable rounds of the Ranger skin" width="780">
+
+Slim variant, in a `wave` pose to check the arm joint and the mantle: <img src="docs/media/skin-slim-wave.jpg" alt="Slim Ranger skin waving, four angles">
+
+```bash
+python tools/turntable.py skin.png --out tt.png --pose wave --model slim
+python core/skin.py validate skin.png        # classic/slim, 0 transparent base pixels
+```
+
+## 🧱 Texture packs
+
+`blockreel-textures` builds a coherent set, checks that it tiles, shows it in a scene next to a character, and builds the pack with a number it **looked up**, not guessed.
+
+<img src="docs/media/textures-scene.jpg" alt="The Pastel Meadow pack rendered in a mini-world with a character for scale" width="780">
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/media/textures-set.png" alt="Contact sheet of the 25 textures"></td>
+    <td width="50%"><img src="docs/media/textures-tiling.png" alt="2x2 and 3x3 tiling previews of grass, cobblestone and planks"></td>
+  </tr>
+  <tr><td align="center"><sub>25 original 16x textures (CC0), animated water and lava included</sub></td><td align="center"><sub>tiling previews: no visible seams</sub></td></tr>
+</table>
+
+```bash
+python core/tilecheck.py set textures/ --out report/          # seams, palette, sizes + contact sheet
+python tools/pack_preview.py textures/ --out preview.png      # the set in a scene
+python core/pack.py build textures/ --name "My Pack" --pack-format 46 --format-version 1.21.4 \
+  --format-source https://minecraft.wiki/w/Pack_format --out build/
+```
+
+---
+
+## 🚀 Install
+
+As a Claude Code plugin:
+
+```bash
+claude plugin marketplace add ViniciusNoetzold/mine-blockreel-skill-
+claude plugin install blockreel@blockreel-market
+```
+
+Or clone it and run `claude` inside the folder:
+
+```bash
+git clone https://github.com/ViniciusNoetzold/mine-blockreel-skill- && cd mine-blockreel-skill-
+npm install && pip install -r requirements.txt && python -m playwright install chromium
+python -m pytest tests -q
+```
+Needs Node 20+, Python 3.11+, ffmpeg and Chrome/Chromium (`CHROME_PATH=...` also works).
+
+Then ask, for example: *"Make a 30-second blocky animation about a noob who finds a diamond and a creeper-looking tree."*,
+*"Design a hooded elf skin for me, slim arms."*, or *"Make a 16x pastel texture pack."* Ready-made, detailed prompts (including a 30 s "super production"): [docs/PROMPTS.md](docs/PROMPTS.md).
+
+## ⚡ Try it
+
+```bash
+python tools/render.py examples/hello-world/story.json --frame 4 --out check.png               # one frame
+python tools/render.py examples/last-torch/story.json --preset preview --out preview.mp4       # fast preview
+python tools/render.py examples/last-torch/story.json --workers 4 --out film.mp4               # 4 parallel Chrome workers
+python tools/preview.py examples/camera-lab/story.json                                          # live preview with a time slider
+python tools/qa.py examples/last-torch/story.json --out out/qa                                  # quality review frames + checks
+```
+
+## How it works
+
+```
+story.json ─► Three.js engine ─► headless Chrome ─► PNG frames ─► ffmpeg ─► film.mp4
+                    ▲                                                  ▲
+        skins, textures, styles                              tools/audio.py mix
+```
+Every frame is a pure function of time (`renderAt(t)`), so a still matches the final video exactly, and previews and parallel workers agree frame for frame.
+Details in [TECHNIQUE.md](TECHNIQUE.md), direction craft in [DIRECTOR.md](DIRECTOR.md), the schema in [docs/STORYBOARD.md](docs/STORYBOARD.md).
+
+```
+core/        engine (anim, face, particles, world, mobs, post, env), skin / atlas / pack / tilecheck tools, original built-in textures
+tools/       render, qa, audio, preview, turntable, pack_preview, make_media
+styles/      one folder per look (classic-2012, golden-hour, nightfall, void-arena, ember-haze)
+plugin/      the Claude Code plugin: skills blockreel, blockreel-skins, blockreel-textures
+docs/        schema, pre-production, QA, skins, packs, mobs, coverage, publishing
+examples/    last-torch (full film), skin-demo, texture-pack-demo and one lab per feature
+tests/       34 tests: tools, animation math (node), real renders of every example
+```
+
+## Honest limits
+
+- **Not complete yet.** BlockReel cannot make *every* Minecraft animation. [docs/COVERAGE.md](docs/COVERAGE.md) is the gap list: held tools and swords, non-cube blocks (stairs, fences, torches), most mobs (enderman, skeleton, villager...), sneak/swim/ride clips, armor, sun/moon/stars, motion blur. The skill is told to say so up front.
+- **Speed.** Software rendering: a still takes about 3.5 s including browser start-up; the 34 s demo took 7.5 min with `--workers 4` on a 12-thread machine. `--gpu` exists but is **untested**.
+- **Mob texture layouts are unverified** against sources ([docs/MOBS.md](docs/MOBS.md)); check them against your texture.
+- **Nothing was tested inside the real game** (skins, resource packs). They are validated and previewed in the BlockReel engine only.
+- A 3D *picture* of a skin cannot be turned into a texture; the flat 64x64 layout is needed.
+- The plugin manifests match the official docs as far as reading them could show, but `claude plugin validate` could not be run where this was written. Run `claude plugin validate .` and `claude plugin validate ./plugin` if you fork.
+
+## Roadmap
+
+Done in v0.1: smoother animation, faces and lip-sync, a full camera and transition set, post-processing, lighting and weather, particles, block events, props, four mob rigs, audio mix, parallel rendering, pre-production flow, QA tool, skins and textures skills.
+
+Next, in order of impact: held items from item textures (swords, pickaxes, bows, torches) · non-cube blocks (stairs, slabs, fences, plants) · more mobs · sneak/swim/ride/bow clips, armor, capes · sun, moon, stars, lightning and motion blur · verified mob UV tables and crowds. See [good first issues](docs/GOOD-FIRST-ISSUES.md).
+
+## Contributing
+
+Add a style, a clip, a mob, or a doc fix. Run `python -m pytest tests -q` first. Never commit game assets or reference videos. Pre-production and QA rules: [docs/PREPRODUCTION.md](docs/PREPRODUCTION.md), [docs/QA.md](docs/QA.md).
+
+## License
+
+MIT for code and docs. Built-in textures, skins, sample mob textures and every example asset: CC0. Inspired by the structure of
+[lemo-opuscar](https://github.com/lemomo-ai/lemo-opuscar) (guides + styles + tools).
