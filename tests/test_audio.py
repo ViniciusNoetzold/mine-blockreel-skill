@@ -79,3 +79,23 @@ def test_score_follows_sections(tmp_path):
     sr = 44100; rms = lambda a, b: float(np.sqrt(np.mean(x[int(a * sr):int(b * sr)] ** 2)))
     assert rms(8.5, 9.9) < 1.0
     assert rms(5, 7.5) > rms(1, 3.5) > 0
+
+
+def test_voice_presets_and_piper_line(tmp_path):
+    """Every preset is a valid ffmpeg chain; if a Piper voice is cached, a line is synthesised, trimmed and pitched."""
+    import subprocess, sys
+    from pathlib import Path
+    import pytest
+    root = Path(__file__).resolve().parent.parent
+    sys.path.insert(0, str(root / "tools"))
+    import voice
+    src = tmp_path / "tone.wav"
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "lavfi", "-i", "sine=f=220:d=1", str(src)], check=True)
+    for name in voice.PRESETS:
+        voice.finish(src, voice.PRESETS[name][0], voice.PRESETS[name][2], 1.0, tmp_path / f"{name}.wav", "test", name)
+        assert (tmp_path / f"{name}.wav").stat().st_size > 1000
+    if not (voice.VOICES / "pt_BR-faber-medium.onnx").exists():
+        pytest.skip("no Piper voice cached (python tools/voice.py fetch)")
+    out = tmp_path / "line.wav"
+    voice.say("O farol cai esta noite.", "piper:faber", "villain", out)
+    assert out.stat().st_size > 20000

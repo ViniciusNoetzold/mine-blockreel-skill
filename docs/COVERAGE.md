@@ -67,7 +67,7 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 | Music, sfx, dialogue mix with ducking | done (you supply the audio) |
 | Original game textures and sound effects | done: `tools/vanilla.py fetch` / `sounds` into a local cache (not shipped) |
 | Background music | done: `tools/score.py` composes an original score from a section list (calm, build, battle, silence, dawn); synthesised, not orchestral |
-| Voices | partial: local TTS (Windows voices) in the Farol Negro recipe; no generic cross-platform TTS tool yet |
+| Voices | done (offline): `tools/voice.py` with Piper neural pt-BR voices (CC0 datasets, fetched to `work/voices/`) or Windows OneCore voices with SSML, plus character presets. Piper has no female pt-BR voice; no audio-driven lip-sync |
 | Voice generation, audio-driven lip-sync | missing |
 | GIF / social crops (9:16), subtitles export (SRT) | missing |
 | Parallel rendering, 1080p60, GPU | done / untested GPU |

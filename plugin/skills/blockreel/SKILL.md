@@ -102,8 +102,10 @@ energy shape (quiet → loud → quiet), shot lengths per the tone, every line s
 5. **Sound (not optional).** Build every file the `audio` block points at: original game effects from `work/vanilla/sounds/`
    (explosions, doors, chests, mobs, hits, steps, rain, thunder, fire), made-up sounds only where the game has none (whoosh,
    riser: the game's music has other rights holders), an ORIGINAL score that follows the energy shape
-   (`python tools/score.py --out music.wav --duration 30 --sections calm:0:7,build:7:15,battle:15:23,silence:23:26,dawn:26:30`), and voices (the user's recordings, or local TTS, e.g. the
-   Windows voice "Microsoft Maria" for pt-BR; pitch-shift for villains). See `films/`-style `make_audio.py` in `docs/GENRES.md`.
+   (`python tools/score.py --out music.wav --duration 30 --sections calm:0:7,build:7:15,battle:15:23,silence:23:26,dawn:26:30`), and voices: the user's recordings first; otherwise `tools/voice.py` (offline only: Piper neural voices fetched with
+   `python tools/voice.py fetch`, e.g. `--voice piper:faber`, or the Windows OneCore voices `daniel`/`maria` with SSML pauses and emphasis),
+   with a character preset (`hero`, `villain`, `monster`, `child`, `narrator`, `radio`). Fit each line inside its shot: measure it, then
+   adjust `--rate` or the shot length. See `films/`-style `make_audio.py` in `docs/GENRES.md`.
    `python tools/audio.py story.json --out mix.wav`, listen, then render with audio (or mux the mix into the silent render).
 6. **Final render.** `python tools/render.py story.json --out film.mp4`. Software GL is about 1 s/frame at 960x540:
    tell the user how long a long film will take.
