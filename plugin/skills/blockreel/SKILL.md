@@ -17,7 +17,13 @@ Quality comes from preparation and from looking at your own frames (E), not from
 export BLOCKREEL_HOME="${BLOCKREEL_HOME:-$HOME/blockreel}"
 [ -d "$BLOCKREEL_HOME" ] || git clone https://github.com/ViniciusNoetzold/mine-blockreel-skill- "$BLOCKREEL_HOME"
 cd "$BLOCKREEL_HOME" && npm install && pip install -r requirements.txt
+python tools/vanilla.py fetch    # ORIGINAL game textures + mob/chest/steve/alex textures -> work/vanilla/ (local cache, ~45 KB)
+python tools/vanilla.py sounds   # ORIGINAL game sound effects -> work/vanilla/sounds/ (local cache, ~1 MB, no music)
 ```
+**Look like the game by default.** Unless the user asks for their own textures, films use the original textures from the cache
+(the engine picks them up automatically; `"textures": "builtin"` opts out to the CC0 originals). Mobs: `/work/vanilla/entity/zombie.png`,
+`creeper.png`, `pig.png`, `spider.png`; default skins `steve.png` / `alex.png`. These files are Mojang's: they stay in `work/` on the
+user's machine and are **never** committed or shipped (`docs/LEGAL.md`).
 Needs Node 20+, Python 3.11+, ffmpeg and Chrome/Chromium (set `CHROME_PATH`, or run
 `python -m playwright install chromium`). Work in `$BLOCKREEL_HOME/films/<name>/` or in the
 folder the user started in; never write inside `core/`.
@@ -34,6 +40,13 @@ folder the user started in; never write inside `core/`.
 | `styles/<style>/STYLE.md` | the look of the chosen style |
 | `docs/SKINS.md`, `docs/BLOCK-ATLAS.md`, `docs/RESOURCE-PACKS.md`, `docs/MOBS.md` | asset work |
 | `docs/COVERAGE.md` | what the engine can and cannot animate yet: check it before promising a scene |
+
+## Genres (pick one first, like a style)
+
+Read `docs/GENRES.md`: **opening** (YouTube channel intro, 5-12 s), **cinematic short** (an epic or dramatic 20-60 s film,
+e.g. `examples/` and the "Farol Negro" production), **series episode** (talking characters, comedy or adventure, 1-5 min, the
+format of the big Minecraft animation channels). Each genre fixes pacing, camera grammar, sound and what to deliver; the premise
+can be about anything the user wants.
 
 ## A. Briefing (ask at most ONE short question)
 
@@ -66,7 +79,9 @@ energy shape (quiet → loud → quiet), shot lengths per the tone, every line s
 ## D. Build
 
 1. **Assets.**
-   - Skin given as a clean PNG → `python core/skin.py validate skin.png`; if legacy 64x32, `convert`.
+   - **The user sends a skin → use THAT skin**, unchanged, in the film (copy it into the film folder, reference it in `story.json`).
+     `python core/skin.py validate skin.png` first; if legacy 64x32, `convert` to a new file. Skins you create must pass `validate`
+     (64x64 RGBA PNG, base layer fully opaque, slim/classic detected) so they also upload to the real game (Java skin page/launcher).
    - Skin given as a screenshot / scaled image → `python core/skin.py snap in.png out.png --crop x0,y0,x1,y1`, then `validate`.
      If rows are missing, say so and ask for the full image.
    - Skin as a rendered 3D picture of a character → cannot be turned into a texture reliably. Say so.
@@ -81,7 +96,12 @@ energy shape (quiet → loud → quiet), shot lengths per the tone, every line s
 3. **Test stills.** `python tools/render.py story.json --frame <t> --out check.png` and LOOK at the image
    (framing first, then light, then acting).
 4. **Preview.** `python tools/render.py story.json --out preview.mp4 --fps 12 --scale 0.5`.
-5. **Final render.** `python tools/render.py story.json --out film.mp4`. Software GL is about 1 s/frame at 960x540:
+5. **Sound (not optional).** Build every file the `audio` block points at: original game effects from `work/vanilla/sounds/`
+   (explosions, doors, chests, mobs, hits, steps, rain, thunder, fire), made-up sounds only where the game has none (whoosh,
+   riser, music beds: the game's music has other rights holders), and voices (the user's recordings, or local TTS, e.g. the
+   Windows voice "Microsoft Maria" for pt-BR; pitch-shift for villains). See `films/`-style `make_audio.py` in `docs/GENRES.md`.
+   `python tools/audio.py story.json --out mix.wav`, listen, then render with audio (or mux the mix into the silent render).
+6. **Final render.** `python tools/render.py story.json --out film.mp4`. Software GL is about 1 s/frame at 960x540:
    tell the user how long a long film will take.
 
 ## E. Quality review (MANDATORY before delivery)

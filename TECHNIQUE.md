@@ -29,7 +29,7 @@ override with `"model": "slim" | "classic"`.
 
 ## Blocks
 
-A block name resolves through, in order: project `blocks` dir `index.json` → built-in `core/builtin/blocks/index.json`
+A block name resolves through, in order: project `blocks` dir `index.json` → the original game textures in `work/vanilla/blocks/` (when fetched, unless `"textures": "builtin"`) → built-in `core/builtin/blocks/index.json`
 → a texture file with that name → magenta/black missing-texture checker (with a console warning).
 `index.json` maps a name to a texture name, or `{top, side, bottom}`, or `{all, transparent}`.
 

@@ -12,6 +12,7 @@ relative to the story file. All times are in seconds on the **output timeline** 
   "style": "classic-2012",       // folder name in styles/
   "styleOverride": { "shadows": false },             // merged over style.json
   "blocks": "assets/blocks",     // optional folder of your block PNGs (+ optional index.json)
+  "textures": "vanilla",         // default: original game textures from work/vanilla (tools/vanilla.py fetch) when present; "builtin" = CC0 originals
   "audio": { ... },              // timed music / sfx / dialogue, see "Audio"
   "post": { ... },               // bloom / grade / grain / depth of field, see "Post-processing"
   "weather": { "type": "rain" }, // "rain" | "snow"
@@ -172,7 +173,8 @@ Any subset of `sky`, `ambient`, `sun`, `fog` per key; values interpolate smoothl
 
 ## Weather
 
-`"weather": { "type": "rain" | "snow", "density": 1, "wind": 3, "radius": 14 }`: drops are seeded and wrap in a volume around the camera.
+`"weather": { "type": "rain" | "snow", "density": 1, "wind": 3, "radius": 14, "clear": 1.6 }`: drops are seeded and wrap in a volume around the camera.
+`clear` keeps drops at least that many blocks (on x and z) away from the lens; raise it (2.5-3.5) if close drops read as big streaks in your shots.
 
 ## Post-processing
 

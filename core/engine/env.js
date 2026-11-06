@@ -33,6 +33,7 @@ export function lightingAt(THREE, style, keys, t) {
 export function createWeather(THREE, scene, cfg) {
   if (!cfg || !cfg.type) return null;
   const rain = cfg.type === 'rain'; const n = Math.round((rain ? 1800 : 1400) * (cfg.density ?? 1));
+  const clear = cfg.clear ?? 1.6; // drops closer than this to the lens read as huge streaks
   const R = cfg.radius ?? 14, Hh = cfg.height ?? 18, speed = cfg.speed ?? (rain ? 24 : 2.4), wind = cfg.wind ?? (rain ? 3 : 0.6);
   const geo = new THREE.BoxGeometry(rain ? 0.025 : 0.07, rain ? 0.55 : 0.07, rain ? 0.025 : 0.07);
   const mat = new THREE.MeshBasicMaterial({ color: rain ? 0xaec6ff : 0xffffff, transparent: true, opacity: rain ? 0.55 : 0.9, fog: true });
@@ -45,7 +46,7 @@ export function createWeather(THREE, scene, cfg) {
         const ph = h(i, 1) * Hh, fall = (speed * t + ph) % Hh;
         const sway = rain ? 0 : Math.sin(t * 1.3 + i) * 0.4;
         let ox = (h(i, 2) - 0.5) * 2 * R, oz = (h(i, 3) - 0.5) * 2 * R;
-        if (Math.abs(ox) < 1.6 && Math.abs(oz) < 1.6) { ox += ox < 0 ? -1.6 : 1.6; oz += oz < 0 ? -1.6 : 1.6; } // keep drops away from the lens
+        if (Math.abs(ox) < clear && Math.abs(oz) < clear) { ox += ox < 0 ? -clear : clear; oz += oz < 0 ? -clear : clear; } // keep drops away from the lens
         d.position.set(cam.x + ox + wind * (fall / Hh) + sway, cam.y + Hh * 0.5 - fall + 2, cam.z + oz);
         d.rotation.set(0, 0, rain ? -Math.atan2(wind, speed) : 0); d.updateMatrix(); mesh.setMatrixAt(i, d.matrix);
       }

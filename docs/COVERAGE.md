@@ -22,7 +22,7 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 |---|---|---|
 | A block in the hand | done | `"holding": "planks"` |
 | Tools, swords, bows, torches as items (extruded sprite from an item texture) | **missing** | highest-impact gap for fight, mining and adventure scenes |
-| Doors, chests | done | `props` |
+| Doors, chests | done | `props`; chest lid now 90° / 0.5 s / ease-out like the game. **Open:** the chest uses a block texture, not the entity texture (`entity/chest.png` is fetched but not mapped yet) |
 | Beds, signs, furnaces, minecarts, boats, rails | missing | |
 
 ## Animation (player)
@@ -65,6 +65,8 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 | Pre-production flow, research, shot list, QA tool | done |
 | Skins and textures: skills, turntable, tile checker, pack builder, in-scene preview | done (not tested in the game) |
 | Music, sfx, dialogue mix with ducking | done (you supply the audio) |
+| Original game textures and sound effects | done: `tools/vanilla.py fetch` / `sounds` into a local cache (not shipped) |
+| Voices | partial: local TTS (Windows voices) in the Farol Negro recipe; no generic cross-platform TTS tool yet |
 | Voice generation, audio-driven lip-sync | missing |
 | GIF / social crops (9:16), subtitles export (SRT) | missing |
 | Parallel rendering, 1080p60, GPU | done / untested GPU |
@@ -81,6 +83,12 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 
 ## Polish log
 
+- **Walking through blocks (open):** `tools/qa.py` only checks sampled frames, so a walk path that crosses a wall or a tree between samples is not caught. Next step: a dense path check for every `to` segment.
+
 - **Shoulders / neck (2026-11):** arms were drawn 2 px lower than the torso top, so the torso showed above the shoulders and the head looked like it sat on a neck.
   Fixed: the arm box now extends 2 px above its pivot (flush with the torso top), as in the game.
+- **Rain on the lens (2026-11):** drops 1.6 blocks from the camera read as big white bars in about a third of the stills of a rainy film.
+  `weather.clear` (default 1.6, unchanged) now sets that distance; 3.0 removed the bars in "Farol Negro".
+- **First-person and body lean (open):** the `first` camera follows the head rotation but ignores the body's `bodyRx` lean, so during
+  `stance` (and other leaning clips) the view tilts toward the sky. Workaround: use `idle` + `lookAt` while a `first` shot is on.
 - **Face art pass (open):** the `wide` and `angry` eye states are readable but blocky; under coloured night light the white reads lavender. A finer expression set (pupil size, lids, brows per skin) is the next face polish item.

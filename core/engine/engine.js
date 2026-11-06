@@ -39,7 +39,7 @@ let story, style, renderer, scene, camera, sun;
 const actors = {};
 const clouds = [];
 let blockDefs = {}; let projBlocksDir = null;
-let grid = new Map(); let particles = null; let lastQA = null; let dyn = [], cracks = [], flowTex = [], props = null, worldFx = []; let post = null, weather = null, ambientL = null, skyTex = null, bgBase = null;
+let vanillaDir = null; let grid = new Map(); let particles = null; let lastQA = null; let dyn = [], cracks = [], flowTex = [], props = null, worldFx = []; let post = null, weather = null, ambientL = null, skyTex = null, bgBase = null;
 const texCache = new Map();
 
 // ------------------------------------------------------------ textures ----
@@ -47,6 +47,7 @@ async function blockTexture(name) {
   if (texCache.has(name)) return texCache.get(name);
   const cands = [];
   if (projBlocksDir) cands.push(`${BASE}${projBlocksDir}/${name}.png`);
+  if (vanillaDir) cands.push(`${vanillaDir}/${name}.png`);
   cands.push(`/core/builtin/blocks/${name}.png`);
   let p = null;
   for (const u of cands) { if (await exists(u)) { p = pixelTex(u); break; } }
@@ -342,6 +343,7 @@ async function blockPalette(name) {
   let def = blockDefs[name] ?? name; if (typeof def === 'string') def = { all: def };
   const tn = def.side ?? def.all ?? name; const cands = [];
   if (projBlocksDir) cands.push(`${BASE}${projBlocksDir}/${tn}.png`);
+  if (vanillaDir) cands.push(`${vanillaDir}/${tn}.png`);
   cands.push(`/core/builtin/blocks/${tn}.png`);
   for (const u of cands) {
     if (!(await exists(u))) continue;
@@ -389,6 +391,10 @@ async function init() {
   // blocks
   blockDefs = (await getJSON('/core/builtin/blocks/index.json')).blocks;
   projBlocksDir = story.blocks ?? null;
+  // original game textures (tools/vanilla.py fetch) sit between the project's own blocks and the CC0 built-ins; opt out with "textures": "builtin"
+  vanillaDir = story.textures !== 'builtin' && await exists('/work/vanilla/blocks/index.json') ? '/work/vanilla/blocks' : null;
+  if (vanillaDir) Object.assign(blockDefs, (await getJSON(`${vanillaDir}/index.json`)).blocks);
+  window.__textures = vanillaDir ? 'vanilla' : 'builtin';
   if (projBlocksDir && await exists(`${BASE}${projBlocksDir}/index.json`)) Object.assign(blockDefs, (await getJSON(`${BASE}${projBlocksDir}/index.json`)).blocks);
   await buildWorld();
   for (const [n, cfg] of Object.entries(story.actors || {})) actors[n] = cfg.type && cfg.type !== 'player' ? await makeMob(n, cfg) : await makePlayer(n, cfg);

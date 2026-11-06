@@ -130,7 +130,9 @@ export async function buildProps(THREE, scene, props, getMaterials) {
       const lid = new THREE.Mesh(new THREE.BoxGeometry(14 * PX, 5 * PX, 14 * PX), mats); lid.position.set(0, 2.5 * PX, 7 * PX); lid.castShadow = true; hinge.add(lid);
       const latch = new THREE.Mesh(new THREE.BoxGeometry(2 * PX, 4 * PX, 1 * PX), new THREE.MeshLambertMaterial({ color: 0xc8c8d0 })); latch.position.set(0, -0.5 * PX, 14.3 * PX); hinge.add(latch);
       scene.add(root);
-      items.push({ update: (t) => { hinge.rotation.x = -angleAt(t, 1.9, 0.5); } });
+      // as in the game: the lid swings to 90 degrees in about 0.5 s (10 ticks) with a cubic ease-out, no bounce
+      const lidAt = (t) => { let from = 0; for (const ev of evs) { if (t < ev.t) return from; const to = ev.do === 'open' ? Math.PI / 2 : 0; const u = clamp01((t - ev.t) / (ev.dur ?? 0.5)); if (u < 1) return from + (to - from) * (1 - (1 - u) ** 3); from = to; } return from; };
+      items.push({ update: (t) => { hinge.rotation.x = -lidAt(t); } });
     }
   }
   return { update: (t) => items.forEach((i) => i.update(t)) };
