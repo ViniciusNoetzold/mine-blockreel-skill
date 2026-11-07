@@ -48,7 +48,7 @@ Biomes: `plains forest taiga desert snowy nether wasteland` (top block, trees, p
 |---|---|---|
 | `establish` | `dur`, `text`, `shot: crane\|orbit`, `eerie` | wide move onto the location, optional title |
 | `walk` | `who`, `to: [x,z]` or `toward: actor, stop`, `run`, `pause` | walk/run with footsteps; tracking + front coverage |
-| `line` | `who`, `text`, `to`, `emotion: angry\|scared\|shout\|smile\|sad`, `shot` | dialogue: subtitle in chat format, lip-sync, alternating close / over-the-shoulder |
+| `line` | `who`, `text`, `to`, `emotion: angry\|scared\|shout\|smile\|sad`, `shot`, `voice: "lines/01.wav"` (a recording: mixed, music ducks, the mouth follows its loudness) | dialogue: subtitle in chat format, lip-sync, alternating close / over-the-shoulder |
 | `look` | `who`, `at`, `emotion` | a reaction: turn the head and body |
 | `reveal` | `who`, `at: [x,z]`, `witness`, `fx: lightning\|portal`, `glow` | the actor appears (lightning strike, flash, thunder), the witness flinches, extreme close-up on glowing eyes |
 | `teleport` | `who`, `to: [x,z]` or `"behind:<actor>"` | portal particles, poof, Enderman teleport sounds |
@@ -64,11 +64,11 @@ Biomes: `plains forest taiga desert snowy nether wasteland` (top block, trees, p
 | `ride` | `who`, `mount` (a mob in the cast: horse, donkey, camel, pig, llama, strider, minecart...), `path: [[x,z],...]` or `to`, `run`, `dismount` | the rider walks to the mount, sits in the saddle, the mount walks or gallops along the path; tracking + front shots |
 | `chase` | `runner`, `chaser`, `path: [[x,z],...]`, `speed`, `lag`, `gap` | a run along waypoints with the pursuer half a second behind; tracking then front shots |
 | `silence` | `who`, `at`, `dur` | the held emotional beat after the climax: slow push-in, music silent |
-| `victory` | `who`, `do` | celebrate + level-up sound |
+| `victory` | `who`, `do`, `fireworks` (true or a count), `totem` | celebrate + level-up sound |
 | `act` | `who`, `do`, `dur`, `to`, `face`, ... | any raw timeline action (all clips in `docs/STORYBOARD.md`) |
 | `wait` | `dur`, `who`, `shot` | hold a shot |
 | `title` | `text`, `dur`, `delay` | a title card over the next beat (takes no time) |
-| `ending` | `dur`, `text` | slow orbit, end card, fade out |
+| `ending` | `dur`, `text`, `fireworks` | slow orbit, end card, fade out |
 
 ### Duel tokens
 

@@ -63,10 +63,10 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 |---|---|
 | Seeded cube particles: break, explosion, smoke, fire, sparks, dust, blood, confetti | done |
 | Bloom, depth of field, grain, grade, chromatic aberration, flash/whip/fade | done |
-| Motion blur | missing |
+| Motion blur | done | `render.py --motion-blur N` |
 | Crit stars, sweep arc, death poof, portal, aura, enchant dust, torch flame | done |
-| Potion swirls, totem, fireworks | missing |
-| Custom shaders (RTX-style reflections, ambient occlusion) | missing |
+| Fireworks, totem, potion swirls, hearts, angry clouds, music notes | done |
+| Custom shaders (RTX-style reflections, screen-space AO) | missing | block AO is per-vertex like the game |
 
 ## Production
 
@@ -81,8 +81,8 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 | Original game textures and sound effects | done: `tools/vanilla.py fetch` / `sounds` into a local cache (not shipped) |
 | Background music | done: `tools/score.py` composes an original score from a section list (calm, build, battle, silence, dawn); synthesised, not orchestral |
 | Voices | done (offline): `tools/voice.py` with Piper neural pt-BR voices (CC0 datasets, fetched to `work/voices/`) or Windows OneCore voices with SSML, plus character presets. Piper has no female pt-BR voice; no audio-driven lip-sync |
-| Audio-driven lip-sync | missing |
-| GIF / social crops (9:16), subtitles export (SRT) | missing |
+| Audio-driven lip-sync | done | dialogue recordings with an `actor` move that actor's mouth by loudness |
+| GIF, vertical 9:16 (re-rendered, not cropped), SRT subtitles, thumbnails | done | `tools/export.py` |
 | YouTube-style channel openings | done: `tools/opening.py` (name in blocks, blast, orbit, logo hold, sound) |
 | Parallel rendering, 1080p60, GPU | done / untested GPU |
 
@@ -90,7 +90,7 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 
 1. **Molang animations** for exact per-mob motion (blaze rods, magma cube, gallop, flight).
 2. **Redstone** (lamps, pistons, levers), boats, overhangs.
-3. **Motion blur**, crowd instancing, audio-driven lip-sync.
+3. Crowd instancing, shader-pack style reflections, voice generation beyond the offline voices.
 
 ## Polish log
 

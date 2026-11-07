@@ -234,6 +234,11 @@ SOUND_KEYS = [  # minecraft/sounds/<key>.ogg -> work/vanilla/sounds/<key>.wav (e
     "entity/player/attack/sweep2", "item/shield/block1", "item/shield/block2", "random/anvil_land",
     "mob/endermen/portal", "mob/endermen/portal2", "mob/endermen/stare", "mob/endermen/scream1", "mob/wither/spawn", "mob/wither/shoot",
     "ambient/cave/cave1", "ambient/cave/cave13", "ambient/cave/cave7", "mob/ghast/moan1", "random/totem_use", "item/trident/thunder1",
+    # v0.3: celebrations, animals and village life
+    "fireworks/launch1", "fireworks/blast1", "fireworks/largeblast1", "fireworks/twinkle1", "fireworks/twinkle_far1", "item/totem/use_totem",
+    "mob/cow/say2", "mob/pig/say2", "mob/sheep/say2", "mob/chicken/say2", "mob/wolf/bark1", "mob/cat/meow1", "mob/horse/idle1", "mob/horse/gallop1",
+    "mob/villager/haggle1", "mob/irongolem/hit1", "mob/enderdragon/growl1", "mob/wither/idle1", "mob/skeleton/hurt1", "mob/spider/say1",
+    "random/drink", "random/eat2", "random/break", "random/splash", "liquid/swim1", "step/ladder1", "dig/cloth1", "random/door_open",
 ]
 
 

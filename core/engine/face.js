@@ -29,7 +29,15 @@ export function faceStateAt(story, a, t) {
     const h = hash(a.name), period = 3.2 + (h % 7) * 0.17, off = (h % 13) * 0.31;
     if (((t + off) % period) < 0.13) st.eyes = 'closed';
   }
-  if (st.mouth === 'closed' && story.lipsync !== false) { // mouth follows the subtitle spoken by this actor
+  if (st.mouth === 'closed' && story.lipsyncAudio) { // a recorded line: the mouth follows the loudness of the voice (tools/render.py)
+    const nm = a.name.toLowerCase(), tag = (a.cfg.nametag || '').toLowerCase();
+    for (const e of story.lipsyncAudio) {
+      const who = String(e.actor).toLowerCase(); if (who !== nm && who !== tag) continue;
+      const i = Math.floor((t - e.t) / e.dt); if (i < 0 || i >= e.env.length) continue;
+      const v = e.env[i]; st.mouth = v > 0.75 ? 'shout' : v > 0.4 ? 'open' : v > 0.15 ? 'half' : 'closed'; st._audio = true; break;
+    }
+  }
+  if (st.mouth === 'closed' && !st._audio && story.lipsync !== false) { // mouth follows the subtitle spoken by this actor
     const nm = a.name.toLowerCase(), tag = (a.cfg.nametag || '').toLowerCase();
     const s = (story.subtitles || []).find((x) => t >= x.t && t < x.t + (x.dur ?? 2) && (x.actor === a.name || (x.who && [nm, tag].includes(String(x.who).toLowerCase()))));
     if (s) st.mouth = mouthForSpeech(s.text, t - s.t);

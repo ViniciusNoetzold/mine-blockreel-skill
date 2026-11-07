@@ -168,6 +168,12 @@ energy shape (quiet → loud → quiet), shot lengths per the tone, every line s
    Economy: compose → preview → QA on stills → only then the final render; never re-render the whole film to check one shot
    (`--frame t` or `--start/--end`).
 
+## Deliverables (after QA)
+
+`python tools/export.py thumbnail story.json --t <best moment> --title "TITLE" --out thumb.jpg`, `export.py srt` for subtitles,
+`export.py gif film.mp4 --start .. --dur 6` for a teaser, `export.py vertical story.json --out vertical.mp4` for Shorts/Reels/TikTok
+(re-rendered at 1080x1920). Add `--motion-blur 3` to the final render for fast action if the user can wait 3x longer.
+
 ## E. Quality review (MANDATORY before delivery)
 
 ```bash

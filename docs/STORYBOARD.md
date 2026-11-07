@@ -138,7 +138,8 @@ needs shifting. Cuts, subtitles, titles and transitions stay on real time. `slow
 "fx": [ { "t": 3, "kind": "explosion", "pos": [2.5,1.5,-1.5], "scale": 1.3, "seed": 4, "block": "stone",
           "dur": 5, "density": 1, "floor": 1 } ]
 ```
-`kind`: `break explosion smoke fire sparks dust blood confetti crit magiccrit poof portal sweep flame enchant aura`
+`kind`: `break explosion smoke fire sparks dust blood confetti crit magiccrit poof portal sweep flame enchant aura firework totem potion hearts angry notes`
+(`firework`, `potion` take `"colors": ["#ff3040", "#ffd040"]`; `firework` takes `"height"`)
 (`sweep` takes `"face": degrees`: the arc in front of a swing). `smoke` and `fire` are continuous for `dur`; the rest are
 bursts. `pos` is `[x,y,z]`, an actor name, or `{actor, offset}`. `block` picks the debris colours from that block's texture
 (default: the block under `pos`). Particles are cubes, seeded (`story.seed`, `fx.seed`) and evaluated in closed form
@@ -259,7 +260,8 @@ Grain is seeded by time, so it is deterministic. Post-processing adds cost per f
   "dialogue": [ { "file": "assets/line1.wav", "t": 5.2 } ]
 }
 ```
-Files are yours (never ship game audio). `duck` lowers the music while any dialogue plays. The legacy `"music": "file"` still works.
+Files are yours (never ship game audio). `duck` lowers the music while any dialogue plays. A dialogue entry with `"actor": "hero"`
+drives that actor's mouth from the recording's loudness (audio lip-sync; otherwise the mouth follows the subtitle letters). The legacy `"music": "file"` still works.
 `python tools/audio.py story.json --out mix.wav` renders only the mix so you can listen first.
 
 ## Subtitles and titles

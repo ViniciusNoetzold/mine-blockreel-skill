@@ -327,6 +327,8 @@ class Film:
             if m:
                 self.face(t, who, dur=dur, **m)
         self.story["subtitles"].append({"t": r2(t + 0.1), "dur": r2(dur - 0.15), "who": self.cast_names.get(who, who), "text": text})
+        if b.get("voice"):  # a recorded line: mixed as dialogue (music ducks under it) and the mouth follows its loudness
+            self.dialogue = getattr(self, "dialogue", []) + [{"file": b["voice"], "t": r2(t + 0.1), "actor": who}]
         shot = b.get("shot") or ("close" if self.k % 2 == 0 else "ots")
         if shot == "ots" and to:
             self.cam(t, dur, "ots", to, who, handheld=0.25)  # over the listener's shoulder onto the speaker
@@ -576,6 +578,13 @@ class Film:
         self.cam(t, dur, b.get("shot", "close"), who, at, ease="smooth", fovTo=b.get("fovTo", 36))
         return dur
 
+    def fireworks(self, t, around, n=5, dur=3.0):
+        cols = [["#ff3040", "#ffd040"], ["#40a0ff", "#ffffff"], ["#60ff60", "#ff60ff"], ["#ffa020", "#ff4060"], ["#a060ff", "#60e0ff"]]
+        for i in range(n):
+            ti = t + i * dur / n; px = around[0] + ((i * 37) % 11) - 5; pz = around[1] - 6 - (i * 13) % 5
+            self.fx("firework", ti, [r2(px), None, r2(pz)], colors=cols[i % len(cols)], height=1 + (i % 3) * 0.15, seed=i)
+            self.sound(["fireworks/launch1"], ti, 0.5); self.sound(["fireworks/largeblast1", "fireworks/blast1"], ti + 1.0, 0.7); self.sound(["fireworks/twinkle1"], ti + 1.4, 0.4)
+
     def b_victory(self, b):
         who = b["who"]; t = self.t; dur = b.get("dur", 2.5)
         p = self.pos[who]; sites = self.sites(); hd = [0, -1]
@@ -587,6 +596,10 @@ class Film:
         self.seg(t=t, actor=who, do=b.get("do", "celebrate"), dur=r2(dur), face=facing)
         self.face(t, who, mouth="smile", eyes="open")
         self.sound(["random/levelup"], t + 0.2, 0.6)
+        if b.get("fireworks"):
+            self.fireworks(t, self.pos[who], n=b.get("fireworks") if isinstance(b.get("fireworks"), int) else 4, dur=dur)
+        if b.get("totem"):
+            self.fx("totem", t + 0.1, {"actor": who, "offset": [0, 1, 0]}); self.sound(["item/totem/use_totem"], t + 0.1, 0.8)
         self.cam(t, dur, "low", who, None, heading=hd, fovTo=54, handheld=0.2)
         return dur
 
@@ -610,6 +623,8 @@ class Film:
         self.cam(t, dur, "orbit", None, radius=b.get("radius", 11), height=b.get("height", 4), from_=10, to_=60, ease="smooth")
         if b.get("text"):
             self.story["titles"].append({"t": r2(t + dur - 2.6), "dur": 2.4, "text": b["text"], "size": b.get("size", 40)})
+        if b.get("fireworks"):
+            self.fireworks(t, self.arena["center"], n=6, dur=dur - 1.5)
         self.story["transitions"].append({"t": r2(t + dur - 1.2), "type": "fade", "dur": 1.2, "dir": "out"})
         return dur
 
@@ -755,6 +770,8 @@ class Film:
                 self.story.pop(k)
         self.story["camera"].sort(key=lambda c: c["t"])
         audio = {"sfx": self.sfx}
+        if getattr(self, "dialogue", None):
+            audio["dialogue"] = self.dialogue
         if music and self.p.get("music", True) is not False:
             m = self.p.get("music") if isinstance(self.p.get("music"), dict) else {}
             secs = self.merge_sections()
