@@ -1,0 +1,30 @@
+{
+ "title": "A Casa Nova", "size": [1280, 720], "fps": 30, "seed": 11, "style": "classic-2012",
+ "post": {"bloom": {"strength": 0.3, "threshold": 0.9}, "grade": {"saturation": 1.08}},
+ "world": {"biome": "plains", "radius": 40, "arena": {"center": [0, 0], "radius": 13, "y": 4}, "trees": 0.03, "water": 2, "flowers": 0.04,
+           "structures": [{"structure": "campfire", "pos": [-6, null, 6]}]},
+ "cast": {
+  "lia": {"persona": {"model": "slim", "skin": "#e8b896", "hair": {"color": "#7a3a1a", "style": "ponytail"}, "mouth": "smile",
+                      "top": {"type": "tshirt", "color": "#e0a030", "pattern": "logo", "pattern_color": "#ffffff"},
+                      "bottom": {"type": "jeans", "color": "#3b5a8a"}, "shoes": {"type": "sneakers", "color": "#d04040"}}, "name": "Lia"},
+  "beto": {"persona": {"skin": "#8a5a3c", "hair": {"color": "#141010", "style": "curly"}, "glasses": {"style": "square"},
+                       "top": {"type": "shirt", "color": "#4a8a5a", "accent": "#f0f0e0", "pattern": "plaid", "pattern_color": "#2a5a3a"},
+                       "bottom": {"type": "pants", "color": "#5a4a3a"}, "shoes": {"type": "boots", "color": "#3a2a1a"}}, "name": "Beto"},
+  "creeper": {"mob": "creeper", "hidden": true}
+ },
+ "marks": {"lia": [-2, 6], "beto": [1, 7], "creeper": [12, 4]},
+ "beats": [
+  {"beat": "establish", "dur": 3.5, "text": "A CASA NOVA"},
+  {"beat": "line", "who": "lia", "to": "beto", "text": "Bora construir nossa casa aqui!", "emotion": "smile"},
+  {"beat": "line", "who": "beto", "to": "lia", "text": "Fechou. Eu cuido do telhado."},
+  {"beat": "build", "who": "lia", "structure": "house", "at": [3, -4], "dur": 9},
+  {"beat": "walk", "who": "beto", "to": [5, 2.5]},
+  {"beat": "line", "who": "beto", "to": "lia", "text": "Ficou perfeita!", "emotion": "smile"},
+  {"beat": "look", "who": "lia", "at": "creeper", "emotion": "scared", "dur": 1.2},
+  {"beat": "creeper", "who": "creeper", "target": "beto", "radius": 3.5},
+  {"beat": "silence", "who": "lia", "at": "beto", "dur": 1.8},
+  {"beat": "line", "who": "beto", "to": "lia", "text": "...de novo não.", "emotion": "sad"},
+  {"beat": "ending", "dur": 4.5, "text": "Fim?"}
+ ],
+ "music": {"key": "G", "bpm": 112}
+}

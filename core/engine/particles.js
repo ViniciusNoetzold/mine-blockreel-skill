@@ -22,6 +22,27 @@ const KINDS = {
   sparks: () => [{ n: 44, life: [0.5, 1.1], speed: [1.5, 4.2], dir: 'sphere', g: 9, k: 0.5, s0: [0.08, 0.14], s1: [0.02, 0.05], ramp: ramp(0xfff2a8, 0xffc233, 0xff7a1a), glow: true, radius: 0.1 }],
   dust: () => [{ n: 8, life: [0.45, 0.8], speed: [0.4, 1.1], dir: 'ring', g: -0.4, k: 2.4, s0: [0.1, 0.16], s1: [0.3, 0.5], ramp: ramp(0xcdbd9a, 0xa89a7c, 0x8a7e66), radius: 0.15 }],
   blood: () => [{ n: 14, life: [0.6, 1.1], speed: [1.5, 4], dir: 'up', cone: 1.2, g: 14, k: 0.3, s0: [0.05, 0.1], s1: [0.04, 0.08], colors: [hex(0xb01010), hex(0x7a0808), hex(0xd02020)], spin: 6, radius: 0.12 }],
+  // combat and magic (the game's crit stars, death poof, portal swirl, sweep arc, torch flame, enchant glyph-dust)
+  crit: () => [{ n: 22, life: [0.35, 0.7], speed: [2.5, 5.5], dir: 'sphere', g: 7, k: 1.4, s0: [0.07, 0.11], s1: [0.03, 0.05], ramp: ramp(0xffffff, 0xd8c8a8, 0x8a7a60), glow: true, radius: 0.25 }],
+  magiccrit: () => [{ n: 24, life: [0.4, 0.8], speed: [2.5, 5], dir: 'sphere', g: 5, k: 1.4, s0: [0.07, 0.11], s1: [0.03, 0.05], ramp: ramp(0xe0fbff, 0x5ff0ff, 0x2a7aa8), glow: true, radius: 0.25 }],
+  poof: () => [{ n: 20, life: [0.5, 0.9], speed: [0.4, 1.4], dir: 'sphere', g: -0.6, k: 2.2, s0: [0.18, 0.3], s1: [0.05, 0.12], ramp: ramp(0xffffff, 0xd8d8d8, 0x9a9a9a), radius: 0.45 }],
+  portal: () => [{ n: 1, rate: 40, life: [0.5, 1.1], speed: [0.6, 1.6], dir: 'sphere', g: -0.8, k: 1.8, s0: [0.06, 0.1], s1: [0.02, 0.04], ramp: ramp(0xf0b8ff, 0xb040ff, 0x40107a), glow: true, radius: 0.7 }],
+  sweep: () => [{ n: 26, life: [0.18, 0.28], speed: [1.5, 2.5], dir: 'arc', arc: 2.4, g: 0, k: 3, s0: [0.16, 0.22], s1: [0.04, 0.08], ramp: ramp(0xffffff, 0xe8e8f0, 0xa8a8b8), glow: true, radius: 1.3 }],
+  flame: () => [{ n: 1, rate: 8, life: [0.3, 0.6], speed: [0.1, 0.35], dir: 'up', cone: 0.2, g: -0.6, k: 1.0, s0: [0.05, 0.08], s1: [0.01, 0.03], ramp: ramp(0xffffff, 0xffd24a, 0xff7a1a), glow: true, radius: 0.04 },
+                 { n: 1, rate: 3, life: [0.8, 1.4], speed: [0.2, 0.5], dir: 'up', cone: 0.3, g: -0.6, k: 0.8, s0: [0.05, 0.07], s1: [0.08, 0.12], ramp: SMOKE, radius: 0.05 }],
+  enchant: () => [{ n: 1, rate: 30, life: [0.8, 1.4], speed: [0.3, 0.8], dir: 'sphere', g: -0.4, k: 0.8, s0: [0.05, 0.08], s1: [0.02, 0.04], ramp: ramp(0xffffff, 0xc8b0ff, 0x6a50d0), glow: true, radius: 0.9 }],
+  aura: () => [{ n: 1, rate: 24, life: [0.7, 1.3], speed: [0.2, 0.6], dir: 'up', cone: 0.6, g: -0.9, k: 1.0, s0: [0.07, 0.11], s1: [0.02, 0.04], ramp: ramp(0xffffff, 0xd8e8ff, 0x8090c0), glow: true, radius: 0.5 }],
+  // fireworks: a rocket climbing with a spark trail, then a coloured burst that falls slowly and twinkles (like the game's)
+  firework: () => [
+    { n: 18, delay: [0, 1.0], life: [0.25, 0.45], speed: [0.1, 0.4], dir: 'sphere', g: 1, k: 1, s0: [0.06, 0.09], s1: [0.02, 0.03], ramp: ramp(0xffffff, 0xffe0a0, 0xffa040), glow: true, climb: 14 },
+    { n: 90, delay: [1.0, 1.0], life: [1.1, 1.9], speed: [5, 8], dir: 'sphere', g: 2.2, k: 1.6, s0: [0.12, 0.16], s1: [0.05, 0.08], colors: 'fx', glow: true, rise: 14, twinkle: true },
+    { n: 30, delay: [1.05, 1.2], life: [0.8, 1.3], speed: [2, 4], dir: 'sphere', g: 1.5, k: 1.2, s0: [0.08, 0.1], s1: [0.02, 0.04], ramp: ramp(0xffffff, 0xfff6c0), glow: true, rise: 14, twinkle: true },
+  ],
+  totem: () => [{ n: 110, life: [1.2, 2.2], speed: [3, 6.5], dir: 'up', cone: 1.25, g: 3.5, k: 1.3, s0: [0.08, 0.13], s1: [0.03, 0.05], colors: [hex(0xffe040), hex(0x7cd83a), hex(0xd8f060), hex(0x4aa82a)], glow: true, radius: 0.5, twinkle: true }],
+  potion: () => [{ n: 1, rate: 14, life: [0.8, 1.4], speed: [0.2, 0.5], dir: 'up', cone: 0.5, g: -0.6, k: 1.0, s0: [0.07, 0.1], s1: [0.03, 0.05], colors: 'fx', glow: true, radius: 0.45, swirl: 3 }],
+  hearts: () => [{ n: 7, life: [0.9, 1.4], speed: [0.4, 1.0], dir: 'up', cone: 0.6, g: -0.5, k: 1.0, s0: [0.12, 0.16], s1: [0.1, 0.12], colors: [hex(0xe0304a), hex(0xff5a6a)], glow: true, radius: 0.4 }],
+  angry: () => [{ n: 6, life: [0.7, 1.1], speed: [0.3, 0.8], dir: 'up', cone: 0.6, g: -0.4, k: 1.0, s0: [0.12, 0.16], s1: [0.08, 0.1], colors: [hex(0x404040), hex(0x202020)], radius: 0.4 }],
+  notes: () => [{ n: 1, rate: 3, life: [0.9, 1.3], speed: [0.4, 0.8], dir: 'up', cone: 0.4, g: -0.3, k: 1.0, s0: [0.1, 0.12], s1: [0.1, 0.12], colors: [hex(0x40e060), hex(0xe0e040), hex(0x40a0ff), hex(0xff60c0)], glow: true, radius: 0.3 }],
   confetti: () => [{ n: 50, life: [1.2, 2.2], speed: [2, 6], dir: 'up', cone: 0.9, g: 6, k: 1.2, s0: [0.07, 0.11], s1: [0.07, 0.11], colors: [hex(0xff4d4d), hex(0x4dd2ff), hex(0xffd84a), hex(0x7dff6a), hex(0xd36aff)], spin: 9, radius: 0.2 }],
 };
 
@@ -41,6 +62,8 @@ export async function buildParticles(THREE, scene, story, ctx) {
       for (let tt = s.t + period * 0.5; tt < s.t + (s.dur ?? 0); tt += period) entries.push({ t: tt, kind: 'dust', pos: { actor: name, at: tt }, scale: 0.6, seed: Math.round(tt * 100) });
     }
   }
+  // the game's death poof: an actor whose "die" segment has "vanish": true disappears in white smoke when the fall ends
+  for (const s of story.timeline || []) if (s.do === 'die' && s.vanish) entries.push({ t: s.t + (s.dur ?? 1), kind: 'poof', pos: { actor: s.actor, at: s.t + (s.dur ?? 1), offset: [0, 0.5, 0] }, scale: 1.3, seed: 7 });
   const seed0 = story.seed ?? 1; const lit = []; const glow = [];
   let idx = 0;
   for (const e of entries) {
@@ -61,18 +84,27 @@ export async function buildParticles(THREE, scene, story, ctx) {
       for (let i = 0; i < n; i++) {
         const life = pick(rng, L.life);
         const birth = e.t + (L.rate ? rng() * dur : 0) + (L.delay ? pick(rng, L.delay) : 0);
-        const d = L.dir === 'up' ? coneDir(rng, L.cone ?? 0.8) : L.dir === 'ring' ? ringDir(rng) : sphereDir(rng);
+        let d = L.dir === 'up' ? coneDir(rng, L.cone ?? 0.8) : L.dir === 'ring' ? ringDir(rng) : sphereDir(rng);
+        let arcOff = null;
+        if (L.dir === 'arc') { // sweep: particles along a horizontal arc in front of `face` (degrees), moving outward
+          const h = ((e.face ?? 0) * Math.PI) / 180 + (rng() - 0.5) * (L.arc ?? 2.2); const r = (L.radius ?? 1) * sc;
+          arcOff = [Math.sin(h) * r, (rng() - 0.5) * 0.15, Math.cos(h) * r]; d = [Math.sin(h), 0, Math.cos(h)];
+        }
         const sp = pick(rng, L.speed) * sc;
         const rad = (L.radius ?? 0) * sc;
         const jit = sphereDir(rng);
         let col = null; let rmp = null;
         if (L.ramp) rmp = L.ramp.map((c) => new THREE.Color(c[0], c[1], c[2]));
+        else if (L.colors === 'fx') { const cs = (e.colors || ['#ff4040', '#40a0ff', '#ffe040']).map((h) => new THREE.Color(h)); col = cs[Math.floor(rng() * cs.length)]; }
         else if (L.colors === 'block') { const c = (palette || [[0.5, 0.5, 0.5]])[Math.floor(rng() * (palette || [1]).length)]; col = new THREE.Color(c[0], c[1], c[2]); }
         else if (L.colors) { const c = L.colors[Math.floor(rng() * L.colors.length)]; col = new THREE.Color(c[0], c[1], c[2]); }
         else col = new THREE.Color(1, 1, 1);
         const ax = sphereDir(rng);
         (L.glow ? glow : lit).push({
-          b: birth, life, x: p[0] + jit[0] * rad * rng(), y: p[1] + Math.abs(jit[1]) * rad * 0.5, z: p[2] + jit[2] * rad * rng(),
+          b: birth, life,
+          x: p[0] + (arcOff ? arcOff[0] : jit[0] * rad * rng()), z: p[2] + (arcOff ? arcOff[2] : jit[2] * rad * rng()),
+          y: p[1] + (arcOff ? arcOff[1] : Math.abs(jit[1]) * rad * 0.5) + (L.climb ? L.climb * (birth - e.t) * (e.height ?? 1) : 0) + (L.rise ? L.rise * (e.height ?? 1) : 0),
+          twinkle: !!L.twinkle, swirl: L.swirl || 0, sx: p[0], sz: p[2], seedT: rng() * 100,
           vx: d[0] * sp, vy: d[1] * sp, vz: d[2] * sp, g: L.g ?? 0, k: Math.max(L.k ?? 0, 0), floor,
           s0: pick(rng, L.s0) * sc, s1: pick(rng, L.s1) * sc, col, rmp, spin: (L.spin ?? 0) * (rng() * 2 - 1), ax, rest: !!(L.g > 0), shrinkEnd: !!L.shrinkEnd,
         });
@@ -99,8 +131,10 @@ export async function buildParticles(THREE, scene, story, ctx) {
       const k = p.k; let F, y;
       if (k < 1e-3) { F = a; y = p.y + p.vy * a - 0.5 * p.g * a * a; }
       else { const e = 1 - Math.exp(-k * a); F = e / k; y = p.y + (p.vy + p.g / k) * F - (p.g * a) / k; }
-      const x = p.x + p.vx * F, z = p.z + p.vz * F;
+      let x = p.x + p.vx * F, z = p.z + p.vz * F;
+      if (p.swirl) { const ang = a * p.swirl + p.seedT, r = Math.hypot(p.x - p.sx, p.z - p.sz) || 0.3; x = p.sx + Math.cos(ang) * r; z = p.sz + Math.sin(ang) * r; }
       const u = a / p.life; let s = p.s0 + (p.s1 - p.s0) * u; if (p.shrinkEnd) s *= 1 - u * u * u;
+      if (p.twinkle && u > 0.35 && Math.sin((t + p.seedT) * 47) > 0.3) { dummy.scale.setScalar(0); dummy.position.set(0, -999, 0); dummy.updateMatrix(); mesh.setMatrixAt(i, dummy.matrix); continue; }
       else s *= u > 0.85 ? Math.max(0, (1 - u) / 0.15) : 1;
       if (p.rest && p.floor > -1e8 && y < p.floor + s * 0.5) y = p.floor + s * 0.5;
       dummy.position.set(x, y, z); dummy.scale.setScalar(Math.max(s, 0));

@@ -44,9 +44,9 @@ export function kf(u, frames) {
 export const CLIPS = {
   idle: (t) => ({ head: [S(t * 1.1) * 0.03, 0, 0], rArm: [0, 0, 0.04 + S(t * 1.5) * 0.03], lArm: [0, 0, -0.04 - S(t * 1.5) * 0.03], bodyRx: S(t * 1.6) * 0.012 }),
   walk: (t, sp = 1) => { const a = S(t * 8 * sp) * 0.9; return { rLeg: [a, 0, 0], lLeg: [-a, 0, 0], rArm: [-a, 0, 0], lArm: [a, 0, 0], bob: Math.abs(S(t * 8 * sp)) * 0.03, body: [0, S(t * 8 * sp) * 0.06, 0], head: [0, -S(t * 8 * sp) * 0.03, 0] }; },
-  run: (t, sp = 1) => { const a = S(t * 12 * sp) * 1.25; return { rLeg: [a, 0, 0], lLeg: [-a, 0, 0], rArm: [-a * 1.1 - 0.5, 0, 0], lArm: [a * 1.1 - 0.5, 0, 0], bodyRx: -0.18, bob: Math.abs(S(t * 12 * sp)) * 0.08, body: [0, S(t * 12 * sp) * 0.1, 0], head: [0.12, -S(t * 12 * sp) * 0.05, 0] }; },
+  run: (t, sp = 1) => { const a = S(t * 12 * sp) * 1.25; return { rLeg: [a, 0, 0], lLeg: [-a, 0, 0], rArm: [-a * 1.1 - 0.2, 0, 0], lArm: [a * 1.1 - 0.2, 0, 0], bodyRx: 0.2, bob: Math.abs(S(t * 12 * sp)) * 0.08, body: [0, S(t * 12 * sp) * 0.1, 0], head: [-0.16, -S(t * 12 * sp) * 0.05, 0] }; },
   wave: (t) => ({ rArm: [-PI + 0.35, 0, S(t * 9) * 0.45], head: [0, 0, 0.05] }),
-  talk: (t) => ({ head: [S(t * 13) * 0.07, S(t * 2.1) * 0.12, 0], lArm: [0, 0, -0.06], rArm: [S(t * 3.3) * 0.25 - 0.4, 0, 0.1] }),
+  talk: (t) => ({ head: [S(t * 13) * 0.07, S(t * 2.1) * 0.12, 0], rArm: [S(t * 2.1) * 0.05 - 0.08, 0, 0.06], lArm: [S(t * 3.3) * 0.25 - 0.4, 0, -0.1] }), // gestures with the free (left) hand, so a held sword stays low
   mine: (t) => ({ rArm: [-1.1 - Math.abs(S(t * 8)) * 1.0, 0, 0], body: [0, S(t * 8) * 0.08, 0], lArm: [0.1, 0, 0] }),
   punch: (t) => ({ rArm: [-1.55 + S(t * 14) * 0.7, 0, 0], lArm: [0.4, 0, 0.1] }),
   dance: (t) => ({ rArm: [-2.6 + S(t * 9) * 0.5, 0, 0.3], lArm: [-2.6 - S(t * 9) * 0.5, 0, -0.3], rLeg: [S(t * 9) * 0.5, 0, 0], lLeg: [-S(t * 9) * 0.5, 0, 0], head: [0, 0, S(t * 9) * 0.15], bob: Math.abs(S(t * 9)) * 0.12 }),
@@ -64,7 +64,7 @@ export const CLIPS = {
       rArm: kf(u, [[0, [-0.1, 0, 0]], [0.28, [-3.0, 0, 0.1], 'out'], [0.42, [-0.45, 0, 0], 'in'], [0.52, [0.3, 0, 0], 'out'], [1, [-0.1, 0, 0]]]),
       lArm: kf(u, [[0, [0.1, 0, 0]], [0.28, [0.6, 0, 0.2]], [0.5, [-0.3, 0, 0]], [1, [0.1, 0, 0]]]),
       body: kf(u, [[0, Z], [0.28, [0, -0.45, 0], 'out'], [0.42, [0, 0.55, 0], 'in'], [0.62, [0, 0.2, 0]], [1, Z]]),
-      bodyRx: kf(u, [[0, 0], [0.28, 0.18], [0.42, -0.28, 'in'], [0.6, -0.1], [1, 0]]),
+      bodyRx: kf(u, [[0, 0], [0.28, -0.18], [0.42, 0.28, 'in'], [0.6, 0.1], [1, 0]]),
       head: kf(u, [[0, Z], [0.28, [0, 0.25, 0]], [0.5, [0, -0.18, 0]], [1, Z]]),
     };
   },
@@ -79,11 +79,11 @@ export const CLIPS = {
       bob: kf(u, [[0, 0], [0.1, 0.05], [1, 0]]),
     };
   },
-  stance: (t) => ({ sink: 0.32, bodyRx: 0.3, rLeg: [0, 0, 0.3], lLeg: [0, 0, -0.3], rArm: [-1.1, 0, 0.2], lArm: [-1.1, 0, -0.2], head: [-0.2 + S(t * 2) * 0.02, 0, 0] }),
+  stance: (t) => ({ sink: 0.32, bodyRx: 0.3, rLeg: [0, 0, -0.3], lLeg: [0, 0, 0.3], rArm: [-1.1, 0, 0.2], lArm: [-1.1, 0, -0.2], head: [-0.2 + S(t * 2) * 0.02, 0, 0] }),
   lunge: (t, sp, dur) => { // coil back, spring forward, overshoot, recover
     const u = clamp01(t / (dur || 0.8));
     return {
-      bodyRx: kf(u, [[0, 0], [0.25, 0.22, 'out'], [0.5, -0.5, 'in'], [0.7, -0.35], [1, 0]]),
+      bodyRx: kf(u, [[0, 0], [0.25, -0.22, 'out'], [0.5, 0.5, 'in'], [0.7, 0.35], [1, 0]]),
       rLeg: kf(u, [[0, Z], [0.25, [0.4, 0, 0]], [0.5, [-0.9, 0, 0]], [1, Z]]),
       lLeg: kf(u, [[0, Z], [0.25, [-0.3, 0, 0]], [0.5, [0.7, 0, 0]], [1, Z]]),
       rArm: kf(u, [[0, Z], [0.25, [0.5, 0, 0.2]], [0.5, [-1.6, 0, 0]], [1, Z]]),
@@ -94,11 +94,93 @@ export const CLIPS = {
   shout: (t) => ({ head: [-0.4 + S(t * 40) * 0.02, S(t * 33) * 0.03, 0], rArm: [0.25, 0, 0.35], lArm: [0.25, 0, -0.35], bodyRx: 0.12 }),
   point: (t) => ({ rArm: [-1.57, 0, 0.05], head: [0, 0.2, 0], bodyRx: -0.04 }),
   raise: (t) => ({ rArm: [-3.0 + S(t * 2) * 0.05, 0, 0.1], lArm: [0.1, 0, -0.1], head: [-0.45, 0, 0], bodyRx: -0.05 }), // arm up (holding a torch aloft)
+  // ---- combat and magic (v0.2). Sign conventions: arm x < 0 raises forward/up, rArm z > 0 swings across the body (toward +x),
+  //      bodyRx > 0 leans forward, body[1] > 0 twists the chest to the character's left, pitch < 0 tips the whole body backward.
+  slash: (t, sp, dur) => { // horizontal cut, right to left: wind back -> fast sweep -> overshoot -> settle
+    const u = clamp01(t / (dur || 0.6));
+    return {
+      rArm: kf(u, [[0, [-1.1, 0, -0.1]], [0.3, [-1.55, 0, -1.35], 'out'], [0.47, [-1.5, 0, 0.95], 'in'], [0.6, [-1.35, 0, 1.2], 'out'], [1, [-0.5, 0, 0.1]]]),
+      lArm: kf(u, [[0, Z], [0.3, [-0.7, 0, 0.35]], [0.5, [0.35, 0, -0.25]], [1, Z]]),
+      body: kf(u, [[0, Z], [0.3, [0, -0.6, 0], 'out'], [0.47, [0, 0.55, 0], 'in'], [0.62, [0, 0.68, 0]], [1, Z]]),
+      head: kf(u, [[0, Z], [0.3, [0, 0.35, 0]], [0.5, [0, -0.3, 0]], [1, Z]]),
+      bodyRx: kf(u, [[0, 0], [0.3, -0.06], [0.47, 0.22, 'in'], [1, 0]]),
+      rLeg: kf(u, [[0, Z], [0.4, [-0.3, 0, 0]], [1, Z]]), lLeg: kf(u, [[0, Z], [0.4, [0.3, 0, 0]], [1, Z]]),
+      wrist: kf(u, [[0, 0], [0.3, 1.2], [0.6, 1.3], [1, 0]]),
+    };
+  },
+  overhead: (t, sp, dur) => { // two-handed chop from above
+    const u = clamp01(t / (dur || 0.7));
+    return {
+      rArm: kf(u, [[0, [-0.3, 0, 0]], [0.32, [-3.05, 0, 0.15], 'out'], [0.48, [-0.55, 0, 0.1], 'in'], [0.58, [-0.25, 0, 0.1], 'out'], [1, [-0.4, 0, 0]]]),
+      lArm: kf(u, [[0, Z], [0.32, [-2.7, 0, -0.2], 'out'], [0.48, [-0.75, 0, -0.1], 'in'], [1, Z]]),
+      bodyRx: kf(u, [[0, 0], [0.32, -0.28, 'out'], [0.48, 0.42, 'in'], [0.6, 0.32], [1, 0]]),
+      head: kf(u, [[0, Z], [0.32, [0.2, 0, 0]], [0.48, [-0.35, 0, 0]], [1, Z]]),
+      sink: kf(u, [[0, 0], [0.32, 0], [0.5, 0.16], [1, 0]]),
+      rLeg: kf(u, [[0, Z], [0.48, [-0.35, 0, 0]], [1, Z]]), lLeg: kf(u, [[0, Z], [0.48, [0.35, 0, 0]], [1, Z]]),
+    };
+  },
+  thrust: (t, sp, dur) => { // stab: chamber back, drive forward, hold, recover
+    const u = clamp01(t / (dur || 0.55));
+    return {
+      rArm: kf(u, [[0, [-1.1, 0, 0]], [0.35, [-0.9, 0, -0.4], 'out'], [0.5, [-1.62, 0, 0.08], 'in'], [0.66, [-1.66, 0, 0.08]], [1, [-0.6, 0, 0]]]),
+      lArm: kf(u, [[0, Z], [0.35, [-0.8, 0, 0.3]], [0.5, [0.45, 0, -0.1]], [1, Z]]),
+      body: kf(u, [[0, Z], [0.35, [0, -0.5, 0], 'out'], [0.5, [0, 0.28, 0], 'in'], [1, Z]]),
+      bodyRx: kf(u, [[0, 0], [0.35, -0.12], [0.5, 0.38, 'in'], [0.7, 0.3], [1, 0]]),
+      head: kf(u, [[0, Z], [0.5, [-0.3, -0.2, 0]], [1, Z]]),
+      rLeg: kf(u, [[0, Z], [0.5, [-0.55, 0, 0]], [1, Z]]), lLeg: kf(u, [[0, Z], [0.5, [0.5, 0, 0]], [1, Z]]), sink: kf(u, [[0, 0], [0.5, 0.12], [1, 0]]),
+      wrist: kf(u, [[0, 0.3], [0.35, 1.9], [0.7, 2.05], [1, 0.3]]),
+    };
+  },
+  guard: (t) => ({ rArm: [-1.95 + S(t * 3) * 0.04, 0, 0.6], lArm: [-1.25, 0, -0.35], bodyRx: 0.14, sink: 0.12, head: [-0.12, 0, 0], rLeg: [-0.25, 0, -0.12], lLeg: [0.25, 0, 0.12] }),
+  block: (t) => CLIPS.guard(t),
+  ready: (t) => ({ rArm: [-0.9 + S(t * 2.2) * 0.04, 0, 0.12], lArm: [-0.5, 0, -0.2], bodyRx: 0.12 + S(t * 2.2) * 0.02, sink: 0.08, head: [-0.1, 0, 0], rLeg: [-0.2, 0, -0.1], lLeg: [0.2, 0, 0.1] }),
+  dodge: (t, sp, dur) => { // a quick sidestep lean (move the actor sideways with `to`); dir: lean to the actor's left by default
+    const u = clamp01(t / (dur || 0.5));
+    return { roll: kf(u, [[0, 0], [0.3, 0.32, 'out'], [0.7, 0.24], [1, 0]]), rArm: kf(u, [[0, Z], [0.3, [-0.6, 0, -0.7]], [1, Z]]), lArm: kf(u, [[0, Z], [0.3, [-0.3, 0, 0.6]], [1, Z]]),
+      rLeg: kf(u, [[0, Z], [0.3, [0, 0, -0.35]], [1, Z]]), lLeg: kf(u, [[0, Z], [0.3, [0, 0, 0.2]], [1, Z]]), sink: kf(u, [[0, 0], [0.3, 0.12], [1, 0]]) };
+  },
+  knockback: (t, sp, dur) => { // a big hit that throws the actor back (pair with "to" and "arc")
+    const u = clamp01(t / (dur || 0.8));
+    return {
+      pitch: kf(u, [[0, 0], [0.15, -0.42, 'out'], [0.65, -0.25], [1, 0]]),
+      rArm: kf(u, [[0, Z], [0.15, [-1.3, 0, -0.9], 'out'], [0.7, [-0.4, 0, -0.3]], [1, Z]]), lArm: kf(u, [[0, Z], [0.15, [-1.3, 0, 0.9], 'out'], [0.7, [-0.4, 0, 0.3]], [1, Z]]),
+      rLeg: kf(u, [[0, Z], [0.15, [-0.7, 0, 0]], [0.8, Z]]), lLeg: kf(u, [[0, Z], [0.15, [-0.2, 0, 0]], [0.8, Z]]),
+      head: kf(u, [[0, Z], [0.12, [-0.45, 0.2, 0.1], 'out'], [0.6, [-0.1, 0, 0]], [1, Z]]),
+    };
+  },
+  cast: (t) => ({ rArm: [-1.72 + S(t * 19) * 0.04, 0, 0.22], lArm: [-1.72 - S(t * 21) * 0.04, 0, -0.22], head: [-0.12, 0, 0], bodyRx: -0.08, rLeg: [-0.2, 0, 0], lLeg: [0.2, 0, 0] }),
+  summon: (t, sp, dur) => { const u = clamp01(t / (dur || 1.2)); return { rArm: kf(u, [[0, [0, 0, -0.2]], [0.7, [-2.9, 0, -0.35], 'outCubic'], [1, [-2.95, 0, -0.35]]]), lArm: kf(u, [[0, [0, 0, 0.2]], [0.7, [-2.9, 0, 0.35], 'outCubic'], [1, [-2.95, 0, 0.35]]]), head: kf(u, [[0, Z], [0.7, [-0.5, 0, 0]], [1, [-0.55, 0, 0]]]), bodyRx: kf(u, [[0, 0], [0.7, -0.15], [1, -0.16]]) }; },
+  levitate: (t) => ({ rArm: [-0.15 + S(t * 1.7) * 0.05, 0, -0.5], lArm: [-0.15 - S(t * 1.7) * 0.05, 0, 0.5], rLeg: [0.12 + S(t * 1.3) * 0.08, 0, -0.04], lLeg: [0.02 - S(t * 1.3) * 0.08, 0, 0.04], bob: 0.08 + S(t * 2.1) * 0.07, head: [0.12, 0, 0] }),
+  kneel: () => ({ rLeg: [-1.4, 0, 0], lLeg: [0.55, 0, 0], sink: 0.4, bodyRx: 0.12, head: [-0.12, 0, 0], rArm: [-0.3, 0, 0.05], lArm: [0.1, 0, -0.05] }),
+  fall: (t, sp, dur) => { // fall flat on the back (use "hold": true to stay down)
+    const u = clamp01(t / (dur || 0.9));
+    return { pitch: kf(u, [[0, 0], [0.75, -1.5708, 'in'], [0.86, -1.47, 'out'], [1, -1.5708, 'in']]), sink: kf(u, [[0, 0], [0.75, -0.12], [1, -0.12]]),
+      rArm: kf(u, [[0, Z], [0.4, [-2.4, 0, -0.5]], [0.8, [-0.2, 0, -0.3]], [1, [0, 0, -0.25]]]), lArm: kf(u, [[0, Z], [0.4, [-2.4, 0, 0.5]], [0.8, [-0.2, 0, 0.3]], [1, [0, 0, 0.25]]]),
+      rLeg: kf(u, [[0, Z], [0.4, [-0.5, 0, 0]], [1, [0, 0, -0.08]]]), lLeg: kf(u, [[0, Z], [0.4, [-0.2, 0, 0]], [1, [0, 0, 0.08]]]), head: kf(u, [[0, Z], [0.5, [0.4, 0, 0]], [1, [0.2, 0.3, 0]]]) };
+  },
+  getup: (t, sp, dur) => { const u = clamp01(t / (dur || 1.0)); return { pitch: kf(u, [[0, -1.5708], [0.25, -1.4], [0.75, -0.1, 'outCubic'], [1, 0]]), sink: kf(u, [[0, -0.12], [0.5, 0.25], [1, 0]]), rArm: kf(u, [[0, Z], [0.4, [0.6, 0, -0.3]], [1, Z]]), lArm: kf(u, [[0, Z], [0.4, [0.6, 0, 0.3]], [1, Z]]), rLeg: kf(u, [[0, Z], [0.5, [-1.0, 0, 0]], [1, Z]]) }; },
+  bow: (t) => ({ rArm: [-1.57, -0.12, 0.08], lArm: [-1.52 + S(t * 25) * 0.015, 0.75, -0.2], head: [0, -0.1, 0], body: [0, 0.15, 0] }),
+  throw: (t, sp, dur) => { const u = clamp01(t / (dur || 0.6)); return { rArm: kf(u, [[0, [0, 0, 0]], [0.4, [-2.9, 0, -0.3], 'out'], [0.55, [-1.3, 0, 0], 'in'], [1, [-0.3, 0, 0]]]), body: kf(u, [[0, Z], [0.4, [0, -0.5, 0]], [0.55, [0, 0.4, 0], 'in'], [1, Z]]), bodyRx: kf(u, [[0, 0], [0.4, -0.15], [0.55, 0.25], [1, 0]]), lArm: kf(u, [[0, Z], [0.4, [-1.2, 0, 0.2]], [0.6, [0.3, 0, 0]], [1, Z]]) }; },
+  celebrate: (t) => ({ rArm: [-2.85 + S(t * 10) * 0.25, 0, -0.3], lArm: [-2.85 - S(t * 10) * 0.25, 0, 0.3], bob: Math.abs(S(t * 10)) * 0.07, head: [-0.2, 0, 0] }),
+  sneak: (t, sp = 1) => { const a = S(t * 6 * sp) * 0.45; return { bodyRx: 0.5, rArm: [-0.4 - a * 0.5, 0, 0], lArm: [-0.4 + a * 0.5, 0, 0], rLeg: [a, 0, 0], lLeg: [-a, 0, 0], sink: 0.18, head: [-0.45, 0, 0] }; },
+  crouch: () => ({ bodyRx: 0.5, rArm: [-0.4, 0, 0], lArm: [-0.4, 0, 0], sink: 0.18, head: [-0.45, 0, 0] }),
+  charge: (t, sp = 1) => { const a = S(t * 12 * sp) * 1.2; return { rLeg: [a, 0, 0], lLeg: [-a, 0, 0], rArm: [-1.35 + S(t * 12 * sp) * 0.08, 0, 0.12], lArm: [a * 1.1 - 0.4, 0, 0], bodyRx: 0.32, bob: Math.abs(S(t * 12 * sp)) * 0.08, head: [-0.3, 0, 0] }; },
+  stagger: (t) => ({ roll: S(t * 5) * 0.08, bodyRx: 0.2 + S(t * 3) * 0.06, head: [0.25, S(t * 4) * 0.2, 0], rArm: [-0.2, 0, -0.25 + S(t * 6) * 0.1], lArm: [-0.2, 0, 0.25 - S(t * 6) * 0.1] }),
+  // ---- movement and life (v0.3) ----
+  swim: (t) => { const u = (t * 1.1) % 1; const ax = kf(u, [[0, -3.0], [0.45, -1.5], [0.7, -0.2], [1, -3.0]]), az = kf(u, [[0, 0], [0.45, 1.3], [0.7, 0.25], [1, 0]]); const k = S(t * 9) * 0.35;
+    return { pitch: 1.38, rArm: [ax, 0, -az], lArm: [ax, 0, az], rLeg: [k, 0, 0], lLeg: [-k, 0, 0], head: [-1.0, 0, 0], bob: 0.05 * S(t * 2.2) }; }, // breaststroke arms, flutter kick, face forward
+  crawl: (t) => { const a = S(t * 4); return { pitch: 1.45, bob: 0.1, rArm: [-2.9 + a * 0.55, 0, -0.1], lArm: [-2.9 - a * 0.55, 0, 0.1], rLeg: [-a * 0.35, 0, 0], lLeg: [a * 0.35, 0, 0], head: [-1.1, 0, 0] }; },
+  climb: (t) => { const a = S(t * 5); return { rArm: [-2.7 + a * 0.35, 0, 0.1], lArm: [-2.7 - a * 0.35, 0, -0.1], rLeg: [-0.3 - a * 0.45, 0, 0], lLeg: [-0.3 + a * 0.45, 0, 0], head: [-0.25, 0, 0] }; },
+  ride: (t) => ({ rLeg: [-1.41, 0.31, 0.08], lLeg: [-1.41, -0.31, -0.08], rArm: [-0.63 + S(t * 3) * 0.03, 0, 0], lArm: [-0.63 - S(t * 3) * 0.03, 0, 0] }), // the game's riding pose
+  eat: (t) => ({ rArm: [-1.25 + S(t * 16) * 0.12, 0, 0.5], head: [0.12 + S(t * 16) * 0.03, 0, 0] }),
+  drink: (t) => ({ rArm: [-2.05, 0, 0.45], head: [-0.5, 0, 0], bodyRx: -0.05 }),
+  sleep: () => ({ pitch: -1.5708, sink: -0.12, rArm: [0, 0, -0.06], lArm: [0, 0, 0.06], head: [0, 0, 0] }),
+  glide: (t) => ({ pitch: 1.3, rArm: [0.35, 0, -0.35 + S(t * 3) * 0.03], lArm: [0.35, 0, 0.35 - S(t * 3) * 0.03], rLeg: [0.08, 0, 0.04], lLeg: [0.08, 0, -0.04], head: [-0.9, 0, 0] }),
   zombie: (t, sp = 1) => { const a = S(t * 6 * sp) * 0.55; return { rArm: [-1.5 + S(t * 3) * 0.06, 0, 0.05], lArm: [-1.5 - S(t * 3) * 0.06, 0, -0.05], rLeg: [a, 0, 0], lLeg: [-a, 0, 0], head: [0.08, S(t * 2) * 0.12, 0], bob: Math.abs(S(t * 6 * sp)) * 0.02 }; },
 };
 
 function basePose(idle) {
-  return { head: Z, rArm: idle.rArm, lArm: idle.lArm, rLeg: Z, lLeg: Z, body: Z, bodyRx: 0, bob: 0, sink: 0, roll: 0, spinY: 0 };
+  return { head: Z, rArm: idle.rArm, lArm: idle.lArm, rLeg: Z, lLeg: Z, body: Z, bodyRx: 0, bob: 0, sink: 0, roll: 0, spinY: 0, pitch: 0, wrist: 0 };
 }
 
 export function evalClip(name, ct, sp, dur, tGlobal) {
@@ -129,6 +211,7 @@ export function clipState(story, a, t) {
   let clip = 'idle', ct = t, sp = 1, dur = 0, start = 0, seg = null;
   for (const s of segsOf(story, a)) {
     if (s.t > t) break;
+    if (!('do' in s) && !s.to && s.face === undefined) continue; // meta-only entries (lookAt, holding, hide/show, hurt) keep the current clip
     const d = s.dur ?? 0;
     if (t < s.t + d || s.hold) { clip = s.do || 'idle'; ct = t - s.t; sp = s.speed || 1; dur = d; start = s.t; seg = s; }
     else { clip = 'idle'; ct = t; sp = 1; dur = 0; start = s.t + d; seg = null; }
@@ -163,6 +246,7 @@ export function actorState(story, a, t, ctx = {}, depth = 0) {
       heads.push({ t: s.t, h, turn: s.turn ?? 0.15 });
     }
     if ((t < s.t + dur || s.hold) && s.do === 'jump') { const u = Math.min(1, (t - s.t) / (dur || 0.6)); jumpY = 4 * (s.height ?? 1.0) * u * (1 - u); }
+    else if (s.arc && t < s.t + dur) { const u = Math.min(1, (t - s.t) / (dur || 0.6)); jumpY = 4 * s.arc * u * (1 - u); } // a hop along any move (knock-back, leap)
     if (s.to && t >= s.t + dur) pos = [...s.to];
   }
   // smooth turning: shortest arc from the previous heading over `turn` seconds
@@ -186,8 +270,8 @@ export function actorState(story, a, t, ctx = {}, depth = 0) {
     pose = mixPose(prevPose, pose, ease.smooth(clamp01((t - cur.start) / bl)));
   }
   // hide / show flags: { "t": 5, "actor": "x", "hide": true } removes the actor (e.g. a mob that exploded) until a later "show"
-  let hidden = false; for (const s of segsOf(story, a)) { if (s.t > t) break; if (s.hide) hidden = true; if (s.show) hidden = false; }
-  return { pos, heading, jumpY, pose, clip: cur.clip, ct: cur.ct, sp: cur.sp, dur: cur.dur, hidden, moving: cur.clip === 'walk' || cur.clip === 'run' };
+  let hidden = false; for (const s of segsOf(story, a)) { if (s.t > t) break; if (s.hide) hidden = true; if (s.show) hidden = false; if (s.do === 'die' && s.vanish && t >= s.t + (s.dur ?? 1)) hidden = true; }
+  return { pos, heading, jumpY, pose, clip: cur.clip, ct: cur.ct, sp: cur.sp, dur: cur.dur, hidden, seg: cur.seg, moving: cur.clip === 'walk' || cur.clip === 'run' };
 }
 
 // ------------------------------------------------------------- look-at ----
@@ -231,4 +315,17 @@ export function noise(t, seed = 0) {
 }
 export function mulberry32(a) {
   return function () { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+
+// ------------------------------------------------------------------- hurt ----
+// Red damage tint like the game (about 0.5 s after a hit), held while dying. 0..1
+export function hurtAt(story, a, t) {
+  let h = 0;
+  for (const s of segsOf(story, a)) {
+    if (s.t > t) break;
+    const k = t - s.t;
+    if (s.do === 'hit' || s.do === 'knockback' || s.hurt) { if (k < 0.5) h = Math.max(h, 1 - k / 0.5); }
+    if (s.do === 'die' && (k < (s.dur ?? 1) || s.hold)) h = Math.max(h, k < 1.0 ? 0.9 : Math.max(0, 0.9 - (k - 1.0)));
+  }
+  return h;
 }

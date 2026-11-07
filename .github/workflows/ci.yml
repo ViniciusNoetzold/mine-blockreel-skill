@@ -16,4 +16,6 @@ jobs:
       - name: Browser for the real-render tests (software GL)
         run: python -m playwright install --with-deps chromium
       - run: node tests/anim_check.mjs
+      - run: node tests/world_check.mjs
+      - run: node tests/geo_check.mjs
       - run: python -m pytest tests -q

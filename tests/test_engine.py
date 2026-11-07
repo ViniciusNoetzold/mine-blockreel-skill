@@ -18,6 +18,10 @@ def test_anim_math_in_node():
     r = subprocess.run(["node", str(ROOT / "tests" / "anim_check.mjs")], capture_output=True, text=True, cwd=ROOT)
     assert r.returncode == 0, r.stderr + r.stdout
     assert "anim ok" in r.stdout
+    r = subprocess.run(["node", str(ROOT / "tests" / "world_check.mjs")], capture_output=True, text=True, cwd=ROOT)
+    assert r.returncode == 0 and "world ok" in r.stdout, r.stderr + r.stdout
+    r = subprocess.run(["node", str(ROOT / "tests" / "geo_check.mjs")], capture_output=True, text=True, cwd=ROOT)
+    assert r.returncode == 0 and "geo ok" in r.stdout, r.stderr + r.stdout
 
 
 @pytest.fixture(scope="module")

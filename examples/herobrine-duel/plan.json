@@ -1,0 +1,225 @@
+{
+ "title": "Eu vs Herobrine",
+ "size": [
+  1280,
+  720
+ ],
+ "fps": 30,
+ "seed": 7,
+ "style": "nightfall",
+ "styleOverride": {
+  "letterbox": 2.0,
+  "fog": [
+   16,
+   70
+  ],
+  "ambient": {
+   "color": "#8090ff",
+   "intensity": 0.95
+  },
+  "sun": {
+   "color": "#b8c8ff",
+   "intensity": 1.1,
+   "dir": [
+    0.4,
+    1,
+    -0.3
+   ]
+  }
+ },
+ "post": {
+  "bloom": {
+   "strength": 0.55,
+   "radius": 0.5,
+   "threshold": 0.82
+  },
+  "grade": {
+   "contrast": 1.08,
+   "saturation": 1.05
+  },
+  "grain": 0.03
+ },
+ "sky": {
+  "clouds": true,
+  "stars": 1
+ },
+ "world": {
+  "biome": "plains",
+  "radius": 42,
+  "arena": {
+   "center": [
+    0,
+    0
+   ],
+   "radius": 8,
+   "y": 4
+  },
+  "trees": 0.025,
+  "water": 2,
+  "structures": [
+   {
+    "structure": "shrine",
+    "pos": [
+     0,
+     null,
+     -9
+    ]
+   },
+   {
+    "structure": "ruins",
+    "pos": [
+     11,
+     null,
+     7
+    ],
+    "seed": 2
+   }
+  ]
+ },
+ "cast": {
+  "me": {
+   "persona": {
+    "skin": "#c68e6a",
+    "hair": {
+     "color": "#2a1a10",
+     "style": "short"
+    },
+    "facial_hair": "stubble",
+    "top": {
+     "type": "hoodie",
+     "color": "#2b2f3a"
+    },
+    "bottom": {
+     "type": "jeans",
+     "color": "#3b4f7a"
+    },
+    "shoes": {
+     "type": "sneakers",
+     "color": "#f0f0f0"
+    }
+   },
+   "name": "Vini",
+   "holding": "diamond_sword"
+  },
+  "herobrine": {
+   "preset": "herobrine",
+   "name": "Herobrine",
+   "holding": "iron_sword",
+   "eyes": "glow",
+   "hidden": true
+  }
+ },
+ "marks": {
+  "me": [
+   0,
+   9
+  ],
+  "herobrine": [
+   0,
+   -3
+  ]
+ },
+ "beats": [
+  {
+   "beat": "establish",
+   "dur": 4,
+   "text": "EU vs HEROBRINE",
+   "eerie": true
+  },
+  {
+   "beat": "walk",
+   "who": "me",
+   "to": [
+    0,
+    3
+   ],
+   "pause": 0.3
+  },
+  {
+   "beat": "reveal",
+   "who": "herobrine",
+   "at": [
+    0,
+    -2
+   ],
+   "witness": "me"
+  },
+  {
+   "beat": "line",
+   "who": "herobrine",
+   "text": "Você não deveria ter vindo.",
+   "emotion": "angry"
+  },
+  {
+   "beat": "line",
+   "who": "me",
+   "text": "Eu vim te parar.",
+   "emotion": "angry"
+  },
+  {
+   "beat": "faceoff",
+   "a": "me",
+   "b": "herobrine",
+   "dur": 2.4
+  },
+  {
+   "beat": "duel",
+   "a": "me",
+   "b": "herobrine",
+   "exchanges": [
+    "me:slash:block",
+    "herobrine:overhead:dodge",
+    "me:thrust:hit",
+    "herobrine:slash:knockback"
+   ]
+  },
+  {
+   "beat": "teleport",
+   "who": "herobrine",
+   "to": "behind:me"
+  },
+  {
+   "beat": "power",
+   "who": "herobrine",
+   "kind": "lightning",
+   "target": "me",
+   "dur": 2.6
+  },
+  {
+   "beat": "getup",
+   "who": "me",
+   "facing": "herobrine"
+  },
+  {
+   "beat": "duel",
+   "a": "me",
+   "b": "herobrine",
+   "exchanges": [
+    "me:sweep:hit",
+    "herobrine:thrust:block",
+    "me:crit:hit"
+   ]
+  },
+  {
+   "beat": "finisher",
+   "a": "me",
+   "b": "herobrine",
+   "move": "overhead",
+   "result": "vanish"
+  },
+  {
+   "beat": "silence",
+   "who": "me",
+   "dur": 2.0
+  },
+  {
+   "beat": "ending",
+   "dur": 5,
+   "text": "Herobrine voltará?"
+  }
+ ],
+ "music": {
+  "key": "D",
+  "bpm": 108
+ }
+}

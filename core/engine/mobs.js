@@ -49,8 +49,9 @@ export function buildMob(THREE, type, tex, cfg) {
   } else throw new Error('unknown mob type: ' + type);
   const sc = cfg.scale ?? 1; root.scale.setScalar(sc);
   if (cfg.nametag) { /* name tags: use the actor nametag from engine.js */ }
-  return {
-    root, head, headY: headY * sc, eyeY: eyeY * sc,
+  mat.emissiveMap = tex; mat.emissive = new THREE.Color(0, 0, 0);
+  const api = {
+    root, head, headY: headY * sc, eyeY: eyeY * sc, mats: [mat], flash: 0,
     update(st, t) {
       const walking = st.clip === 'walk' || st.clip === 'run'; const sp = (st.sp || 1) * (st.clip === 'run' ? 1.5 : 1); const w = st.ct * 8 * sp;
       legs.forEach((l, i) => { l.rotation.x = walking ? S(w + (i === 0 || i === 3 ? 0 : Math.PI)) * 0.8 : 0; });
@@ -58,9 +59,10 @@ export function buildMob(THREE, type, tex, cfg) {
       head.rotation.set(walking ? 0 : S(t * 1.1) * 0.04, walking ? 0 : S(t * 0.7) * 0.15, 0);
       let k = 1, flash = 0; // "swell": the creeper-style pre-explosion inflate with white flashes
       if (st.clip === 'swell') { const u = Math.min(1, st.ct / (st.dur || 1.5)); k = 1 + 0.35 * u * u + 0.03 * S(st.ct * 50); flash = Math.floor(st.ct * (5 + 6 * u)) % 2 === 0 ? 1 : 0; }
-      inner.scale.set(k, k, k); mat.color.setScalar(flash ? 2.6 : 1);
+      inner.scale.set(k, k, k); api.flash = flash;
       if (st.clip === 'hit') { const u = Math.min(1, st.ct / (st.dur || 0.5)); inner.rotation.x = -0.35 * Math.sin(Math.PI * u); } else inner.rotation.x = 0;
       if (st.clip === 'die') { inner.rotation.z = Math.min(1, st.ct / 0.5) * Math.PI / 2; } else inner.rotation.z = 0;
     },
   };
+  return api;
 }

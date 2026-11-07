@@ -32,13 +32,19 @@ relative to the story file. All times are in seconds on the **output timeline** 
   "model": "auto",                   // "auto" | "classic" | "slim"
   "pos": [0, 1, 0],                  // feet position
   "face": 90,                        // heading in degrees; 0 faces +z, 90 faces +x
-  "scale": 1, "nametag": "Hero", "holding": "planks",
+  "scale": 1, "nametag": "Hero", "holding": "diamond_sword", "offhand": "torch",   // items are extruded 3D sprites; a block name holds a block
   "blink": true,                     // automatic blinking (default true)
-  "dust": false                      // footstep dust puffs while walking/running
+  "dust": false,                     // footstep dust puffs while walking/running
+  "armor": "diamond",                // or { "helmet": "iron", "chestplate": "diamond", "leggings": "iron", "boots": "gold", "color": "#3a6ad0" (leather) }
+                                     // leather chainmail iron gold diamond netherite copper turtle_scute
+  "cape": "red",                     // red | blue | black (CC0) or "path/to/cape.png" (64x32 layout); swings with speed
+  "elytra": true                     // folded on the back; spreads with the "glide" clip (hides the cape, like the game)
 }
 ```
 
-Mobs use `type` + `texture` instead of `skin` (see `docs/MOBS.md`):
+`"offhand": "shield"` holds the game's shield on the outside of the left forearm; it turns to face forward during `guard`/`block`.
+
+Mobs use `type` (+ `texture` for the built-in rigs) instead of `skin` (see `docs/MOBS.md`; ~70 types with the game's geometry):
 `{ "type": "creeper" | "pig" | "spider", "texture": "...", "pos": [...], "face": 0, "scale": 1 }`.
 A zombie is a normal actor with a zombie-layout skin and the `zombie` clip.
 
@@ -64,10 +70,24 @@ A zombie is a normal actor with a zombie-layout skin and the `zombie` clip.
 | `blend` | seconds of crossfade from the previous clip (default 0.15; 0 = hard cut) |
 | `lookAt` | the head follows a target until changed: actor name, `[x,y,z]`, `"camera"`, or `null` to release. Optional `limit` (rad) |
 | `hide` / `show` | `true` removes / restores the actor (e.g. a mob that exploded) |
+| `arc` | a hop of this many blocks along any move (knock-back, leap), peaking mid-segment |
+| `holding` / `offhand` | switch the item in the right / left hand from this time on (`null` = empty hand). Entries with only these fields (or only `lookAt`, `hide`, `show`, `hurt`) do not interrupt the running clip |
+| `vanish` | on a `die` segment: when the fall ends the body disappears in the game's white poof |
+| `hurt` | `true` flashes the red damage tint (automatic on `hit` and `knockback`, held while dying) |
+
+Positions anywhere (`pos`, `to`, `face`, `lookAt`, fx, props, camera `pos`/`look`/`orbit.center`) may use `null` as y:
+`[x, null, z]` = on the ground there (actors on the terrain, never on a tree top; cameras at eye height above the real ground).
 
 **Clips.** Loops: `idle walk run wave talk mine punch dance sit look scared spin zombie stance shout point`.
 One-shots that stretch to the segment `dur` and have built-in **anticipation, overshoot and follow-through**:
 `swing` (wind-up, strike, overshoot), `hit` (knock-back and recover), `lunge` (coil and spring), plus `jump`, `die`.
+Combat and magic (v0.2): `slash` (horizontal cut), `overhead` (two-handed chop), `thrust` (stab), `knockback` (thrown back; use `to` + `arc`),
+`dodge` (side-step lean), `summon` (arms rise), `getup`, `fall` (onto the back; `hold`), `throw` are one-shots;
+`ready` (sword stance), `guard`/`block`, `cast` (arms forward, trembling), `levitate` (float pose: move up with `to`), `kneel`, `bow` (draw),
+`charge` (run with the weapon forward), `celebrate`, `sneak`, `crouch`, `stagger` loop.
+Movement and life (v0.3): `swim` (breaststroke, horizontal), `crawl`, `climb` (move up with `to`), `ride` (with `"mount": "horse1"`:
+the actor sits on that actor's saddle and turns with it; the mount moves itself), `eat`, `drink`, `sleep` (lying, eyes closed), `glide`
+(horizontal, spreads the elytra).
 Mobs: `walk run swell hit die` (`swell` = creeper-style inflate and flash).
 The torso, head and arms lean together from the hips; legs stay planted.
 
@@ -118,14 +138,34 @@ needs shifting. Cuts, subtitles, titles and transitions stay on real time. `slow
 "fx": [ { "t": 3, "kind": "explosion", "pos": [2.5,1.5,-1.5], "scale": 1.3, "seed": 4, "block": "stone",
           "dur": 5, "density": 1, "floor": 1 } ]
 ```
-`kind`: `break explosion smoke fire sparks dust blood confetti`. `smoke` and `fire` are continuous for `dur`; the rest are
+`kind`: `break explosion smoke fire sparks dust blood confetti crit magiccrit poof portal sweep flame enchant aura firework totem potion hearts angry notes`
+(`firework`, `potion` take `"colors": ["#ff3040", "#ffd040"]`; `firework` takes `"height"`)
+(`sweep` takes `"face": degrees`: the arc in front of a swing). `smoke` and `fire` are continuous for `dur`; the rest are
 bursts. `pos` is `[x,y,z]`, an actor name, or `{actor, offset}`. `block` picks the debris colours from that block's texture
 (default: the block under `pos`). Particles are cubes, seeded (`story.seed`, `fx.seed`) and evaluated in closed form
 (gravity, drag, floor), so renders are deterministic. Debris lands on the ground below the emitter.
 
 ## World, changes and props
 
-`world` ops (applied in order; `"air"` removes): `fill`, `set`, `hollow`, `tree`.
+`world` ops (`"air"` removes). `terrain` ops run first, everything else in the given order:
+
+```jsonc
+{ "fill": ["stone", [x0,y0,z0], [x1,y1,z1]] }   { "set": ["gold", [x,y,z]] }   { "hollow": ["planks", [..], [..]] }
+{ "tree": [x, null, z], "kind": "oak|birch|spruce|dead", "height": 5 }
+{ "sphere": ["glass", [cx,cy,cz], 4], "hollow": true, "half": true }      { "cylinder": ["cobblestone", [cx,y0,cz], 3, 6], "hollow": true }
+{ "terrain": { "radius": 40, "center": [0,0], "biome": "plains|forest|taiga|desert|snowy|nether|wasteland", "base": 4, "amp": 3, "scale": 16,
+               "water": 2, "flat": { "center": [0,0], "radius": 8, "y": 4 }, "trees": 0.02, "plants": 0.07, "flowers": 0.02,
+               "clear": [[x, z, r]], "arenaPlants": false, "seed": 1 } }
+{ "scatter": ["flower_red", [x0,z0], [x1,z1]], "density": 0.1, "on": ["grass"] }
+{ "structure": "house|tower|ruins|shrine|pillar|campfire|well|farm|lamp|village", "pos": [x, null, z], "face": "south|north|east|west",
+  "w": 7, "d": 6, "h": 12, "block": "...", "seed": 1 }          // village: "houses": 6, "farms": 2, "size": 18 (levels its ground, paths, well, lamps)
+{ "tunnel": [[x,y,z], [x,y,z], ...], "radius": 1.6, "floor": "gravel", "torches": 6 }   // carve a lit tunnel along a path
+// terrain options: "caves": 6 (winding caves under the surface), "ores": true (coal, iron, gold, diamond in the stone)
+```
+Building sites are reserved: no tree or plant of the terrain grows on them, the site is cleared and levelled, and the building gets a
+foundation down to the ground. Keep sites out of the arena (`tools/compose.py` warns about overlaps).
+Trees whose leaves would cover the lens or the first blocks of a camera's line of sight are not planted (`"clearFoliage": false` turns
+this off; `foliageClearance` sets the lens radius, default 1.3).
 
 ```jsonc
 "changes": [
@@ -136,7 +176,8 @@ bursts. `pos` is `[x,y,z]`, an actor name, or `{actor, offset}`. `block` picks t
 ],
 "props": {
   "door1":  { "type": "door",  "pos": [-1,1,1], "axis": "x", "hinge": "min", "block": "planks", "events": [ { "t": 7.5, "do": "open" }, { "t": 10, "do": "close" } ] },
-  "chest1": { "type": "chest", "pos": [4,1,1], "face": 180, "events": [ { "t": 8, "do": "open" } ] }
+  "chest1": { "type": "chest", "pos": [4,1,1], "face": 180, "events": [ { "t": 8, "do": "open" } ] },
+  "sign1":  { "type": "sign", "pos": [2,1,3], "face": 20, "text": "BEM-VINDO\nà vila", "wall": false }   // up to 4 lines, the game font
 }
 ```
 Explosions remove blocks within `radius` (irregular edge, delayed by distance), spawn fireball, debris and smoke, and spare
@@ -145,11 +186,26 @@ Use `place` on an empty position or after a `break`. `water` and `lava` flow aut
 
 ## Blocks
 
-Built-in names: `grass dirt stone cobblestone planks log leaves sand bricks obsidian glowstone snow water lava glass tnt chest
-wool_white wool_red wool_blue gold diamond`. Any other name loads `<name>.png` from your `blocks` folder. A project `index.json` can map names:
+Built-in names (CC0 originals, and the same names map to the game's textures in the cache): `grass dirt stone cobblestone planks log leaves
+sand bricks obsidian glowstone snow water lava glass tnt chest wool_white wool_red wool_blue gold diamond netherrack stonebrick
+mossy_cobblestone gravel bedrock iron_block redstone_block sandstone soul_sand ice blackstone crying_obsidian magma quartz
+birch_log spruce_log dark_oak_log birch_leaves spruce_leaves dark_oak_planks crafting_table`, plants `tall_grass flower_red flower_yellow
+dead_bush fire`, light sources `torch redstone_torch lantern`, shapes `stone_slab cobblestone_slab oak_slab oak_stairs cobblestone_stairs
+stone_brick_stairs oak_fence cobblestone_wall snow_layer carpet_red`. With the cache also: ores, `bookshelf furnace pumpkin jack_o_lantern
+hay sea_lantern cactus mycelium emerald_block end_stone nether_bricks beacon mushroom_red mushroom_brown sapling`, wood variants and more.
+A suffix sets orientation: `oak_stairs:east` (the side the stairs climb toward), `log:x` / `log:z` (a log lying down), `stone_slab:top`,
+`oak_door:south` / `oak_door:south:open` (2 blocks tall), `trapdoor:north:open`, `ladder:north` / `vine:north` (the wall they hang on),
+`rail:x` (east-west), `bed_head:east` + `bed_foot:east`. Also `cactus`, `iron_bars`, `glass_pane` (connect to neighbours), crops `wheat
+carrots potatoes beetroots`, `dirt_path`, `farmland`, `melon`.
+
+How the world is drawn (`core/engine/mesher.js`): faces between solid blocks are never emitted (no z-fighting, no see-through water);
+each face gets the game's directional shade and per-vertex ambient occlusion; sky light and block light are propagated like in the game
+(torches 14, glowstone/lava 15), so caves are dark and torches light the area warmly at night; textures are mip-mapped with an
+alpha-aware filter so distant blocks do not shimmer. Any other name loads `<name>.png` from your `blocks` folder. A project `index.json` can map names:
 
 ```json
 { "blocks": { "grass_block": { "top": "grass_top", "side": "grass_side", "bottom": "dirt" },
+              "lamp": { "all": "lamp", "light": 15 }, "rose": { "all": "rose", "shape": "cross" },   // shape: cube cross torch slab stairs fence wall layer liquid
               "ice": { "all": "ice", "transparent": true },
               "magma": { "all": "magma", "flow": [0, 0.2], "emissive": true } } }
 ```
@@ -170,6 +226,14 @@ ratio such as `2.37`), `vignette`, `fov`, plus optional `post` and `weather` def
 ]
 ```
 Any subset of `sky`, `ambient`, `sun`, `fog` per key; values interpolate smoothly. Use it for sunsets, for an act-break colour shift, or lightning.
+
+## Sky and lightning
+
+`"sky": { "clouds": true, "stars": 1, "celestial": true, "cloudHeight": 34, "cloudSpeed": 0.6, "sunsetGlow": true }`: a dome that keeps the
+horizon level, the square sun and moon on the light direction (night styles show the moon), stars that fade in at night and the
+game's cloud layer (from its cloud map when cached).
+`"lightning": [ { "t": 5, "pos": [x, z] | "actorName", "dur": 0.45, "seed": 3 } ]`: a jagged bolt that flickers, lights the area and
+flashes the sky and the scene.
 
 ## Weather
 
@@ -196,10 +260,14 @@ Grain is seeded by time, so it is deterministic. Post-processing adds cost per f
   "dialogue": [ { "file": "assets/line1.wav", "t": 5.2 } ]
 }
 ```
-Files are yours (never ship game audio). `duck` lowers the music while any dialogue plays. The legacy `"music": "file"` still works.
+Files are yours (never ship game audio). `duck` lowers the music while any dialogue plays. A dialogue entry with `"actor": "hero"`
+drives that actor's mouth from the recording's loudness (audio lip-sync; otherwise the mouth follows the subtitle letters). The legacy `"music": "file"` still works.
 `python tools/audio.py story.json --out mix.wav` renders only the mix so you can listen first.
 
 ## Subtitles and titles
+
+Drawn with the game's own font when cached (`python tools/vanilla.py font`), with its 1 px shadow; otherwise a pixel fallback.
+`"subtitleScale": 3` sets the chat text size at 720p; `"font": "css"` forces the fallback. Titles accept `\n` for two lines.
 
 `"subtitles": [ { "t": 6, "dur": 2, "who": "Hero", "text": "Hello!" } ]`,
 `"titles": [ { "t": 0.4, "dur": 2.2, "text": "BLOCKREEL", "color": "#fff", "size": 64 } ]`.

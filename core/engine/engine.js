@@ -1,12 +1,18 @@
 // BlockReel engine: deterministic Three.js scene player.  window.renderAt(t) draws the frame for time t (seconds).
 import * as THREE from 'three';
-import { ease, getEase, clamp01, actorState, lookState, aimAngles, worldTime, noise } from './anim.js';
+import { ease, getEase, clamp01, actorState, lookState, aimAngles, worldTime, noise, hurtAt } from './anim.js';
+import { extrudeItem, mountItem } from './items.js';
+import { equip, shieldMesh } from './equip.js';
+import { loadFont, textCanvas, wrapRuns } from './font.js';
 import { buildParticles } from './particles.js';
 import { makeFace, faceStateAt } from './face.js';
-import { skyTexture, lightingAt, createWeather } from './env.js';
+import { skyTexture, lightingAt, createWeather, createSky, createLightning } from './env.js';
 import { createPost, usesPost } from './post.js';
 import { buildMob } from './mobs.js';
+import { buildGeoModel } from './geo.js';
 import { parseChanges, blockState, crackTextures, buildProps } from './world.js';
+import { expandWorld, groundHeight } from './worldgen.js';
+import { meshWorld, computeLight, resolveDef, pixelMipmaps, FACES, CHUNK } from './mesher.js';
 
 const q = new URLSearchParams(location.search);
 const PROJECT = q.get('project') || '/project/story.json';
@@ -39,7 +45,7 @@ let story, style, renderer, scene, camera, sun;
 const actors = {};
 const clouds = [];
 let blockDefs = {}; let projBlocksDir = null;
-let vanillaDir = null; let dynByKey = new Map(), dynKeys = new Set(); let grid = new Map(); let particles = null; let lastQA = null; let dyn = [], cracks = [], flowTex = [], props = null, worldFx = []; let post = null, weather = null, ambientL = null, skyTex = null, bgBase = null;
+let vanillaDir = null; let dynByKey = new Map(), dynKeys = new Set(); let grid = new Map(); let particles = null; let lastQA = null; let dyn = [], cracks = [], flowTex = [], props = null, worldFx = []; let post = null, weather = null, ambientL = null, skyTex = null, bgBase = null; let worldLight = null; const worldMeshes = []; let sky = null, lightning = null;
 const texCache = new Map();
 
 // ------------------------------------------------------------ textures ----
@@ -60,6 +66,68 @@ async function blockTexture(name) {
   texCache.set(name, p); return p;
 }
 
+// ---- world materials: mipmapped pixel textures + the game's light model (sky light, warm block light, AO) ----
+const LIGHT_U = { uDay: { value: 1 }, uCave: { value: 0.07 }, uBlockColor: { value: new THREE.Color('#ffc58a') } };
+function mcLit(mat) {
+  mat.onBeforeCompile = (sh) => {
+    Object.assign(sh.uniforms, LIGHT_U);
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec2 mcLight; varying vec2 vMcLight;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvMcLight = mcLight;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec2 vMcLight; uniform float uDay, uCave; uniform vec3 uBlockColor;\nfloat mcCurve(float x){ x = clamp(x, 0.0, 1.0); return x / (4.0 - 3.0 * x); }')
+      .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
+        float mcSky = mcCurve(vMcLight.x), mcBlk = mcCurve(vMcLight.y);
+        reflectedLight.directDiffuse *= mcSky * mcSky;
+        reflectedLight.indirectDiffuse *= mix(uCave, 1.0, mcSky);
+        totalEmissiveRadiance += diffuseColor.rgb * uBlockColor * mcBlk * 1.15 * (1.0 - uDay * mcSky);`);
+  };
+  mat.customProgramCacheKey = () => 'mclit';
+  return mat;
+}
+let maxAniso = 1;
+const mipCache = new Map();
+async function blockTexUrl(name) {
+  const cands = [];
+  if (projBlocksDir) cands.push(`${BASE}${projBlocksDir}/${name}.png`);
+  if (vanillaDir) cands.push(`${vanillaDir}/${name}.png`);
+  cands.push(`/core/builtin/blocks/${name}.png`);
+  for (const u of cands) if (await exists(u)) return u;
+  return null;
+}
+function mipTex(name, cutout, flow) {
+  const key = `${name}|${cutout ? 1 : 0}|${flow ? flow.join(',') : ''}`;
+  if (mipCache.has(key)) return mipCache.get(key);
+  const p = (async () => {
+    const u = await blockTexUrl(name);
+    if (!u) return blockTexture(name); // missing checker (and the warning)
+    const img = await loadImg(u); const pot = (v) => (v & (v - 1)) === 0;
+    const t = new THREE.Texture(img); t.colorSpace = THREE.SRGBColorSpace; t.magFilter = THREE.NearestFilter;
+    if (img.height > img.width && img.height % img.width === 0) { // animated strip: show the first frame
+      const c = document.createElement('canvas'); c.width = c.height = img.width; c.getContext('2d').drawImage(img, 0, 0); t.image = c;
+    }
+    if (pot(t.image.width) && pot(t.image.height)) { t.mipmaps = pixelMipmaps(t.image, cutout); t.generateMipmaps = false; t.minFilter = THREE.NearestMipmapLinearFilter; t.anisotropy = maxAniso; }
+    else { t.generateMipmaps = false; t.minFilter = THREE.NearestFilter; }
+    if (flow) { t.wrapS = t.wrapT = THREE.RepeatWrapping; flowTex.push({ map: t, flow }); }
+    t.needsUpdate = true; return t;
+  })();
+  mipCache.set(key, p); return p;
+}
+const litCache = new Map();
+async function worldMaterial(tex, kind, flow) {
+  const key = `${tex}|${kind}|${flow ? flow.join(',') : ''}`;
+  if (litCache.has(key)) return litCache.get(key);
+  const p = (async () => {
+    const map = await mipTex(tex, kind !== 'opaque', flow);
+    if (kind === 'emissive') return new THREE.MeshBasicMaterial({ map, alphaTest: 0.5 });
+    const o = { map, vertexColors: true };
+    if (kind === 'cutout') Object.assign(o, { alphaTest: 0.5 });
+    if (kind === 'translucent') Object.assign(o, { transparent: true, opacity: 1, depthWrite: true });
+    return mcLit(new THREE.MeshLambertMaterial(o));
+  })();
+  litCache.set(key, p); return p;
+}
+const defCache = new Map();
+const defOf = (name) => { if (!defCache.has(name)) defCache.set(name, resolveDef(blockDefs, name)); return defCache.get(name); };
+
 async function blockMaterials(block) {
   let def = blockDefs[block] ?? block;
   if (typeof def === 'string') def = { all: def };
@@ -75,41 +143,107 @@ async function blockMaterials(block) {
 }
 
 // --------------------------------------------------------------- world ----
-function expandWorld(ops) {
-  const grid = new Map(); // "x,y,z" -> block
-  const set = (b, x, y, z) => { const k = `${x},${y},${z}`; if (b === 'air') grid.delete(k); else grid.set(k, b); };
-  const range = (a, b) => { const lo = Math.min(a, b), hi = Math.max(a, b); const r = []; for (let i = lo; i <= hi; i++) r.push(i); return r; };
-  for (const op of ops || []) {
-    if (op.fill) { const [b, p, r] = op.fill; for (const x of range(p[0], r[0])) for (const y of range(p[1], r[1])) for (const z of range(p[2], r[2])) set(b, x, y, z); }
-    else if (op.set) { const [b, p] = op.set; set(b, p[0], p[1], p[2]); }
-    else if (op.hollow) { const [b, p, r] = op.hollow; const [x0, x1, y0, y1, z0, z1] = [Math.min(p[0], r[0]), Math.max(p[0], r[0]), Math.min(p[1], r[1]), Math.max(p[1], r[1]), Math.min(p[2], r[2]), Math.max(p[2], r[2])];
-      for (const x of range(x0, x1)) for (const y of range(y0, y1)) for (const z of range(z0, z1)) if (x === x0 || x === x1 || y === y0 || y === y1 || z === z0 || z === z1) set(b, x, y, z); }
-    else if (op.tree) { const [x, y, z] = op.tree; const h = op.height ?? 4;
-      for (let i = 0; i < h; i++) set('log', x, y + i, z);
-      for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) for (let dy = h - 2; dy <= h; dy++) {
-        const far = Math.abs(dx) === 2 && Math.abs(dz) === 2; if (!(far && dy === h - 2) && !(dx === 0 && dz === 0 && dy < h)) set('leaves', x + dx, y + dy, z + dz); }
-      set('leaves', x, y + h + 1, z); }
+// [x, null, z] means "on the ground here" for actors, moves, effects and lightning; cameras get eye height (1.7) above it
+// thin layers (snow, carpet) are walked through; dirt paths and farmland (15/16 high) are ground you stand on
+const passableBlock = (b) => { const d = defOf(b); return ['cross', 'torch', 'liquid', 'crop', 'rail', 'ladder', 'vine', 'door', 'trapdoor'].includes(d.shape) || (d.shape === 'layer' && (d.height ?? 2) <= 8); };
+function snapToGround() {
+  // actors stand on the terrain, never on a canopy; cameras ignore trees entirely (eye height above the real ground)
+  const leafy = (b) => /leaves/.test(b) || passableBlock(b); const woody = (b) => /leaves|log/.test(b) || passableBlock(b);
+  const fix = (p, lift = 0, pass = leafy) => { if (Array.isArray(p) && p.length === 3 && (p[1] === null || p[1] === 'ground')) p[1] = groundHeight(grid, p[0], p[2], 160, pass) + lift; };
+  for (const c of Object.values(story.actors || {})) fix(c.pos);
+  for (const sg of story.timeline || []) { fix(sg.to); if (Array.isArray(sg.face)) fix(sg.face, 1.6); if (Array.isArray(sg.lookAt)) fix(sg.lookAt, 1.6); }
+  for (const f of story.fx || []) fix(f.pos, 0.5);
+  for (const c of story.camera || []) { fix(c.pos, 1.7, woody); fix(c.to, 1.7, woody); fix(c.look, 1.2, woody); fix(c.lookTo, 1.2, woody); if (c.orbit) fix(c.orbit.center, 1.2, woody); }
+  for (const pr of Object.values(story.props || {})) fix(pr.pos);
+}
+
+// Where will the camera be? Sampled along every shot (actor-relative offsets use the actors' planned paths), so foliage and
+// plants that would block the lens can be cleared before the world is meshed - like trimming branches on a real set.
+function cameraPath(step = 0.1) {
+  const pts = []; const shots = (story.camera || []).slice().sort((a, b) => a.t - b.t); const dur = story.duration ?? 10;
+  const pseudo = {}; for (const [n, cfg] of Object.entries(story.actors || {})) pseudo[n] = { name: n, cfg };
+  const ctx = { posOf: (n, tt, depth) => (pseudo[n] ? actorState(story, pseudo[n], tt, ctx, depth).pos : [0, 0, 0]) };
+  const P = (v, tt) => { if (Array.isArray(v)) return v; if (typeof v === 'string' && pseudo[v]) { const q = ctx.posOf(v, tt, 0); return [q[0], q[1] + 1.5, q[2]]; }
+    if (v && v.actor && pseudo[v.actor]) { const q = ctx.posOf(v.actor, tt, 0), o = v.offset || [0, 0, 0]; return [q[0] + o[0], q[1] + o[1], q[2] + o[2]]; } return null; };
+  shots.forEach((sh, i) => {
+    const end = Math.min(dur, i + 1 < shots.length ? shots[i + 1].t : dur);
+    for (let t = sh.t; t <= end + 1e-6; t += step) {
+      const wt = worldTime(story, t); const u = clamp01((wt - worldTime(story, sh.t)) / (sh.dur ?? 3)); const e = getEase(sh.ease || 'smooth')(u);
+      if (sh.orbit) { const c = P(sh.orbit.center, wt); if (!c) continue; const a = ((sh.orbit.from + (sh.orbit.to - sh.orbit.from) * e) * Math.PI) / 180; pts.push([[c[0] + Math.sin(a) * sh.orbit.radius, c[1] + (sh.orbit.height ?? 2), c[2] + Math.cos(a) * sh.orbit.radius], c]); continue; }
+      const p0 = P(sh.pos, wt), p1 = sh.to ? P(sh.to, wt) : p0; if (!p0 || !p1) continue;
+      const l0 = P(sh.look, wt), l1 = sh.lookTo ? P(sh.lookTo, wt) : l0;
+      pts.push([p0.map((v, k) => v + (p1[k] - v) * e), l0 && l1 ? l0.map((v, k) => v + (l1[k] - v) * e) : null]);
+    }
+  });
+  return pts;
+}
+function clearCameraFoliage() {
+  if (story.clearFoliage === false) return 0;
+  // a tree whose leaves touch the lens, or the first 6 blocks of the line of sight, is not planted at all (flood-fill its
+  // leaves and logs): a clean frame instead of a camera buried in a canopy. Plants just in front of the lens are removed too.
+  const TREE = /leaves|log/; let n = 0; const R = story.foliageClearance ?? 1.3;
+  const removeTree = (k0) => { // flood the connected logs + leaves; delete only if it is a tree (has leaves), never a house's log pillars
+    const q = [k0]; const seen = new Set([k0]); const comp = [];
+    while (q.length && seen.size < 600) {
+      const k = q.pop(); const b = grid.get(k); if (!b || !TREE.test(b)) continue; comp.push(k);
+      const [x, y, z] = k.split(',').map(Number);
+      for (const [dx, dy, dz] of [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]) { const k2 = `${x + dx},${y + dy},${z + dz}`; if (!seen.has(k2) && TREE.test(grid.get(k2) || '')) { seen.add(k2); q.push(k2); } }
+    }
+    if (!comp.some((k) => /leaves/.test(grid.get(k)))) return;
+    for (const k of comp) { grid.delete(k); n++; }
+  };
+  const probe = (x, y, z, r) => {
+    for (let dx = -2; dx <= 2; dx++) for (let dy = -2; dy <= 2; dy++) for (let dz = -2; dz <= 2; dz++) {
+      const bx = Math.floor(x) + dx, by = Math.floor(y) + dy, bz = Math.floor(z) + dz;
+      if (Math.hypot(bx + 0.5 - x, by + 0.5 - y, bz + 0.5 - z) > r) continue;
+      const k = `${bx},${by},${bz}`; const b = grid.get(k); if (!b) continue;
+      if (TREE.test(b)) removeTree(k); else if (defOf(b).shape === 'cross') { grid.delete(k); n++; }
+    }
+  };
+  for (const [c, l] of cameraPath(0.2)) {
+    probe(c[0], c[1], c[2], R);
+    if (l) { const d = [l[0] - c[0], l[1] - c[1], l[2] - c[2]]; const L = Math.hypot(...d) || 1; for (let s2 = 0.6; s2 < Math.min(6, L - 1.5); s2 += 0.6) probe(c[0] + (d[0] / L) * s2, c[1] + (d[1] / L) * s2, c[2] + (d[2] / L) * s2, 0.9); }
   }
-  return grid;
+  window.__foliageCleared = n; return n;
 }
 
 async function buildWorld() {
-  grid = expandWorld(story.world);
+  grid = expandWorld(story.world, story.seed ?? 1);
+  snapToGround(); clearCameraFoliage();
   const ch = parseChanges(story, grid); worldFx = ch.fx;
   dynByKey = new Map(); for (const it of ch.insts) { const k = it.pos.join(','); (dynByKey.get(k) || dynByKey.set(k, []).get(k)).push(it); } dynKeys = ch.dynKeys;
-  const by = {};
-  for (const [k, b] of grid) if (!ch.dynKeys.has(k)) (by[b] ||= []).push(k.split(',').map(Number));
+  // static blocks: culled, shaded, smooth-lit meshes (core/engine/mesher.js)
+  const { groups, light } = meshWorld(grid, defOf, ch.dynKeys); worldLight = light;
+  for (const g of groups.values()) {
+    const b = g.builder; if (!b.n) continue;
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(b.pos, 3)); geo.setAttribute('normal', new THREE.Float32BufferAttribute(b.nor, 3));
+    geo.setAttribute('uv', new THREE.Float32BufferAttribute(b.uv, 2)); geo.setAttribute('color', new THREE.Float32BufferAttribute(b.col, 3));
+    geo.setAttribute('mcLight', new THREE.Float32BufferAttribute(b.lit, 2)); geo.setIndex(b.idx); geo.computeBoundingSphere();
+    const mesh = new THREE.Mesh(geo, await worldMaterial(g.tex, g.kind, g.flow));
+    mesh.castShadow = g.kind !== 'translucent' && g.kind !== 'emissive'; mesh.receiveShadow = g.kind !== 'emissive';
+    if (g.kind === 'translucent') mesh.renderOrder = 1;
+    if (g.chunk) { const [cx, cz] = g.chunk.split(',').map(Number); mesh.userData.cx = (cx + 0.5) * CHUNK; mesh.userData.cz = (cz + 0.5) * CHUNK; }
+    scene.add(mesh); worldMeshes.push(mesh);
+  }
   const geo = new THREE.BoxGeometry(1, 1, 1); const m = new THREE.Matrix4();
-  for (const [b, list] of Object.entries(by)) {
-    const mesh = new THREE.InstancedMesh(geo, await blockMaterials(b), list.length);
-    list.forEach(([x, y, z], i) => { m.setPosition(x + 0.5, y + 0.5, z + 0.5); mesh.setMatrixAt(i, m); });
-    mesh.castShadow = mesh.receiveShadow = true; scene.add(mesh);
+  { // face shade per vertex for the dynamic cubes (BoxGeometry order: +x -x +y -y +z -z)
+    const sh = [0.6, 0.6, 1, 0.5, 0.8, 0.8]; const col = []; for (let f = 0; f < 6; f++) for (let v = 0; v < 4; v++) col.push(sh[f], sh[f], sh[f]);
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
   }
   // blocks that change over time (story.changes): one instanced mesh per block type, updated each frame
   const dby = {}; for (const it of ch.insts) (dby[it.block] ||= []).push(it);
   const white = new THREE.Color(1, 1, 1);
   for (const [b, list] of Object.entries(dby)) {
-    const mesh = new THREE.InstancedMesh(geo, await blockMaterials(b), list.length);
+    const d = defOf(b); const kind = d.kind === 'emissive' ? 'emissive' : d.kind;
+    const mats = await Promise.all(FACES.map((f) => worldMaterial(d.tex[f.slot], kind, d.flow)));
+    const g2 = geo.clone(); const lit = new Float32Array(list.length * 2);
+    list.forEach((it, i) => { // light of the brightest open neighbour (the block's own cell is solid)
+      let best = [0, 0]; for (const f of FACES) { const l = light.at(it.pos[0] + f.n[0], it.pos[1] + f.n[1], it.pos[2] + f.n[2]); if (l[0] + l[1] > best[0] + best[1]) best = l; }
+      lit[i * 2] = best[0] / 15; lit[i * 2 + 1] = best[1] / 15;
+    });
+    g2.setAttribute('mcLight', new THREE.InstancedBufferAttribute(lit, 2));
+    const mesh = new THREE.InstancedMesh(g2, mats, list.length);
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); mesh.castShadow = mesh.receiveShadow = true; mesh.frustumCulled = false;
     list.forEach((it, i) => { mesh.setColorAt(i, white); dyn.push({ mesh, i, it }); });
     scene.add(mesh);
@@ -122,7 +256,7 @@ async function buildWorld() {
       cracks.push({ mesh: m2, mat, tex, c });
     }
   }
-  props = await buildProps(THREE, scene, story.props, blockMaterials);
+  props = await buildProps(THREE, scene, story.props, blockMaterials, { textCanvas });
 }
 
 const _m4 = new THREE.Matrix4(), _col = new THREE.Color();
@@ -163,18 +297,56 @@ function detectSlim(img) {
   return col(55, 20, 32) && (img.height === 32 * s || col(47, 52, 64));
 }
 
+// a name tag like the game's: the game font on a 25 % black plate, 0.025 blocks per font pixel, always facing the camera
+function nametag(text) {
+  const tc = textCanvas([[text, '#ffffff']], 4, false); const pad = 4;
+  const c = document.createElement('canvas'); c.width = tc.width + pad * 2; c.height = tc.height + pad; const g = c.getContext('2d');
+  g.fillStyle = 'rgba(0,0,0,0.3)'; g.fillRect(0, 0, c.width, c.height); g.imageSmoothingEnabled = false; g.drawImage(tc, pad, pad);
+  const t = new THREE.CanvasTexture(c); t.magFilter = THREE.NearestFilter; t.minFilter = THREE.LinearFilter; t.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthTest: false, transparent: true, fog: false }));
+  sp.scale.set((c.width / 4) * 0.025, (c.height / 4) * 0.025, 1); sp.renderOrder = 5; return sp;
+}
+
+// mobs: the game's own geometry when cached (tools/vanilla.py mobs; any of ~70 mobs), else the built-in creeper/pig/spider rigs
+let mobIndex = null;
 async function makeMob(name, cfg) {
-  const tex = await pixelTex(resolve(cfg.texture));
-  const m = buildMob(THREE, cfg.type, tex, cfg);
-  m.root.position.set(...(cfg.pos || [0, 1, 0])); scene.add(m.root);
-  if (cfg.nametag) {
-    const c = document.createElement('canvas'); c.width = 256; c.height = 40; const g = c.getContext('2d');
-    g.fillStyle = 'rgba(0,0,0,.45)'; g.fillRect(0, 0, 256, 40); g.fillStyle = '#fff'; g.font = 'bold 26px monospace'; g.textAlign = 'center'; g.fillText(cfg.nametag, 128, 29);
-    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), depthTest: false, transparent: true }));
-    sp.scale.set(1.2, 0.19, 1); sp.position.set(0, m.headY + 0.6, 0); m.root.add(sp);
+  if (mobIndex === null) mobIndex = story.textures !== 'builtin' && await exists('/work/vanilla/mobs/index.json') ? (await getJSON('/work/vanilla/mobs/index.json')).mobs : {};
+  let m;
+  if (cfg.geo || mobIndex[cfg.type]) {
+    // "baby": true -> the game's own baby model and texture when it has one (else the adult at half size, head scaled by its scripts);
+    // "variant": "cold" | "siamese" | "librarian"... -> another coat/breed/biome/profession (work/vanilla/mobs/index.json lists them)
+    const ent = mobIndex[cfg.type] || {}; let geoFile = ent.geo, texFile = ent.texture ?? cfg.type + '.png'; let halve = false;
+    const v = cfg.variant;
+    if (v && !(ent.variants || {})[v] && !(cfg.baby && ent.baby && (ent.baby.variants || {})[v])) console.warn(`mob "${cfg.type}" has no variant "${v}"; known: ${Object.keys(ent.variants || {}).join(', ') || 'none'}`);
+    if (cfg.baby && ent.baby) { geoFile = ent.baby.geo; texFile = (ent.baby.variants || {})[v] || ent.baby.texture; }
+    else { const vv = (ent.variants || {})[v]; if (vv) { texFile = vv.texture; geoFile = vv.geo || geoFile; } halve = !!cfg.baby; }
+    const geoUrl = cfg.geo ? resolve(cfg.geo) : `/work/vanilla/mobs/${geoFile}`;
+    const texUrl = cfg.texture && !cfg.texture.startsWith('/core/builtin/') ? resolve(cfg.texture) : `/work/vanilla/mobs/${texFile}`;
+    const geo = await getJSON(geoUrl); // emissive mobs (blaze, magma cube, glow squid) carry a glow map: lit in the dark like the game
+    const glowUrl = texUrl.replace(/\.png$/, '.glow.png');
+    const glow = !cfg.texture && await exists(glowUrl) ? await pixelTex(glowUrl) : null;
+    m = buildGeoModel(THREE, geo, await pixelTex(texUrl), { ...cfg, glow, scale: (cfg.scale ?? 1) * (halve ? 0.5 : 1) });
+  } else {
+    if (!['creeper', 'pig', 'spider'].includes(cfg.type)) throw new Error(`mob "${cfg.type}" needs the game's geometry: run python tools/vanilla.py mobs`);
+    m = buildMob(THREE, cfg.type, await pixelTex(resolve(cfg.texture)), cfg);
   }
+  m.root.position.set(...(cfg.pos || [0, 1, 0])); scene.add(m.root);
+  if (cfg.nametag) { const sp = nametag(cfg.nametag); sp.position.set(0, m.headY + 0.55, 0); m.root.add(sp); }
   m.head.rotation.order = 'YXZ';
-  return { name, cfg, mob: m, root: m.root, head: m.head, face: { update() {} }, headY: m.headY, eyeY: m.eyeY, _pos: [...(cfg.pos || [0, 1, 0])], _heading: 0, _headPose: [0, 0, 0] };
+  return { name, cfg, mob: m, mats: m.mats, root: m.root, head: m.head, face: { update() {} }, headY: m.headY, eyeY: m.eyeY, _pos: [...(cfg.pos || [0, 1, 0])], _heading: 0, _headPose: [0, 0, 0] };
+}
+
+// an item sprite (extruded) if one exists with that name, otherwise a small block
+const itemCache = new Map();
+async function heldObject(name) {
+  const cands = [`${BASE}items/${name}.png`, vanillaDir && `/work/vanilla/items/${name}.png`, `/core/builtin/items/${name}.png`].filter(Boolean);
+  for (const u of cands) {
+    if (!(await exists(u))) continue;
+    if (!itemCache.has(u)) itemCache.set(u, (async () => { const img = await loadImg(u); const tex = await pixelTex(u); return { img, tex }; })());
+    const { img, tex } = await itemCache.get(u); return { item: extrudeItem(THREE, img, tex) };
+  }
+  const d = defOf(name); if (window.__missing.includes(name)) return null;
+  const mats = await blockMaterials(name); const m = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.34, 0.34), mats); m.castShadow = true; void d; return { mesh: m };
 }
 
 async function makePlayer(name, cfg) {
@@ -208,26 +380,42 @@ async function makePlayer(name, cfg) {
   const rLeg = limb(inner, 4, 12, 4, 0, 16, 0, 32, [-2, 12, 0]);
   const lLeg = legacy ? limb(inner, 4, 12, 4, 0, 16, 0, 16, [2, 12, 0]) : limb(inner, 4, 12, 4, 16, 48, 0, 48, [2, 12, 0]);
   if (legacy) { lArm.scale.x = -1; lLeg.scale.x = -1; }
-  // optional held block
-  let held = null;
-  if (cfg.holding) {
-    const mats = await blockMaterials(cfg.holding);
-    held = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.34, 0.34), mats); held.position.set(0, -10.5 * PX, 5 * PX); rArm.add(held);
+  // held items: everything this actor holds at any time (cfg.holding / cfg.offhand and timeline "holding" / "offhand" switches)
+  const hands = { right: {}, left: {} };
+  const wants = { right: new Set([cfg.holding].filter(Boolean)), left: new Set([cfg.offhand].filter(Boolean)) };
+  for (const sg of story.timeline || []) if (sg.actor === name) { if (sg.holding) wants.right.add(sg.holding); if (sg.offhand) wants.left.add(sg.offhand); }
+  for (const side of ['right', 'left']) for (const it of wants[side]) {
+    const arm = side === 'right' ? rArm : lArm;
+    if (it === 'shield') { // the game's shield, upright along the outside of the forearm; turned to face forward while blocking
+      const sh = await shieldMesh(THREE, pixelTex, exists); if (!sh) continue;
+      const hold = new THREE.Group(); hold.position.set((side === 'left' ? 2.6 : -2.6) * PX, -7 * PX, 1.5 * PX); hold.rotation.y = (side === 'left' ? 1 : -1) * Math.PI / 2;
+      sh.userData.shield = true; hold.add(sh); arm.add(hold); hold.visible = false; hands[side][it] = hold; continue;
+    }
+    const obj = await heldObject(it);
+    if (!obj) continue;
+    const g = obj.item ? mountItem(THREE, arm, obj.item, { left: side === 'left', tilt: cfg.itemTilt }) : (() => { const h = new THREE.Group(); h.position.set(0, -10.5 * PX, 5 * PX); obj.mesh.position.set(0, 0, 0); h.add(obj.mesh); arm.add(h); return h; })();
+    if (side === 'left' && legacy) g.scale.x = -1;
+    g.visible = false; hands[side][it] = g;
   }
   // name tag
-  if (cfg.nametag) {
-    const c = document.createElement('canvas'); c.width = 256; c.height = 40; const g = c.getContext('2d');
-    g.fillStyle = 'rgba(0,0,0,.45)'; g.fillRect(0, 0, 256, 40); g.fillStyle = '#fff'; g.font = 'bold 26px monospace'; g.textAlign = 'center'; g.fillText(cfg.nametag, 128, 29);
-    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), depthTest: false, transparent: true }));
-    sp.scale.set(1.2, 0.19, 1); sp.position.set(0, 2.45, 0); root.add(sp);
-  }
+  if (cfg.nametag) { const sp = nametag(cfg.nametag); sp.position.set(0, 2.32, 0); root.add(sp); }
   const sc = cfg.scale ?? 1; root.scale.setScalar(sc);
   head.rotation.order = 'YXZ'; upper.rotation.order = 'YXZ';
   scene.add(root);
-  return { name, cfg, root, inner, upper, head, body, rArm, lArm, rLeg, lLeg, face, headY: 1.9 * sc, eyeY: 1.62 * sc, _pos: [...(cfg.pos || [0, 1, 0])], _heading: 0 };
+  const eq = await equip(THREE, { head, body, rArm, lArm, rLeg, lLeg }, cfg, pixelTex, exists);
+  for (const m of [base, over, face.material]) { m.emissiveMap = m.map; m.emissive = new THREE.Color(0, 0, 0); }
+  return { name, cfg, root, inner, upper, head, body, rArm, lArm, rLeg, lLeg, face, hands, equip: eq, mats: [base, over, face.material], headY: 1.9 * sc, eyeY: 1.62 * sc, _pos: [...(cfg.pos || [0, 1, 0])], _heading: 0 };
 }
 
 // ----------------------------------------------------- actors (see anim.js) ----
+// mounts are placed before their riders
+let _order = null;
+function actorOrder() {
+  if (_order) return _order;
+  const riders = new Set((story.timeline || []).filter((s) => s.mount).map((s) => s.actor));
+  _order = [...Object.values(actors).filter((a) => !riders.has(a.name)), ...Object.values(actors).filter((a) => riders.has(a.name))];
+  return _order;
+}
 const actorCtx = { posOf: (n, tt, depth) => (actors[n] ? actorState(story, actors[n], tt, actorCtx, depth).pos : [0, 0, 0]) };
 
 function applyActor(a, t) {
@@ -235,7 +423,7 @@ function applyActor(a, t) {
   a.root.visible = !st.hidden;
   if (a.mob) { // mobs: position + heading here, limbs in mobs.js
     a.mob.update(st, t); a.root.position.set(st.pos[0], st.pos[1] - (st.clip === 'swell' ? 0 : 0), st.pos[2]); a.root.rotation.set(0, st.heading, 0);
-    a._pos = st.pos; a._heading = st.heading; a._headPose = [a.head.rotation.x, a.head.rotation.y, 0]; return;
+    a._pos = st.pos; a._heading = st.heading; a._headPose = [a.head.rotation.x, a.head.rotation.y, 0]; a._hurt = hurtAt(story, a, t); return;
   }
   const p = st.pose;
   a._headPose = p.head;
@@ -244,9 +432,29 @@ function applyActor(a, t) {
   a.rLeg.rotation.set(p.rLeg[0], p.rLeg[1], p.rLeg[2]); a.lLeg.rotation.set(p.lLeg[0], p.lLeg[1], p.lLeg[2]);
   a.upper.rotation.set(p.bodyRx + p.body[0], p.body[1], p.body[2]);
   a.root.position.set(st.pos[0], st.pos[1] + p.bob + st.jumpY - p.sink, st.pos[2]);
-  a.root.rotation.set(0, st.heading + p.spinY, p.roll); a.root.rotation.order = 'YXZ';
-  a._pos = st.pos; a._heading = st.heading;
+  a.root.rotation.order = 'YXZ'; a.root.rotation.set(p.pitch || 0, st.heading + p.spinY, p.roll);
+  a._pos = st.pos; a._heading = st.heading; a._hurt = hurtAt(story, a, t);
+  if (a.hands) for (const side of ['right', 'left']) { // which item is in each hand now
+    const key = side === 'right' ? 'holding' : 'offhand'; let cur = side === 'right' ? a.cfg.holding : a.cfg.offhand;
+    for (const sg of story.timeline || []) { if (sg.actor !== a.name || sg.t > t) continue; if (key in sg) cur = sg[key]; }
+    for (const [n, g] of Object.entries(a.hands[side])) {
+      g.visible = n === cur; if (side === 'right' && n !== 'shield') g.rotation.x = p.wrist || 0;
+      if (n === 'shield') { const blocking = /guard|block/.test(st.clip); g.rotation.set(blocking ? 1.1 : 0, (side === 'left' ? 1 : -1) * (blocking ? 0.15 : Math.PI / 2), 0); }
+    }
+  }
+  if (a.equip) a.equip.update(st, t);
+  a._clip = st.clip;
+  // riding: { "do": "ride", "mount": "horse1" } puts the actor on the mount's saddle, turning with it (the mount moves itself)
+  const mt = st.seg && st.seg.mount && actors[st.seg.mount];
+  if (mt && st.clip === 'ride') {
+    const seat = st.seg.seat ?? SEATS[mt.cfg.type] ?? Math.max(0.4, (mt.headY || 1.4) * 0.55); const back = st.seg.seatBack ?? SEAT_BACK[mt.cfg.type] ?? 0;
+    const h = mt._heading; const pos = [mt._pos[0] - Math.sin(h) * back, mt._pos[1] + seat - 0.62, mt._pos[2] - Math.cos(h) * back];
+    a.root.position.set(pos[0], pos[1], pos[2]); a.root.rotation.y = h + p.spinY; a._pos = pos; a._heading = h;
+  }
 }
+// where a rider sits on each mount (feet height of the seat above the mount's feet, and how far back from its centre)
+const SEATS = { horse: 1.45, donkey: 1.3, skeleton_horse: 1.45, zombie_horse: 1.45, llama: 1.45, camel: 2.1, pig: 0.85, strider: 1.6, minecart: 0.55, boat: 0.4, polar_bear: 1.4, ravager: 2.0, spider: 0.95 };
+const SEAT_BACK = { horse: 0.1, donkey: 0.1, camel: 0.25, pig: 0.0 };
 
 // head follows a look-at target (actor, [x,y,z] or "camera"); camPos is null until the camera is placed
 function targetPoint(tg, camPos) {
@@ -311,13 +519,35 @@ function applyCamera(t, wt) {
 }
 
 // ------------------------------------------------------------ overlays ----
+// subtitles in the chat format (<Name> line) and titles, drawn with the game font; canvases are cached per string
+const ovCache = new Map(); let lastSub = null, lastTitle = null;
 function applyOverlays(t) {
   const sub = document.getElementById('sub'); const title = document.getElementById('title');
+  const W = story.size?.[0] ?? 1280, H = story.size?.[1] ?? 720;
   const s = (story.subtitles || []).find((x) => t >= x.t && t < x.t + (x.dur ?? 2));
-  sub.innerHTML = s ? `<span>${s.who ? `<b>&lt;${s.who}&gt;</b> ` : ''}${s.text.replace(/</g, '&lt;')}</span>` : '';
+  const sk = s ? `${s.who}|${s.text}|${s.color}` : null;
+  if (sk !== lastSub) {
+    lastSub = sk; sub.innerHTML = '';
+    if (s) {
+      const scale = Math.max(2, Math.round((H / 720) * (story.subtitleScale ?? 3)));
+      const runs = [...(s.who ? [[`<${s.who}> `, s.color || '#ffd84a']] : []), [s.text, '#ffffff']];
+      if (!ovCache.has(sk)) ovCache.set(sk, wrapRuns(runs, Math.floor((W * 0.74) / scale)).map((ln) => textCanvas(ln, scale)));
+      const span = document.createElement('span'); span.style.cssText = 'display:inline-block;padding:.3em .55em .2em;line-height:0';
+      for (const im of ovCache.get(sk)) { const d = document.createElement('div'); const c2 = document.createElement('canvas'); c2.width = im.width; c2.height = im.height; c2.getContext('2d').drawImage(im, 0, 0); c2.style.imageRendering = 'pixelated'; d.appendChild(c2); span.appendChild(d); }
+      sub.appendChild(span);
+    }
+  }
   const ti = (story.titles || []).find((x) => t >= x.t && t < x.t + (x.dur ?? 2));
-  if (ti) { const k = (t - ti.t); const fade = Math.min(1, k / 0.3, (ti.dur ?? 2) - k > 0.3 ? 1 : ((ti.dur ?? 2) - k) / 0.3); title.style.opacity = fade; title.style.color = ti.color || '#fff'; title.style.fontSize = (ti.size || 64) + 'px'; title.textContent = ti.text; }
-  else title.textContent = '';
+  if (ti) {
+    const k = (t - ti.t); const fade = Math.min(1, k / 0.3, (ti.dur ?? 2) - k > 0.3 ? 1 : ((ti.dur ?? 2) - k) / 0.3); title.style.opacity = fade;
+    const tk = `${ti.text}|${ti.color}|${ti.size}`;
+    if (tk !== lastTitle) {
+      lastTitle = tk; title.innerHTML = '';
+      const scale = Math.max(2, Math.round(((ti.size || 64) / 8) * (H / 720)));
+      for (const ln of String(ti.text).split('\n')) { const c = textCanvas([[ln, ti.color || '#ffffff']], scale); c.style.display = 'block'; c.style.margin = '0 auto'; title.appendChild(c); }
+      title.style.flexDirection = 'column';
+    }
+  } else if (lastTitle !== null) { lastTitle = null; title.innerHTML = ''; }
 }
 
 // transitions: { t, type: "flash" | "fade" | "whip", dur, ... } on the output timeline
@@ -358,7 +588,7 @@ async function blockPalette(name) {
 const palCache = new Map();
 const particleCtx = {
   posOf: (n, tt) => actorCtx.posOf(n, tt, 0),
-  groundAt: (x, y, z) => { const ix = Math.floor(x), iz = Math.floor(z); for (let yy = Math.floor(y + 0.6); yy > Math.floor(y) - 40; yy--) if (grid.has(`${ix},${yy},${iz}`)) return yy + 1; return null; },
+  groundAt: (x, y, z) => { const ix = Math.floor(x), iz = Math.floor(z); for (let yy = Math.floor(y + 0.6); yy > Math.floor(y) - 160; yy--) if (grid.has(`${ix},${yy},${iz}`)) return yy + 1; return null; },
   blockUnder: (p) => { const ix = Math.floor(p[0]), iz = Math.floor(p[2]); for (let yy = Math.floor(p[1] + 0.6); yy > Math.floor(p[1]) - 40; yy--) { const b = grid.get(`${ix},${yy},${iz}`); if (b) return b; } return null; },
   palette: (n) => { if (!palCache.has(n)) palCache.set(n, blockPalette(n)); return palCache.get(n); },
 };
@@ -379,17 +609,21 @@ async function init() {
   const k = style.pixelate || 1;
   renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: k === 1, alpha: true, preserveDrawingBuffer: true });
   renderer.setSize(W * RES / k, H * RES / k, false); renderer.setPixelRatio(1);
+  maxAniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   renderer.shadowMap.enabled = !!style.shadows; renderer.shadowMap.type = THREE.PCFShadowMap;
   scene = new THREE.Scene();
-  skyTex = skyTexture(THREE, style.sky.top, style.sky.bottom); scene.background = skyTex;
+  skyTex = skyTexture(THREE, style.sky.top, style.sky.bottom); // (kept for compatibility; the sky dome below draws the sky)
   if (style.fog) scene.fog = new THREE.Fog(style.sky.bottom, style.fog[0], style.fog[1]);
   camera = new THREE.PerspectiveCamera(style.fov || 60, W / H, 0.1, 400);
   ambientL = new THREE.AmbientLight(style.ambient.color, style.ambient.intensity); scene.add(ambientL);
   sun = new THREE.DirectionalLight(style.sun.color, style.sun.intensity);
-  sun.position.set(...style.sun.dir.map((v) => v * 30)); sun.castShadow = !!style.shadows;
-  const sc = sun.shadow.camera; sc.left = sc.bottom = -24; sc.right = sc.top = 24; sc.near = 1; sc.far = 120; sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -0.0006;
-  scene.add(sun);
+  sun.position.set(...new THREE.Vector3(...style.sun.dir).normalize().multiplyScalar(60).toArray()); sun.castShadow = !!style.shadows;
+  const SR = style.shadowRange ?? 24; const sc = sun.shadow.camera; sc.left = sc.bottom = -SR; sc.right = sc.top = SR; sc.near = 1; sc.far = 160;
+  sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
+  scene.add(sun); scene.add(sun.target);
+  LIGHT_U.uDay.value = daylight(style.ambient, style.sun, style.daylight); if (style.blockLight) LIGHT_U.uBlockColor.value.set(style.blockLight);
   // blocks
+  if (story.font !== 'css') await loadFont(story.fontDir || '/work/vanilla/font');
   blockDefs = (await getJSON('/core/builtin/blocks/index.json')).blocks;
   projBlocksDir = story.blocks ?? null;
   // original game textures (tools/vanilla.py fetch) sit between the project's own blocks and the CC0 built-ins; opt out with "textures": "builtin"
@@ -400,10 +634,17 @@ async function init() {
   await buildWorld();
   for (const [n, cfg] of Object.entries(story.actors || {})) actors[n] = cfg.type && cfg.type !== 'player' ? await makeMob(n, cfg) : await makePlayer(n, cfg);
   particles = await buildParticles(THREE, scene, { ...story, fx: [...(story.fx || []), ...worldFx] }, particleCtx);
-  if (style.clouds) {
-    const cm = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9, fog: false });
-    for (let i = 0; i < 14; i++) { const m = new THREE.Mesh(new THREE.BoxGeometry(6 + (i * 7) % 6, 1, 4 + (i * 5) % 4), cm); m.position.set(-60 + (i * 37) % 120, 28 + (i % 3), -60 + (i * 53) % 120); m.userData.x0 = m.position.x; scene.add(m); clouds.push(m); }
+  // sky: dome, sun/moon (original textures when cached), stars, cloud layer (the game's cloud map when cached)
+  const envDir = vanillaDir ? '/work/vanilla/env' : null; const envTex = async (n) => { for (const u of [envDir && `${envDir}/${n}.png`, `/core/builtin/env/${n}.png`]) if (u && await exists(u)) return pixelTex(u); return null; };
+  let cloudMask = null;
+  if (style.clouds && envDir && await exists(`${envDir}/clouds.png`)) {
+    const im = await loadImg(`${envDir}/clouds.png`); const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; const g = c.getContext('2d'); g.drawImage(im, 0, 0);
+    const d = g.getImageData(0, 0, im.width, im.height).data; const data = new Uint8Array(im.width * im.height); for (let i = 0; i < data.length; i++) data[i] = d[i * 4 + 3] > 127 ? 1 : 0;
+    cloudMask = { w: im.width, data };
   }
+  const skyCfg = { ...(style.skyOptions || {}), ...(story.sky || {}) };
+  sky = createSky(THREE, scene, { clouds: !!(skyCfg.clouds ?? style.clouds), cloudMask, sunTex: await envTex('sun'), moonTex: await envTex('moon'), ...skyCfg });
+  lightning = (story.lightning || []).length ? createLightning(THREE, scene, story.lightning, particleCtx) : null;
   weather = createWeather(THREE, scene, story.weather || style.weather);
   const shotPosts = (story.camera || []).map((c) => c.post);
   if (usesPost(style.post, story.post, ...shotPosts)) post = createPost(THREE, renderer, scene, camera, Math.round(W * RES / k), Math.round(H * RES / k), [style.post, story.post, ...shotPosts]);
@@ -432,25 +673,64 @@ function collectQA(t, camPos) {
   return out;
 }
 
-function applyLighting(t) {
-  if (!(story.lighting && story.lighting.length)) return;
-  const L = lightingAt(THREE, style, story.lighting, t);
-  skyTexture(THREE, L.sky.top, L.sky.bottom, skyTex);
-  ambientL.color.set(L.ambient.color); ambientL.intensity = L.ambient.intensity;
-  sun.color.set(L.sun.color); sun.intensity = L.sun.intensity; sun.position.set(...L.sun.dir.map((v) => v * 30));
-  if (scene.fog && L.fog) { scene.fog.color.set(L.sky.bottom); scene.fog.near = L.fog[0]; scene.fog.far = L.fog[1]; }
+// how much daylight reaches open-sky blocks (0 night .. 1 day): block light (torches) shows only where this is low
+function daylight(amb, sunL, override) {
+  if (typeof override === 'number') return override;
+  const lum = (c) => { const x = new THREE.Color(c); return 0.2126 * x.r + 0.7152 * x.g + 0.0722 * x.b; };
+  return clamp01((lum(amb.color) * amb.intensity + lum(sunL.color) * sunL.intensity * 0.5 - 0.6) / 1.2);
+}
+// actors take the light of the cell they stand in, like entities in the game (dark in caves, warm next to a torch)
+function lightActors() {
+  if (!worldLight) return;
+  const day = LIGHT_U.uDay.value, cave = LIGHT_U.uCave.value; const curve = (l) => { const x = clamp01(l / 15); return x / (4 - 3 * x); };
+  for (const a of Object.values(actors)) {
+    if (!a.mats) continue;
+    const [sk, bl] = worldLight.sample(a._pos[0], a._pos[1] + 0.5, a._pos[2]); const s = curve(sk), b = curve(bl);
+    const k = (cave + (1 - cave) * s) * (a.mob && a.mob.flash ? 2.6 : 1); const warm = b * 1.0 * (1 - day * s); const hurt = a._hurt || 0;
+    for (const m of a.mats) {
+      m.color.setRGB(k, k * (1 - hurt * 0.6), k * (1 - hurt * 0.6));
+      if (m.userData.glow) { m.emissive.setRGB(1, 1 - hurt * 0.5, 1 - hurt * 0.5); continue; } // glowing texels ignore the light
+      m.emissive.setRGB(LIGHT_U.uBlockColor.value.r * warm + hurt * 0.45, LIGHT_U.uBlockColor.value.g * warm, LIGHT_U.uBlockColor.value.b * warm);
+    }
+  }
+}
+// chunks hidden by the fog are not drawn at all (big worlds cost only what can be seen); the frustum skips the rest
+function cullChunks(camPos) {
+  const far = (scene.fog ? scene.fog.far : 400) + CHUNK * 0.75;
+  for (const m of worldMeshes) { if (m.userData.cx === undefined) continue; m.visible = Math.hypot(m.userData.cx - camPos.x, m.userData.cz - camPos.z) < far; }
+}
+// the sun's shadow box follows what the camera looks at (snapped to whole shadow texels, so shadows never crawl or flicker)
+const _sv = new THREE.Vector3(), _sd = new THREE.Vector3();
+function followShadow(camPos) {
+  if (!sun.castShadow) return;
+  camera.getWorldDirection(_sd); const R = style.shadowRange ?? 24;
+  _sv.copy(camPos).addScaledVector(_sd, Math.min(R * 0.6, 14)); const texel = (2 * R) / sun.shadow.mapSize.x;
+  _sv.x = Math.round(_sv.x / texel) * texel; _sv.y = Math.round(_sv.y / texel) * texel; _sv.z = Math.round(_sv.z / texel) * texel;
+  const d = sun.position.clone().sub(sun.target.position).normalize();
+  sun.target.position.copy(_sv); sun.position.copy(_sv).addScaledVector(d, 60); sun.target.updateMatrixWorld();
+}
+
+function applyLighting(t, wt, camPos) {
+  const L = lightingAt(THREE, style, story.lighting || [], t);
+  const flash = lightning ? lightning.update(wt) : 0;
+  ambientL.color.set(L.ambient.color); ambientL.intensity = L.ambient.intensity + flash * 1.6;
+  sun.color.set(L.sun.color); sun.intensity = L.sun.intensity;
+  sun.position.copy(sun.target.position).add(new THREE.Vector3(...L.sun.dir).normalize().multiplyScalar(60));
+  const key = (story.lighting || []).filter((x) => x.t <= t).pop();
+  LIGHT_U.uDay.value = clamp01(daylight(L.ambient, L.sun, key?.daylight ?? style.daylight) + flash * 0.6);
+  if (scene.fog && L.fog) { scene.fog.color.set(L.sky.bottom); if (flash) scene.fog.color.lerp(new THREE.Color(0.85, 0.9, 1), flash * 0.4); scene.fog.near = L.fog[0]; scene.fog.far = L.fog[1]; }
+  sky && sky.update(L, LIGHT_U.uDay.value, camPos, camera, wt, flash);
 }
 
 window.renderAt = (t) => {
   const wt = worldTime(story, t); // speed ramps (story.timeRemap) bend world time only; cuts, subtitles, titles use t
-  for (const a of Object.values(actors)) applyActor(a, wt);
-  for (const a of Object.values(actors)) { a.face.update(faceStateAt(story, a, wt)); }
+  for (const a of actorOrder()) applyActor(a, wt);
+  for (const a of Object.values(actors)) { const fs = faceStateAt(story, a, wt); if (a._clip === 'sleep') fs.eyes = 'closed'; a.face.update(fs); }
   updateWorld(wt); particles && particles.update(wt);
-  clouds.forEach((c, i) => { c.position.x = ((c.userData.x0 + 60 + wt * 0.4 * (1 + (i % 3) * 0.2)) % 120) - 60; });
   for (const a of Object.values(actors)) applyLook(a, wt, null);
   const camPos = applyCamera(t, wt);
   for (const a of Object.values(actors)) { const ls = lookState(story, a, wt); if (ls && (ls.target === 'camera' || ls.prev === 'camera')) applyLook(a, wt, camPos); }
-  applyLighting(t); weather && weather.update(wt, camPos);
+  applyLighting(t, wt, camPos); followShadow(camPos); lightActors(); cullChunks(camPos); weather && weather.update(wt, camPos);
   applyOverlays(t); applyTransitions(t);
   if (post) { const shot = currentShot(t) || {}; let fd; const f = shot.focus; if (f !== undefined) { const tp = (x) => { const v = typeof x === 'number' ? null : vec(x); return v ? camPos.distanceTo(v) : x; }; const f0 = tp(f), f1 = shot.focusTo !== undefined ? tp(shot.focusTo) : f0; const e = getEase(shot.ease || 'smooth')(clamp01((wt - worldTime(story, shot.t)) / (shot.dur ?? 3))); fd = f0 + (f1 - f0) * e; }
     post.render(t, [style.post, story.post, shot.post], fd); }
@@ -460,11 +740,12 @@ window.renderAt = (t) => {
 };
 window.__qa = (t) => { window.renderAt(t); return collectQA(t, lastQA.camPos); };
 window.__story = () => story;
+window.__actorPos = (n, t) => { if (t !== undefined) window.renderAt(t); const a = actors[n]; return a ? [...a._pos, a._clip] : null; };
 
 // Dense path check (tools/qa.py): walks the whole film every `step` seconds WITHOUT rendering and reports every interval in which
 // an actor's body or the camera is inside a solid block of the world as it is at that moment (breaks, places and blasts included).
 // Catches characters that spawn in a tree, cut through a wall between two sampled frames, or a camera that clips through a roof.
-const PASSABLE = new Set(['water', 'lava']);
+const PASSABLE = { has: (b) => passableBlock(b) };
 function blockAt(k, t) {
   const its = dynByKey.get(k);
   if (its) { for (const it of its) if (blockState(it.evs, it.vis0, t).vis) return it.block; if (dynKeys.has(k)) return null; }
@@ -475,9 +756,10 @@ window.__pathCheck = (step = 0.05) => {
   const close = (key, list, t) => { const o = open[key]; if (o) { list.push({ ...o, t1: +t.toFixed(2) }); delete open[key]; } };
   for (let i = 0; i * step <= dur + 1e-6; i++) {
     const t = i * step, wt = worldTime(story, t);
-    for (const a of Object.values(actors)) applyActor(a, wt);
+    for (const a of actorOrder()) applyActor(a, wt);
     for (const [n, a] of Object.entries(actors)) {
       let hit = null;
+      if (a._clip === 'ride') { if (open[n]) { close(n, out.actors, t); } continue; } // a rider sits inside its mount's box
       if (a.root.visible) {
         const r = 0.22 * (a.cfg.scale ?? 1), ys = [0.15, a.headY * 0.5, a.headY * 0.9];
         outer: for (const y of ys) for (const [dx, dz] of [[0, 0], [r, r], [r, -r], [-r, r], [-r, -r]]) {

@@ -29,7 +29,15 @@ export function faceStateAt(story, a, t) {
     const h = hash(a.name), period = 3.2 + (h % 7) * 0.17, off = (h % 13) * 0.31;
     if (((t + off) % period) < 0.13) st.eyes = 'closed';
   }
-  if (st.mouth === 'closed' && story.lipsync !== false) { // mouth follows the subtitle spoken by this actor
+  if (st.mouth === 'closed' && story.lipsyncAudio) { // a recorded line: the mouth follows the loudness of the voice (tools/render.py)
+    const nm = a.name.toLowerCase(), tag = (a.cfg.nametag || '').toLowerCase();
+    for (const e of story.lipsyncAudio) {
+      const who = String(e.actor).toLowerCase(); if (who !== nm && who !== tag) continue;
+      const i = Math.floor((t - e.t) / e.dt); if (i < 0 || i >= e.env.length) continue;
+      const v = e.env[i]; st.mouth = v > 0.75 ? 'shout' : v > 0.4 ? 'open' : v > 0.15 ? 'half' : 'closed'; st._audio = true; break;
+    }
+  }
+  if (st.mouth === 'closed' && !st._audio && story.lipsync !== false) { // mouth follows the subtitle spoken by this actor
     const nm = a.name.toLowerCase(), tag = (a.cfg.nametag || '').toLowerCase();
     const s = (story.subtitles || []).find((x) => t >= x.t && t < x.t + (x.dur ?? 2) && (x.actor === a.name || (x.who && [nm, tag].includes(String(x.who).toLowerCase()))));
     if (s) st.mouth = mouthForSpeech(s.text, t - s.t);
@@ -76,10 +84,10 @@ export function makeFace(THREE, img, head, PX, pixelFilters) {
   const grad = g2.createLinearGradient(0, 0, 128, 0); grad.addColorStop(0, 'rgba(255,255,255,0)'); grad.addColorStop(0.5, 'rgba(255,255,255,1)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
   g2.fillStyle = grad; g2.fillRect(0, 5, 128, 6); const g3 = g2.createLinearGradient(0, 0, 0, 16); g3.addColorStop(0, 'rgba(255,255,255,0)'); g3.addColorStop(0.5, 'rgba(255,255,255,.7)'); g3.addColorStop(1, 'rgba(255,255,255,0)');
   g2.globalCompositeOperation = 'destination-in'; g2.fillStyle = g3; g2.fillRect(0, 0, 128, 16);
-  const streakMat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c2), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, opacity: 0.8 });
+  const streakMat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c2), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, opacity: 0.5 });
   const glow = new THREE.Group(); glow.visible = false;
   for (const x of [-2, 2]) { const m = new THREE.Mesh(new THREE.PlaneGeometry(2 * PX, 2 * PX), eyeMat); m.position.set(x * PX, 4 * PX, 4.62 * PX); glow.add(m); }
-  const streak = new THREE.Mesh(new THREE.PlaneGeometry(26 * PX, 3 * PX), streakMat); streak.position.set(0, 4 * PX, 4.7 * PX); glow.add(streak);
+  const streak = new THREE.Mesh(new THREE.PlaneGeometry(17 * PX, 2 * PX), streakMat); streak.position.set(0, 4 * PX, 4.7 * PX); glow.add(streak);
   head.add(glow);
 
   let key = '';

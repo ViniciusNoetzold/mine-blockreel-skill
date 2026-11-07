@@ -1,0 +1,374 @@
+{
+ "title": "Vila Viva",
+ "size": [
+  1280,
+  720
+ ],
+ "fps": 30,
+ "seed": 21,
+ "style": "golden-hour",
+ "post": {
+  "bloom": {
+   "strength": 0.35,
+   "threshold": 0.85
+  },
+  "grade": {
+   "saturation": 1.1
+  }
+ },
+ "world": {
+  "biome": "plains",
+  "radius": 46,
+  "arena": {
+   "center": [
+    0,
+    14
+   ],
+   "radius": 16,
+   "y": 4
+  },
+  "trees": 0.025,
+  "flowers": 0.05,
+  "structures": [
+   {
+    "structure": "village",
+    "pos": [
+     0,
+     null,
+     0
+    ],
+    "size": 16,
+    "houses": 6,
+    "farms": 2,
+    "seed": 3
+   }
+  ]
+ },
+ "cast": {
+  "lia": {
+   "persona": {
+    "model": "slim",
+    "skin": "#e8b896",
+    "hair": {
+     "color": "#7a3a1a",
+     "style": "ponytail"
+    },
+    "mouth": "smile",
+    "top": {
+     "type": "tshirt",
+     "color": "#e0a030",
+     "pattern": "logo",
+     "pattern_color": "#ffffff"
+    },
+    "bottom": {
+     "type": "jeans",
+     "color": "#3b5a8a"
+    },
+    "shoes": {
+     "type": "sneakers",
+     "color": "#d04040"
+    }
+   },
+   "name": "Lia"
+  },
+  "librarian": {
+   "mob": "villager",
+   "variant": "librarian",
+   "name": "Bibliotecário"
+  },
+  "farmer": {
+   "mob": "villager",
+   "variant": "farmer"
+  },
+  "kid": {
+   "mob": "villager",
+   "baby": true
+  },
+  "cow": {
+   "mob": "cow"
+  },
+  "calf": {
+   "mob": "cow",
+   "baby": true
+  },
+  "hen": {
+   "mob": "chicken"
+  },
+  "chick": {
+   "mob": "chicken",
+   "baby": true
+  },
+  "cat": {
+   "mob": "cat",
+   "variant": "siamese"
+  },
+  "kitten": {
+   "mob": "cat",
+   "baby": true,
+   "variant": "siamese"
+  },
+  "horse": {
+   "mob": "horse",
+   "variant": "white",
+   "parts": [
+    "saddle"
+   ]
+  },
+  "foal": {
+   "mob": "horse",
+   "baby": true,
+   "variant": "white"
+  },
+  "golem": {
+   "mob": "iron_golem"
+  }
+ },
+ "marks": {
+  "lia": [
+   0,
+   21
+  ],
+  "librarian": [
+   0,
+   13
+  ],
+  "farmer": [
+   0,
+   -14
+  ],
+  "kid": [
+   10,
+   0
+  ],
+  "cow": [
+   7,
+   18
+  ],
+  "calf": [
+   8.5,
+   19.2
+  ],
+  "hen": [
+   -7,
+   16
+  ],
+  "chick": [
+   -6,
+   17
+  ],
+  "cat": [
+   3,
+   16.5
+  ],
+  "kitten": [
+   4.2,
+   17.6
+  ],
+  "horse": [
+   -3,
+   19.5
+  ],
+  "foal": [
+   -4.6,
+   20.9
+  ],
+  "golem": [
+   -15,
+   4
+  ]
+ },
+ "beats": [
+  {
+   "beat": "establish",
+   "dur": 4.5,
+   "text": "VILA VIVA",
+   "also": [
+    {
+     "who": "kid",
+     "to": [
+      4,
+      0
+     ],
+     "dur": 3,
+     "run": true
+    },
+    {
+     "who": "farmer",
+     "to": [
+      0,
+      -5
+     ],
+     "dur": 4
+    },
+    {
+     "who": "chick",
+     "to": [
+      -7.5,
+      15.5
+     ],
+     "dur": 4
+    },
+    {
+     "who": "golem",
+     "to": [
+      -15,
+      10
+     ],
+     "dur": 4.5
+    }
+   ]
+  },
+  {
+   "beat": "walk",
+   "who": "lia",
+   "to": [
+    0,
+    15.6
+   ],
+   "also": [
+    {
+     "who": "cow",
+     "to": [
+      10,
+      17
+     ],
+     "dur": 4
+    },
+    {
+     "who": "calf",
+     "to": [
+      11.4,
+      18
+     ],
+     "dur": 4
+    },
+    {
+     "who": "kitten",
+     "to": [
+      2.4,
+      17.2
+     ],
+     "dur": 2
+    }
+   ]
+  },
+  {
+   "beat": "line",
+   "who": "lia",
+   "to": "librarian",
+   "text": "Bom dia! Algum livro novo hoje?",
+   "emotion": "smile",
+   "also": [
+    {
+     "who": "kid",
+     "to": [
+      8,
+      0
+     ],
+     "dur": 2.5,
+     "run": true
+    }
+   ]
+  },
+  {
+   "beat": "look",
+   "who": "librarian",
+   "at": "lia",
+   "dur": 1.4,
+   "shot": "wide"
+  },
+  {
+   "beat": "line",
+   "who": "lia",
+   "to": "librarian",
+   "text": "Hmm... então vou passear.",
+   "emotion": "smile",
+   "also": [
+    {
+     "who": "hen",
+     "to": [
+      -9,
+      17.5
+     ],
+     "dur": 3
+    },
+    {
+     "who": "chick",
+     "to": [
+      -8,
+      18.3
+     ],
+     "dur": 3
+    },
+    {
+     "who": "librarian",
+     "to": [
+      3.5,
+      12.5
+     ],
+     "at": 1.2,
+     "dur": 2.5
+    }
+   ]
+  },
+  {
+   "beat": "ride",
+   "who": "lia",
+   "mount": "horse",
+   "path": [
+    [
+     -8,
+     23
+    ],
+    [
+     -13,
+     17
+    ]
+   ],
+   "also": [
+    {
+     "who": "foal",
+     "to": [
+      -7,
+      24
+     ],
+     "at": 3,
+     "dur": 3.5
+    },
+    {
+     "who": "cat",
+     "do": "sit",
+     "dur": 6
+    }
+   ]
+  },
+  {
+   "beat": "wait",
+   "who": "kitten",
+   "with": "cat",
+   "dur": 2.0,
+   "shot": "wide"
+  },
+  {
+   "beat": "ending",
+   "dur": 6,
+   "text": "Vila Viva",
+   "fireworks": 5,
+   "radius": 14,
+   "height": -2.0,
+   "lighting": {
+    "preset": "dusk",
+    "dur": 4
+   },
+   "center": [
+    0,
+    9,
+    13
+   ]
+  }
+ ],
+ "music": {
+  "key": "D",
+  "bpm": 96
+ }
+}

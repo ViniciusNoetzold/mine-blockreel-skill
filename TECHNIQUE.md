@@ -54,9 +54,15 @@ Headless Chrome uses software GL (SwiftShader). Measured here: about 3.5 s per *
 - `--scale S` renders at S x the story size (1.5 on a 1280x720 story = sharp 1080p); `--preset 1080p60` also sets 60 fps.
 - `--workers N` renders N frame ranges in parallel Chrome processes and joins them (a win on long films with several cores).
 - `--gpu` uses the real GPU instead of SwiftShader (not tested on every machine).
+- `--motion-blur N` averages N sub-frames over half a frame (a 180° shutter): deterministic motion blur, N times slower.
+- `--size 1080x1920` renders another aspect ratio (vertical for Shorts/Reels/TikTok); actor-relative cameras keep the framing.
+- `tools/export.py`: `srt` (subtitles), `gif`, `vertical`, `thumbnail` (a still with a title in the game font).
 - Turn `shadows` off (`styleOverride`) for ~2x speed; leave `post` off in previews if you need more.
 - `python tools/preview.py story.json` is a live browser preview with a time slider (best with a real GPU).
-- Instanced meshes keep a few thousand blocks cheap; hundreds of thousands are not supported.
+- **World size:** the static world is meshed from a dense typed volume (`core/engine/mesher.js`) into 32x32 chunks; chunks beyond the
+  fog are not drawn and the frustum skips the rest. Measured here (720p, software GL): 1.7 M blocks set up in ~5 s and render at
+  ~0.7 s/frame; 4.4 M blocks in ~13 s and ~0.6 s/frame. Memory, not speed, is the limit (the block map of 4.4 M blocks is ~0.5 GB).
+  Use `terrain` with a large `radius` and tighter `fog` for big landscapes; each render worker pays the setup once.
 
 ## Extending
 

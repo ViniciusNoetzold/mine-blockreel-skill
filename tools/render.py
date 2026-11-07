@@ -32,6 +32,41 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 PRESETS = {"preview": {"fps": 12, "scale": 0.5}, "1080p60": {"fps": 60, "size": 1920}, "720p30": {"fps": 30, "scale": 1.0}}
 
 
+def speech_envelopes(story, base):
+    """Loudness of each dialogue recording that names an actor, 30 values per second, for audio-driven lip-sync."""
+    import numpy as np
+    out = []
+    for d in (story.get("audio") or {}).get("dialogue", []) or []:
+        who = d.get("actor") or d.get("who")
+        if not who:
+            continue
+        f = Path(d["file"]) if Path(d["file"]).is_absolute() else Path(base) / d["file"]
+        if not f.exists():
+            continue
+        raw = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", str(f), "-ac", "1", "-ar", "12000", "-f", "s16le", "-"], capture_output=True).stdout
+        a = np.frombuffer(raw, dtype=np.int16).astype(np.float32) / 32768.0; step = 400  # 12000 / 30
+        if not len(a):
+            continue
+        rms = np.sqrt(np.convolve(a * a, np.ones(step) / step, mode="same"))[::step]
+        env = rms / max(1e-6, np.percentile(rms, 95))
+        out.append({"actor": who, "t": d["t"], "dt": 1 / 30, "env": [round(float(min(1.5, v)), 3) for v in env]})
+    return out
+
+
+def prepare_story(story_path, story, size=None):
+    """A render copy of the story when something must be added for the page (size override, speech envelopes). Returns its path."""
+    extra = {}
+    if size:
+        extra["size"] = list(size)
+    env = speech_envelopes(story, story_path.parent)
+    if env:
+        extra["lipsyncAudio"] = env
+    if not extra:
+        return story_path, story
+    s2 = {**story, **extra}; p2 = story_path.parent / f".{story_path.stem}.render.json"
+    p2.write_text(json.dumps(s2)); return p2, s2
+
+
 def find_chrome():
     if os.environ.get("CHROME_PATH"):
         return os.environ["CHROME_PATH"]
@@ -77,7 +112,7 @@ def open_page(pw, port, story_path, story, scale, gpu, allow_missing=False):
     browser = pw.chromium.launch(**kw)
     W, H = story.get("size", [1280, 720])
     page = browser.new_page(viewport={"width": int(W * scale) // 2 * 2, "height": int(H * scale) // 2 * 2})
-    page.on("console", lambda m: print("[page]", m.text) if m.type in ("error", "warning") and "willReadFrequently" not in m.text else None)
+    page.on("console", lambda m: print("[page]", m.text) if m.type in ("error", "warning") and "willReadFrequently" not in m.text and "status of 404" not in m.text else None)
     page.goto(f"http://127.0.0.1:{port}/core/engine/index.html?project=/project/{story_path.name}&res={scale}")
     page.wait_for_function("window.__ready === true || window.__error", timeout=120000)
     err = page.evaluate("window.__error || null")
@@ -92,7 +127,7 @@ def open_page(pw, port, story_path, story, scale, gpu, allow_missing=False):
     return browser, page
 
 
-def render_range(story_path, story, fps, scale, n0, n1, out, crf, gpu, quiet=False, allow_missing=False):
+def render_range(story_path, story, fps, scale, n0, n1, out, crf, gpu, quiet=False, allow_missing=False, mblur=1):
     """Render frames [n0, n1) to a silent mp4."""
     from playwright.sync_api import sync_playwright
     srv, port = serve(story_path.parent)
@@ -101,8 +136,19 @@ def render_range(story_path, story, fps, scale, n0, n1, out, crf, gpu, quiet=Fal
         ff = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "image2pipe", "-framerate", str(fps), "-i", "-",
                                "-c:v", "libx264", "-preset", "veryfast", "-crf", str(crf), "-pix_fmt", "yuv420p", str(out)], stdin=subprocess.PIPE)
         for i in range(n0, n1):
-            page.evaluate(f"renderAt({i / fps})")
-            ff.stdin.write(page.screenshot(type="png"))
+            if mblur > 1:  # average sub-frames across half a frame (a 180-degree shutter): deterministic motion blur
+                import io
+                import numpy as np
+                from PIL import Image
+                acc = None
+                for k in range(mblur):
+                    page.evaluate(f"renderAt({(i + ((k + 0.5) / mblur - 0.5) * 0.5) / fps})")
+                    im = np.asarray(Image.open(io.BytesIO(page.screenshot(type="png"))).convert("RGB"), dtype=np.float32)
+                    acc = im if acc is None else acc + im
+                buf = io.BytesIO(); Image.fromarray((acc / mblur).round().astype(np.uint8)).save(buf, format="PNG"); ff.stdin.write(buf.getvalue())
+            else:
+                page.evaluate(f"renderAt({i / fps})")
+                ff.stdin.write(page.screenshot(type="png"))
             if not quiet and (i - n0) % max(1, int(fps)) == 0:
                 print(f"\r{i - n0}/{n1 - n0} frames", end="", flush=True)
         ff.stdin.close(); ff.wait()
@@ -122,10 +168,15 @@ def main(argv=None):
     ap.add_argument("--no-audio", action="store_true")
     ap.add_argument("--allow-missing", action="store_true", help="render even if a block texture is missing (it shows as magenta/black)")
     ap.add_argument("--crf", type=int, default=18)
+    ap.add_argument("--motion-blur", type=int, default=1, metavar="N", help="average N sub-frames per frame (N x slower; 3-5 looks good)")
+    ap.add_argument("--size", help="override the story size, e.g. 1080x1920 for a vertical (9:16) version")
     a = ap.parse_args(argv)
 
     story_path = Path(a.story).resolve()
     story = json.loads(story_path.read_text(encoding="utf-8"))
+    audio_story_path = story_path
+    if not a.frames:  # workers receive the prepared copy directly
+        story_path, story = prepare_story(story_path, story, tuple(int(v) for v in a.size.lower().split("x")) if a.size else None)
     W0, H0 = story.get("size", [1280, 720])
     pre = PRESETS.get(a.preset, {})
     fps = a.fps or pre.get("fps") or story.get("fps", 30)
@@ -145,20 +196,22 @@ def main(argv=None):
             page.evaluate(f"renderAt({a.frame})")
             page.screenshot(path=a.out)
             browser.close()
+        if story_path != audio_story_path and story_path.name.startswith("."):
+            story_path.unlink(missing_ok=True)
         print("wrote", a.out)
         return 0
 
     n0, n1 = int(round(a.start * fps)), int(round(end * fps))
     if a.frames:
         n0, n1 = map(int, a.frames.split(":"))
-        render_range(story_path, story, fps, scale, n0, n1, a.out, a.crf, a.gpu, quiet=True, allow_missing=a.allow_missing)
+        render_range(story_path, story, fps, scale, n0, n1, a.out, a.crf, a.gpu, quiet=True, allow_missing=a.allow_missing, mblur=a.motion_blur)
         return 0
 
     tmp = Path(tempfile.mkdtemp(prefix="blockreel_"))
     silent = tmp / "silent.mp4"
     try:
         if a.workers <= 1:
-            render_range(story_path, story, fps, scale, n0, n1, silent, a.crf, a.gpu, allow_missing=a.allow_missing)
+            render_range(story_path, story, fps, scale, n0, n1, silent, a.crf, a.gpu, allow_missing=a.allow_missing, mblur=a.motion_blur)
         else:
             n = max(1, min(a.workers, n1 - n0)); size = -(-(n1 - n0) // n)
             procs, parts = [], []
@@ -168,7 +221,7 @@ def main(argv=None):
                     break
                 part = tmp / f"part{k:02d}.mp4"; parts.append(part)
                 cmd = [sys.executable, str(Path(__file__)), str(story_path), "--frames", f"{s}:{e}", "--fps", str(fps), "--scale", str(scale),
-                       "--crf", str(a.crf), "--out", str(part)] + (["--gpu"] if a.gpu else []) + (["--allow-missing"] if a.allow_missing else [])
+                       "--crf", str(a.crf), "--out", str(part), "--motion-blur", str(a.motion_blur)] + (["--gpu"] if a.gpu else []) + (["--allow-missing"] if a.allow_missing else [])
                 procs.append(subprocess.Popen(cmd))
             print(f"rendering {n1 - n0} frames in {len(procs)} workers...")
             codes = [p.wait() for p in procs]
@@ -188,6 +241,8 @@ def main(argv=None):
             shutil.copyfile(silent, a.out)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
+        if story_path != audio_story_path and story_path.name.startswith("."):
+            story_path.unlink(missing_ok=True)
     W, H = int(W0 * scale) // 2 * 2, int(H0 * scale) // 2 * 2
     print(f"\nwrote {a.out}  ({W}x{H} @ {fps}fps, {n1 - n0} frames{', with audio' if mixed else ''})")
     return 0

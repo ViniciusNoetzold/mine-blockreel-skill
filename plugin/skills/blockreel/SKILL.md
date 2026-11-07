@@ -1,6 +1,6 @@
 ---
 name: blockreel
-description: Make Minecraft-style animated videos from an idea, about anything - cinematic shorts, YouTube channel openings and dialogue episodes - rendered in code with the original game look and sound by default (textures and sound effects fetched locally), the user's own skins when they send them, an original score and offline character voices. Runs briefing, web research, script and shot list, builds the film, does a mandatory visual QA (including a dense check that nobody walks through blocks) and delivers the film with its sound. Use when the user wants a Minecraft animation, short film, intro/opening, episode or scene with blocky characters. Skins and texture packs have their own skills.
+description: Make Minecraft animated videos from a prompt (and optionally a reference image, the user's skins, textures or a photo of the user, turned into their skin) - fights like "me vs Herobrine", cinematic shorts, YouTube channel openings and dialogue episodes - rendered in code with the original game look, font and sound by default (fetched locally), held swords and tools, terrain and buildings, lightning and magic, an original score and offline character voices. A director compiler turns a short beat plan into a full film. Runs briefing, web research, script and shot list, builds the film, does a mandatory visual QA (including a dense check that nobody walks through blocks) and delivers the film with its sound. Use when the user wants a Minecraft animation, short film, intro/opening, episode or scene with blocky characters. Skins and texture packs have their own skills.
 ---
 
 # BlockReel
@@ -18,7 +18,8 @@ export BLOCKREEL_HOME="${BLOCKREEL_HOME:-$HOME/blockreel}"
 [ -d "$BLOCKREEL_HOME" ] || git clone https://github.com/ViniciusNoetzold/mine-blockreel-skill- "$BLOCKREEL_HOME"
 cd "$BLOCKREEL_HOME" && npm install && pip install -r requirements.txt
 python tools/vanilla.py fetch    # ORIGINAL game textures + mob/chest/steve/alex textures -> work/vanilla/ (local cache, ~45 KB)
-python tools/vanilla.py sounds   # ORIGINAL game sound effects -> work/vanilla/sounds/ (local cache, ~1 MB, no music)
+python tools/vanilla.py sounds   # ORIGINAL game sound effects -> work/vanilla/sounds/ (local cache, ~1.5 MB, no music)
+python tools/vanilla.py font     # the game's font (name tags, chat subtitles, titles), read from client.jar with HTTP ranges (~1 MB)
 ```
 **Look like the game by default.** Unless the user asks for their own textures, films use the original textures from the cache
 (the engine picks them up automatically; `"textures": "builtin"` opts out to the CC0 originals). Mobs: `/work/vanilla/entity/zombie.png`,
@@ -32,6 +33,7 @@ folder the user started in; never write inside `core/`.
 
 | File | Read it for |
 |---|---|
+| `docs/DIRECTOR-PLAN.md` | the beat plan for `tools/compose.py` (fights, reveals, dialogue, endings) |
 | `docs/PREPRODUCTION.md` | steps A–C: briefing, research rules, templates for `brief.md` / `research.md` / `shotlist.md` |
 | `DIRECTOR.md` | story, rhythm, camera, acting, action sequences |
 | `TECHNIQUE.md` | pipeline, units, performance, extending the engine |
@@ -50,6 +52,57 @@ Read `docs/GENRES.md`: **opening** (YouTube channel intro, 5-12 s), **cinematic 
 e.g. `examples/` and the "Farol Negro" production), **series episode** (talking characters, comedy or adventure, 1-5 min, the
 format of the big Minecraft animation channels). Each genre fixes pacing, camera grammar, sound and what to deliver; the premise
 can be about anything the user wants.
+
+## Fast path: the director (use it for most requests)
+
+For a fight, a duel, a reveal, a short story with a few characters: write a **beat plan** and compile it. It is cheaper (20 lines
+instead of 500) and better (coverage, choreography, sound and score are done by rules that were checked frame by frame).
+
+```bash
+python tools/compose.py --example > films/<name>/plan.json   # "me vs Herobrine": start from it, edit cast/world/beats
+python tools/compose.py films/<name>/plan.json --out films/<name>
+python tools/render.py films/<name>/story.json --preset preview --workers 4 --out films/<name>/preview.mp4
+```
+Every beat and option: `docs/DIRECTOR-PLAN.md`. Still do A (briefing), C (look at `shotlist.md`), E (QA) - skip B for simple requests.
+Write the plan in the user's language (subtitles, title, end card). Mix beats freely: **not every film is a fight**. The skill is for
+any Minecraft animation the user imagines: comedy (`examples/creeper-surprise`), survival and chases (`examples/zombie-night`),
+builds and timelapses (`build`), mining (`mine`), dialogue episodes (`line`/`look`), calm moods (`walk`/`act`/`wait`), slice of life with
+villagers, babies and ambient `also` actions (`examples/village-life`), action
+(`examples/herobrine-duel`). When a beat does not exist for what the user wants, use `act` (any clip) and world `changes`, or write that
+part of `story.json` by hand after compiling.
+
+**Prompt → plan, worked example.** *"Me faça no Minecraft numa batalha contra o Herobrine"*: the user = `persona` from their photo
+(or their skin, or ask once), Herobrine = `preset: herobrine`, `eyes: glow`, `hidden: true` (he arrives by `reveal`); night style;
+a shrine near the arena; beats: establish → walk → reveal → 2 lines → faceoff → duel → teleport → power (lightning) → getup → duel →
+finisher → silence → ending. Swords: `diamond_sword` for the hero, `iron_sword` for the villain.
+
+## The user's photo → their skin
+
+The user sends a photo of themself and wants to be in the film: look at the photo and fill a persona (`python core/persona.py example`
+prints the template): skin tone, hair colour and style, facial hair, glasses, eye colour, top type/colour/pattern, bottom, shoes,
+accessory. Then read the exact colours from the photo instead of guessing them:
+```bash
+python core/persona.py sample photo.jpg --region skin=X0,Y0,X1,Y1 --region hair=... --region top=... --region bottom=... --out colors.json
+python core/persona.py paint persona.json films/<name>/skins/me.png --colors colors.json --preview films/<name>/tt.png
+```
+Pick regions inside flat, evenly lit areas (cheek, hair mass, shirt chest, trouser thigh). LOOK at the turntable and adjust once; tell
+the user it is a stylised Minecraft version of them. In the plan use `"persona": {...}` or `"skin": "skins/me.png"`. Never use a photo of
+someone who is not the user (or who did not agree). Presets: `herobrine knight ninja wizard miner`.
+
+## A reference image
+
+If the user sends a reference (a place, a build, a mood): read its palette and composition and translate them: time of day → style and
+`lighting`, dominant materials → blocks (stone castle → `stonebrick`/`mossy_cobblestone`, desert → `biome: desert`), landmarks →
+`structure` ops or hand-written `fill`/`set` builds, framing → the establishing `shot`. Describe what you took from it.
+
+## World sense (rules the generator enforces - keep them when you build by hand)
+
+- Things stand where they would in the game: buildings on levelled ground with a foundation, never inside or on top of a tree;
+  trees and tall plants never grow inside a building site or the arena; no two buildings overlap; nothing floats.
+- The action happens on clear, flat ground; landmarks (shrine, tower, house) frame it from the edges, not from inside it.
+- Cameras are never inside leaves or blocks and never on a tree top: a tree that would block the lens is simply not planted.
+- Light makes sense: torches and fire light the night warmly, caves and rooms without openings are dark, lightning flashes the scene.
+- If you hand-write a world, run `tools/qa.py`: it FAILs actors or cameras inside blocks.
 
 ## A. Briefing (ask at most ONE short question)
 
@@ -91,6 +144,7 @@ energy shape (quiet → loud → quiet), shot lengths per the tone, every line s
    - Skin to create or improve → run the **`blockreel-skins`** skill (`/blockreel:blockreel-skins`): research, palette plan, layered painting,
      `python tools/turntable.py skin.png --out tt.png` and at least 2 looked-at rounds. Block/item textures or a resource pack → **`blockreel-textures`**
      (`core/tilecheck.py`, `tools/pack_preview.py`, `core/pack.py`). Use the results inside the film (`story.json` skin paths / `blocks` folder).
+   - The user sends a **photo of themself** → persona skin (section above). Herobrine and other characters → `core/persona.py preset`.
    - Mobs: `docs/MOBS.md` (you need the user's textures; creeper-, pig-, spider-shaped rigs and a zombie via the player rig).
    - No skin → `python core/skin.py make ...` or the originals in `core/builtin/skins/`.
    - Sheet of blocks/items → `python core/atlas.py slice|label|faces` (see `docs/BLOCK-ATLAS.md`). Label only what you can identify.
@@ -110,8 +164,16 @@ energy shape (quiet → loud → quiet), shot lengths per the tone, every line s
    with a character preset (`hero`, `villain`, `monster`, `child`, `narrator`, `radio`). Fit each line inside its shot: measure it, then
    adjust `--rate` or the shot length. See `films/`-style `make_audio.py` in `docs/GENRES.md`.
    `python tools/audio.py story.json --out mix.wav`, listen, then render with audio (or mux the mix into the silent render).
-6. **Final render.** `python tools/render.py story.json --out film.mp4`. Software GL is about 1 s/frame at 960x540:
-   tell the user how long a long film will take.
+6. **Final render.** `python tools/render.py story.json --workers 4 --out film.mp4`. Software GL renders a 40 s 720p film in about
+   10 minutes with 4 workers (a 12 fps half-size preview in about 2): tell the user how long a long film will take.
+   Economy: compose → preview → QA on stills → only then the final render; never re-render the whole film to check one shot
+   (`--frame t` or `--start/--end`).
+
+## Deliverables (after QA)
+
+`python tools/export.py thumbnail story.json --t <best moment> --title "TITLE" --out thumb.jpg`, `export.py srt` for subtitles,
+`export.py gif film.mp4 --start .. --dur 6` for a teaser, `export.py vertical story.json --out vertical.mp4` for Shorts/Reels/TikTok
+(re-rendered at 1080x1920). Add `--motion-blur 3` to the final render for fast action if the user can wait 3x longer.
 
 ## E. Quality review (MANDATORY before delivery)
 
@@ -131,7 +193,7 @@ and what you could not verify. Only then deliver `film.mp4` plus the project fol
   and owns them. Use the original built-ins otherwise. See `docs/LEGAL.md`.
 - Do not claim a feature works if you did not run it. If a render or asset step fails, say what failed.
 - Use the engine's real features (listed in `docs/STORYBOARD.md`). If the scene needs something marked missing in `docs/COVERAGE.md`
-  (held tools, stairs and fences, more mobs, sneak/swim/ride clips...), say so up front and offer the closest thing that exists;
+  (more mobs, armor, swim/ride clips...), say so up front and offer the closest thing that exists;
   do not fake it with unsupported JSON fields (they are silently ignored).
 - Check proportions in close-ups, not only wide shots (shoulders flush with the torso, head directly on the body, faces readable).
 - Keep user skins/textures untouched; write derived files next to them with a new name.
