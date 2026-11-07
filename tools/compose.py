@@ -620,7 +620,8 @@ class Film:
 
     def b_ending(self, b):
         t = self.t; dur = b.get("dur", 5.0)
-        self.cam(t, dur, "orbit", None, radius=b.get("radius", 11), height=b.get("height", 4), from_=10, to_=60, ease="smooth")
+        extra = {"center": b["center"]} if "center" in b else {}  # e.g. [x, y, z] above the ground to tilt up at fireworks
+        self.cam(t, dur, "orbit", None, radius=b.get("radius", 11), height=b.get("height", 4), from_=10, to_=60, ease="smooth", **extra)
         if b.get("text"):
             self.story["titles"].append({"t": r2(t + dur - 2.6), "dur": 2.4, "text": b["text"], "size": b.get("size", 40)})
         if b.get("fireworks"):
@@ -745,8 +746,11 @@ class Film:
         self.pos[who] = list(self.pos[mount]); total = tt - self.t
         pts = [start] + [list(w) for w in path]; samp = [v_add(pts[i], v_mul(v_sub(pts[i + 1], pts[i]), f)) for i in range(len(pts) - 1) for f in (0, 0.5, 1)]
         d = v_norm(v_sub(pts[-1], pts[-2])) if len(pts) > 1 else [0, -1]
-        self.cam(self.t, total * 0.55, "track", mount, None, dir=d, handheld=0.5, samples=samp)
-        self.cam(self.t + total * 0.55, total * 0.45, "front", who, None, dir=d, handheld=0.5, samples=samp)
+        for sh in (self.cam(self.t, total * 0.55, "track", who, None, dir=d, handheld=0.5, samples=samp),
+                   self.cam(self.t + total * 0.55, total * 0.45, "front", who, None, dir=d, handheld=0.5, samples=samp)):
+            for k, lift, far in (("pos", 0.7, 1.45), ("look", 0.35, 1.0)):  # rider and mount in one frame: wider, a little higher
+                if isinstance(sh.get(k), dict):
+                    o = sh[k]["offset"]; sh[k]["offset"] = [r2(o[0] * far), r2(o[1] + lift), r2(o[2] * far)]
         if b.get("dismount", False):
             self.seg(t=tt, actor=who, do="idle", to=self.p3(v_add(self.pos[mount], [1.2, 0])), dur=0.3); self.pos[who] = v_add(self.pos[mount], [1.2, 0])
         return total + 0.2
@@ -762,7 +766,13 @@ class Film:
                 self.story["lighting"].append({"t": r2(self.t), **b["lighting"]})
             if b.get("title"):
                 self.story["titles"].append({"t": r2(self.t + 0.3), "dur": 2.2, "text": b["title"], "size": 56})
-            t0 = self.t; d = fn(b); self.t += d
+            t0 = self.t
+            for a in b.get("also", []):  # ambient life in parallel with the beat: villagers strolling, a calf following its mother
+                a = dict(a); who = a.pop("who"); at = a.pop("at", 0.0); a.setdefault("do", "walk")
+                if "to" in a:
+                    self.pos[who] = list(a["to"]); a["to"] = self.p3(a["to"])
+                self.seg(t=t0 + at, actor=who, **a)
+            d = fn(b); self.t += d
             self.section(b.get("music", SECTION.get(kind)), t0, self.t)
         self.story["duration"] = r2(self.t + 0.1)
         for k in ("lightning", "lighting", "timeRemap", "changes", "transitions", "titles", "fx"):

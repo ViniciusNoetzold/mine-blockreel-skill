@@ -147,6 +147,22 @@ def test_every_shipped_plan_compiles(tmp_path, example):
         assert st["actors"]["zumbi"]["skin"].endswith("zombie-layout.png") and any(s.get("do") == "zombie" for s in st["timeline"])
 
 
+def test_village_plan_ambient_life_babies_variants(tmp_path):
+    """Vila Viva: `also` runs ambient actions in parallel; babies and variants reach the story (needs the mob cache)."""
+    import compose
+    if not shutil.which("node") or not (ROOT / "work" / "vanilla" / "mobs" / "index.json").exists():
+        pytest.skip("needs node and the game's mob cache (python tools/vanilla.py mobs)")
+    plan = json.loads((ROOT / "examples" / "village-life" / "plan.json").read_text())
+    (tmp_path / "plan.json").write_text(json.dumps(plan))
+    assert compose.main([str(tmp_path / "plan.json"), "--out", str(tmp_path / "f"), "--no-music"]) == 0
+    st = json.loads((tmp_path / "f" / "story.json").read_text())
+    a = st["actors"]
+    assert a["calf"]["baby"] is True and a["librarian"]["variant"] == "librarian" and a["horse"]["parts"] == ["saddle"]
+    walks = [s for s in st["timeline"] if s["actor"] == "kid" and s.get("do") == "walk"]
+    assert walks and walks[0]["t"] < 1.0, "ambient actions start with their beat, without taking time"
+    assert any(s.get("do") == "ride" and s.get("mount") == "horse" for s in st["timeline"])
+
+
 def test_cameras_are_kept_out_of_buildings(tmp_path):
     import compose
     f = compose.Film({"world": {"arena": {"center": [0, 0], "radius": 8, "y": 4}, "structures": [{"structure": "tower", "pos": [4, None, 0]}]}}, tmp_path)

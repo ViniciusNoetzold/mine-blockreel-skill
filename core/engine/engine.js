@@ -144,7 +144,8 @@ async function blockMaterials(block) {
 
 // --------------------------------------------------------------- world ----
 // [x, null, z] means "on the ground here" for actors, moves, effects and lightning; cameras get eye height (1.7) above it
-const passableBlock = (b) => { const d = defOf(b); return ['cross', 'torch', 'layer', 'liquid', 'crop', 'rail', 'ladder', 'vine', 'door', 'trapdoor'].includes(d.shape); };
+// thin layers (snow, carpet) are walked through; dirt paths and farmland (15/16 high) are ground you stand on
+const passableBlock = (b) => { const d = defOf(b); return ['cross', 'torch', 'liquid', 'crop', 'rail', 'ladder', 'vine', 'door', 'trapdoor'].includes(d.shape) || (d.shape === 'layer' && (d.height ?? 2) <= 8); };
 function snapToGround() {
   // actors stand on the terrain, never on a canopy; cameras ignore trees entirely (eye height above the real ground)
   const leafy = (b) => /leaves/.test(b) || passableBlock(b); const woody = (b) => /leaves|log/.test(b) || passableBlock(b);
@@ -739,6 +740,7 @@ window.renderAt = (t) => {
 };
 window.__qa = (t) => { window.renderAt(t); return collectQA(t, lastQA.camPos); };
 window.__story = () => story;
+window.__actorPos = (n, t) => { if (t !== undefined) window.renderAt(t); const a = actors[n]; return a ? [...a._pos, a._clip] : null; };
 
 // Dense path check (tools/qa.py): walks the whole film every `step` seconds WITHOUT rendering and reports every interval in which
 // an actor's body or the camera is inside a solid block of the world as it is at that moment (breaks, places and blasts included).

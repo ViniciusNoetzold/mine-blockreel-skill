@@ -66,7 +66,8 @@ python tools/render.py films/<name>/story.json --preset preview --workers 4 --ou
 Every beat and option: `docs/DIRECTOR-PLAN.md`. Still do A (briefing), C (look at `shotlist.md`), E (QA) - skip B for simple requests.
 Write the plan in the user's language (subtitles, title, end card). Mix beats freely: **not every film is a fight**. The skill is for
 any Minecraft animation the user imagines: comedy (`examples/creeper-surprise`), survival and chases (`examples/zombie-night`),
-builds and timelapses (`build`), mining (`mine`), dialogue episodes (`line`/`look`), calm moods (`walk`/`act`/`wait`), action
+builds and timelapses (`build`), mining (`mine`), dialogue episodes (`line`/`look`), calm moods (`walk`/`act`/`wait`), slice of life with
+villagers, babies and ambient `also` actions (`examples/village-life`), action
 (`examples/herobrine-duel`). When a beat does not exist for what the user wants, use `act` (any clip) and world `changes`, or write that
 part of `story.json` by hand after compiling.
 

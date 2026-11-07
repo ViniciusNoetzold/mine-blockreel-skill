@@ -33,7 +33,7 @@ Re-running `compose.py` overwrites it, so prefer fixing the plan.
 | `world` | `{ "biome", "radius", "arena": {"center":[x,z], "radius", "y"}, "trees", "water", "amp", "scale", "structures": [...], "extra": [...ops], "arenaFloor": "stone_bricks" }`, or a raw list of world ops |
 | `cast` | `name -> { "skin": "file.png" \| "persona": {...} \| "preset": "herobrine", "name": "Shown name", "holding": "diamond_sword", "offhand", "eyes": "glow", "hidden": true, "nametag": true }`, or a mob: `{ "mob": "cow", "hidden": true, "parts": ["saddle"], "baby": true, "variant": "cold" }` (any of ~70 game mobs when cached; babies use the game's own baby models; variants: coats, breeds, biomes and professions, see `docs/MOBS.md`). Players also take `"armor"`, `"cape"`, `"elytra"`, `"offhand": "shield"` (the game's textures when cached; zombies walk with arms forward) |
 | `marks` | `name -> [x, z]` start positions (defaults: first actor south of the centre, second north) |
-| `beats` | the film, in order (below). Any beat may carry `"title"` (a title card over it), `"lighting"` (a key at its start) and `"music"` (override its mood) |
+| `beats` | the film, in order (below). Any beat may carry `"title"` (a title card over it), `"lighting"` (a key at its start), `"music"` (override its mood) and `"also"`: ambient actions that run in parallel without taking time, e.g. `[{"who": "calf", "to": [3, 4], "dur": 4}, {"who": "cat", "do": "sit", "at": 1.5, "dur": 3}]` (`do` defaults to `walk`, `at` is seconds after the beat starts) |
 | `music` | `{ "key": "D", "bpm": 108, "volume": 0.55 }` or `false` |
 | `nametags` | `true` to show floating name tags (off by default: cinematic) |
 | `cameraSide` | `"right"` (default) or `"left"`: which side of the line of action the camera stays on |
@@ -92,6 +92,7 @@ along the actor's path, it is mirrored to the other side of the action or pulled
 | `herobrine-duel` | action / supernatural | reveal in lightning, dialogue, duel, teleport, lightning power, finisher, silence, ending |
 | `creeper-surprise` | comedy / building | dialogue, a house built in a timelapse, a creeper sneaks up and blows half of it away, the punchline |
 | `zombie-night` | survival / chase | first night: a zombie appears, a chase through the forest, a stone-sword fight, victory |
+| `village-life` | slice of life | *Vila Viva*: a village, villagers by profession, babies and variants, ambient `also` actions, a horse ride, fireworks at dusk |
 
 ## From a prompt to a plan (examples)
 
