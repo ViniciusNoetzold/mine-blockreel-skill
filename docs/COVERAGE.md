@@ -47,7 +47,8 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 | Trapdoors, doors as blocks, vines, rails, redstone, pistons, signs, beds | missing | |
 | Face culling, the game's face shading, smooth-lighting AO, sky + block light propagation, mip-maps | done | no z-fighting, no shimmer, torches light the night |
 | Terrain generation, biomes, arena flattening, structures (house, tower, ruins, shrine, pillar, campfire) | done | `terrain` / `structure` ops; building sites are kept free of trees |
-| Caves, overhangs, villages, very large worlds | missing | ~40k blocks build in under a second; hundreds of thousands are not supported |
+| Very large worlds | done | measured: 1.7 M blocks set up in 5 s and render at 0.7 s/frame (720p, software GL); 4.4 M blocks in 13 s and 0.6 s/frame. Dense volume mesher, 32x32 chunks, chunks past the fog are not drawn |
+| Caves, overhangs, villages | missing | |
 | Trees | done | oak, birch, spruce, dead; trees blocking a camera are not planted |
 | Sky: sun, moon, stars, the game's cloud layer, lightning | done | dome with a level horizon, sunset glow |
 | Rain and snow | done | |

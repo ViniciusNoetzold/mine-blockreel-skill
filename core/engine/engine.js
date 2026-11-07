@@ -10,7 +10,7 @@ import { createPost, usesPost } from './post.js';
 import { buildMob } from './mobs.js';
 import { parseChanges, blockState, crackTextures, buildProps } from './world.js';
 import { expandWorld, groundHeight } from './worldgen.js';
-import { meshWorld, computeLight, resolveDef, pixelMipmaps, FACES } from './mesher.js';
+import { meshWorld, computeLight, resolveDef, pixelMipmaps, FACES, CHUNK } from './mesher.js';
 
 const q = new URLSearchParams(location.search);
 const PROJECT = q.get('project') || '/project/story.json';
@@ -220,6 +220,7 @@ async function buildWorld() {
     const mesh = new THREE.Mesh(geo, await worldMaterial(g.tex, g.kind, g.flow));
     mesh.castShadow = g.kind !== 'translucent' && g.kind !== 'emissive'; mesh.receiveShadow = g.kind !== 'emissive';
     if (g.kind === 'translucent') mesh.renderOrder = 1;
+    if (g.chunk) { const [cx, cz] = g.chunk.split(',').map(Number); mesh.userData.cx = (cx + 0.5) * CHUNK; mesh.userData.cz = (cz + 0.5) * CHUNK; }
     scene.add(mesh); worldMeshes.push(mesh);
   }
   const geo = new THREE.BoxGeometry(1, 1, 1); const m = new THREE.Matrix4();
@@ -639,6 +640,11 @@ function lightActors() {
     }
   }
 }
+// chunks hidden by the fog are not drawn at all (big worlds cost only what can be seen); the frustum skips the rest
+function cullChunks(camPos) {
+  const far = (scene.fog ? scene.fog.far : 400) + CHUNK * 0.75;
+  for (const m of worldMeshes) { if (m.userData.cx === undefined) continue; m.visible = Math.hypot(m.userData.cx - camPos.x, m.userData.cz - camPos.z) < far; }
+}
 // the sun's shadow box follows what the camera looks at (snapped to whole shadow texels, so shadows never crawl or flicker)
 const _sv = new THREE.Vector3(), _sd = new THREE.Vector3();
 function followShadow(camPos) {
@@ -670,7 +676,7 @@ window.renderAt = (t) => {
   for (const a of Object.values(actors)) applyLook(a, wt, null);
   const camPos = applyCamera(t, wt);
   for (const a of Object.values(actors)) { const ls = lookState(story, a, wt); if (ls && (ls.target === 'camera' || ls.prev === 'camera')) applyLook(a, wt, camPos); }
-  applyLighting(t, wt, camPos); followShadow(camPos); lightActors(); weather && weather.update(wt, camPos);
+  applyLighting(t, wt, camPos); followShadow(camPos); lightActors(); cullChunks(camPos); weather && weather.update(wt, camPos);
   applyOverlays(t); applyTransitions(t);
   if (post) { const shot = currentShot(t) || {}; let fd; const f = shot.focus; if (f !== undefined) { const tp = (x) => { const v = typeof x === 'number' ? null : vec(x); return v ? camPos.distanceTo(v) : x; }; const f0 = tp(f), f1 = shot.focusTo !== undefined ? tp(shot.focusTo) : f0; const e = getEase(shot.ease || 'smooth')(clamp01((wt - worldTime(story, shot.t)) / (shot.dur ?? 3))); fd = f0 + (f1 - f0) * e; }
     post.render(t, [style.post, story.post, shot.post], fd); }

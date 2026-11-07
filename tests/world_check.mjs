@@ -58,5 +58,13 @@ const quads = (r) => [...r.groups.values()].reduce((a, g) => a + g.builder.n / 4
   ok(hurtAt(story, a, 1.1) > 0.7 && hurtAt(story, a, 1.6) === 0, 'red hurt tint for half a second after a hit');
   ok(actorState(story, a, 3).clip === 'guard', 'a holding-only entry does not interrupt the running clip');
 }
+// --- big worlds: a few hundred thousand blocks mesh in well under the old limits
+{
+  const t0 = Date.now(); const g = expandWorld([{ terrain: { radius: 80, round: false, base: 8, amp: 8, scale: 30, depth: 5, water: 5, trees: 0.01, seed: 2 } }], 2);
+  const t1 = Date.now(); const r = meshWorld(g, (n) => resolveDef({ ...defs, grass: { top: 'grass_top', side: 'grass_side', bottom: 'dirt' } }, n)); const t2 = Date.now();
+  ok(g.size > 300000, `big world has ${g.size} blocks`);
+  ok(t2 - t1 < 6000, `light + mesh of ${g.size} blocks took ${t2 - t1} ms (budget 6 s)`);
+  ok(new Set([...r.groups.values()].map((x) => x.chunk)).size > 9, 'the world is split in chunks');
+}
 if (fails) { console.error(`${fails} world check(s) failed`); process.exit(1); }
 console.log('world ok');
