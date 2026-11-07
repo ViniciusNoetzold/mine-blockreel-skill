@@ -28,7 +28,7 @@ sys.path.insert(0, str(ROOT / "core"))
 STRIKE = {"slash": (0.6, 0.47), "overhead": (0.7, 0.48), "thrust": (0.55, 0.5), "swing": (0.7, 0.42), "punch": (0.5, 0.4), "lunge": (0.8, 0.5)}
 SECTION = {"establish": "calm", "walk": "calm", "line": "calm", "look": "calm", "act": "calm", "wait": "calm", "title": None,
            "reveal": "build", "faceoff": "build", "teleport": "build", "charge": "battle", "duel": "battle", "power": "battle",
-           "knockdown": "battle", "getup": "build", "finisher": "battle", "explode": "battle", "silence": "silence", "ending": "dawn", "victory": "dawn"}
+           "knockdown": "battle", "getup": "build", "finisher": "battle", "explode": "battle", "silence": "silence", "ending": "dawn", "victory": "dawn", "build": "calm", "mine": "calm", "creeper": "build", "chase": "battle"}
 
 
 def v_add(a, b): return [a[0] + b[0], a[1] + b[1]]
@@ -68,6 +68,9 @@ class Film:
         for k in ("water", "plants", "flowers", "treeKinds", "clear", "top", "soil", "stone"):
             if k in w:
                 terrain[k] = w[k]
+        sites = [[b["at"][0], b["at"][1], b.get("clear", 7)] for b in self.p.get("beats", []) if b.get("beat") == "build" and "at" in b]
+        if sites:
+            terrain["clear"] = list(terrain.get("clear", [])) + sites
         self.story["world"] = [{"terrain": terrain}] + list(w.get("structures", [])) + list(w.get("extra", []))
         if w.get("arenaFloor"):  # paint the arena floor with a block (e.g. stone_bricks for a duel ring)
             r = a["radius"]; cx, cz = a["center"]
@@ -79,6 +82,8 @@ class Film:
         names = list(self.p.get("cast", {}).keys())
         cx, cz = self.arena["center"]
         for i, (name, c) in enumerate(self.p.get("cast", {}).items()):
+            if c.get("mob"):  # creeper / pig / spider rigs, zombie on the player rig; the game's textures when cached
+                self.add_mob(name, c, i); continue
             skin = self.skin_for(name, c)
             default_mark = [cx, cz + 3.5] if i == 0 else [cx, cz - 3.5] if i == 1 else [cx + (i - 1) * 2.5, cz + 6]
             m = marks.get(name, default_mark); self.pos[name] = [float(m[0]), float(m[1])]
@@ -94,6 +99,26 @@ class Film:
                 self.story["faces"].append({"t": 0, "actor": name, "eyes": c["eyes"]})
             if c.get("hidden"):
                 self.hide(name, 0)
+
+    def add_mob(self, name, c, i):
+        kind = c["mob"]; cx, cz = self.arena["center"]; m = self.p.get("marks", {}).get(name, [cx + 5 + i, cz + 5])
+        self.pos[name] = [float(m[0]), float(m[1])]; self.cast_names[name] = c.get("name", kind.capitalize()); self.mobs = getattr(self, "mobs", {}); self.mobs[name] = kind
+        cached = ROOT / "work" / "vanilla" / "entity" / f"{kind}.png"
+        tex = c.get("texture") or (f"/work/vanilla/entity/{kind}.png" if cached.exists() and self.p.get("textures") != "builtin" else f"/core/builtin/mobs/sample-{kind}-layout.png")
+        a = {"pos": [m[0], None, m[1]], "face": c.get("face", 0)}
+        if kind == "zombie":
+            a["skin"] = tex
+        else:
+            a.update(type=kind, texture=tex)
+        for k in ("scale", "holding"):
+            if k in c:
+                a[k] = c[k]
+        self.story["actors"][name] = a
+        if c.get("hidden"):
+            self.hide(name, 0)
+
+    def walk_clip(self, who, run=False):
+        return "zombie" if getattr(self, "mobs", {}).get(who) == "zombie" else ("run" if run else "walk")
 
     def skin_for(self, name, c):
         from persona import PRESETS, herobrine_from_steve, paint
@@ -120,6 +145,7 @@ class Film:
 
     # ------------------------------------------------------------------------------------------ primitives ----
     def seg(self, **kw):
+        kw = {k: v for k, v in kw.items() if v is not None or k in ("holding", "offhand", "lookAt")}  # null means "no change" except for these
         kw["t"] = r2(kw["t"]); self.story["timeline"].append(kw); return kw
 
     def face(self, t, who, **kw):
@@ -164,7 +190,7 @@ class Film:
             d, n = self.axis(a, b); gap = v_len(v_sub(P[b], P[a]))
         else:
             hd = kw.pop("heading", None); d = hd or [0, -1]; n = [-d[1] * self.side, d[0] * self.side]
-        fwd = lambda want: min(want, max(0.6, gap * 0.4))  # a close-up never puts the lens inside the other actor
+        fwd = lambda want: min(want, max(0.6, gap * 0.55))  # a close-up never puts the lens inside the other actor
         def off(base_actor, vec_xz, y):
             return {"actor": base_actor, "offset": [r2(vec_xz[0]), y, r2(vec_xz[1])]}
         if kind == "wide":  # two-shot from the side of the line of action
@@ -176,11 +202,11 @@ class Film:
         elif kind == "ots":  # over a's shoulder onto b
             shot.update(pos=off(a, v_add(v_mul(d, -2.3), v_mul(n, 1.15)), 1.95), look=off(b, [0, 0], 1.3), fov=kw.pop("fov", 46))
         elif kind == "close":  # a's face, from the camera side of the line, slightly in front
-            shot.update(pos=off(a, v_add(v_mul(d, fwd(1.55)), v_mul(n, 1.15 if gap < 3 else 0.9)), 1.62), look=off(a, [0, 0], 1.55), fov=kw.pop("fov", 40 if gap >= 3 else 46))
+            shot.update(pos=off(a, v_add(v_mul(d, fwd(2.1)), v_mul(n, 1.2)), 1.65), look=off(a, [0, 0], 1.62), fov=kw.pop("fov", 44))
         elif kind == "xclose":  # eyes
             shot.update(pos=off(a, v_add(v_mul(d, fwd(1.8)), v_mul(n, 0.45 if gap >= 3 else 1.1)), 1.64), look=off(a, [0, 0], 1.62), fov=kw.pop("fov", 34 if gap >= 3 else 44))
         elif kind == "low":  # hero angle
-            shot.update(pos=off(a, v_add(v_mul(d, 2.3), v_mul(n, 1.3)), 0.35), look=off(a, [0, 0], 1.45), fov=kw.pop("fov", 56))
+            shot.update(pos=off(a, v_add(v_mul(d, 2.9), v_mul(n, 1.5)), 0.4), look=off(a, [0, 0], 1.35), fov=kw.pop("fov", 60))
         elif kind == "high":
             shot.update(pos=off(a, v_add(v_mul(d, 3.5), v_mul(n, 2.0)), 5.5), look=off(a, [0, 0], 0.8), fov=kw.pop("fov", 50))
         elif kind == "track":  # follow a walking actor from the side, slightly ahead
@@ -198,13 +224,54 @@ class Film:
             shot.update(pos=[r2(c[0] + dn[0] * 22), None, r2(c[1] + dn[1] * 22)], to=[r2(c[0] + dn[0] * 12), None, r2(c[1] + dn[1] * 12)],
                         look=[c[0], None, c[1]], fov=kw.pop("fov", 55))
             shot["pos"][1] = None; shot["_lift"] = [7, 3.5]
+        samples = kw.pop("samples", None)
         shot.update(kw)
+        self.avoid(shot, samples)
         if "_lift" in shot:  # absolute positions: engine puts null y on the ground + eye height; lift it further with an offset form
             lift = shot.pop("_lift"); c = self.arena["center"]
             shot["pos"] = [shot["pos"][0], self.arena["y"] + 1 + lift[0], shot["pos"][2]]
             shot["to"] = [shot["to"][0], self.arena["y"] + 1 + lift[1], shot["to"][2]]
             shot["look"] = [c[0], self.arena["y"] + 2, c[1]]
         self.story["camera"].append(shot); self.shots.append((r2(t), r2(dur), kind, a, b)); return shot
+
+    # Building sites (world structures and builds): where a camera must never be. Radius like footprint() in worldgen.js.
+    def sites(self):
+        out = []
+        w = self.p.get("world", {}); ops = (w.get("structures", []) + w.get("extra", [])) if isinstance(w, dict) else w
+        for op in ops:
+            if not isinstance(op, dict) or "structure" not in op:
+                continue
+            k = op["structure"]; x, _, z = op.get("pos", [0, None, 0])
+            r = max(op.get("w", 7), op.get("d", 6)) / 2 + 1.5 if k == "house" else op.get("r", 3) + 1 if k == "tower" else \
+                max(op.get("w", 9), op.get("d", 7)) / 2 + 0.5 if k == "ruins" else 3 if k == "shrine" else 2 if k == "campfire" else 1
+            out.append((x, z, r + 0.6))
+        for at, blocks in getattr(self, "built", []):
+            r = max([math.hypot(p[0] - at[0], p[2] - at[1]) for _, p in blocks] or [3]) + 0.8; out.append((at[0], at[1], r))
+        return out
+
+    def avoid(self, shot, samples=None):
+        """Keep an actor-relative camera out of buildings along the actor's path: mirror it across the line of action, then pull it in."""
+        pos = shot.get("pos")
+        if not (isinstance(pos, dict) and pos.get("actor") in self.pos):
+            return
+        sites = self.sites()
+        if not sites:
+            return
+        pts = samples or [self.pos[pos["actor"]]]
+        def hits(off):
+            return any(math.hypot(p[0] + off[0] - x, p[1] + off[2] - z) < r for p in pts for x, z, r in sites)
+        off = pos["offset"]
+        if not hits(off):
+            return
+        a = pos["actor"]; other = next((n for n in self.pos if n != a), None)
+        d = v_norm(v_sub(self.pos[other], self.pos[a])) if other and self.pos[other] != self.pos[a] else [0, -1]; n = [-d[1], d[0]]
+        k = off[0] * n[0] + off[2] * n[1]
+        cands = [[off[0] - 2 * k * n[0], off[1], off[2] - 2 * k * n[1]]]
+        cands += [[c[0] * f, c[1], c[2] * f] for c in (off, cands[0]) for f in (0.6, 0.35)]
+        for c in cands:
+            if not hits(c):
+                pos["offset"] = [r2(c[0]), c[1], r2(c[2])]
+                return
 
     # ---------------------------------------------------------------------------------------------- beats ----
     def b_establish(self, b):
@@ -220,7 +287,7 @@ class Film:
 
     def walk_to(self, who, to, t, run=False, speed=None):
         to = self.clamp(to); d = v_len(v_sub(to, self.pos[who])); sp = speed or (4.3 if run else 2.6); dur = max(0.4, d / sp)
-        self.seg(t=t, actor=who, do="run" if run else "walk", to=self.p3(to), dur=r2(dur), speed=1.0)
+        self.seg(t=t, actor=who, do=self.walk_clip(who, run), to=self.p3(to), dur=r2(dur), speed=1.0 if not run else 1.2)
         step = 0.3 if run else 0.48; k = 0; tt = t + 0.15
         while tt < t + dur:
             self.sound([f"step/grass{1 + (k % 4)}", f"step/grass{1 + (k % 2)}", "step/stone1"], tt, 0.22 if run else 0.16); tt += step; k += 1
@@ -234,11 +301,12 @@ class Film:
         dur = self.walk_to(who, to, t, b.get("run", False))
         dirv = v_norm(v_sub(to, start)) if v_len(v_sub(to, start)) > 0.01 else [0, -1]
         self.pos_tmp = start
+        samp = [v_add(start, v_mul(v_sub(to, start), f)) for f in (0, 0.25, 0.5, 0.75, 1)]
         if dur > 2.4 and b.get("shot") != "track":
-            self.cam(t, dur * 0.55, "track", who, dir=dirv, handheld=0.3)
-            self.cam(t + dur * 0.55, dur * 0.45, "front", who, dir=dirv, handheld=0.3)
+            self.cam(t, dur * 0.55, "track", who, dir=dirv, handheld=0.3, samples=samp)
+            self.cam(t + dur * 0.55, dur * 0.45, "front", who, dir=dirv, handheld=0.3, samples=samp)
         else:
-            self.cam(t, dur, b.get("shot", "track"), who, dir=dirv, handheld=0.3)
+            self.cam(t, dur, b.get("shot", "track"), who, dir=dirv, handheld=0.3, samples=samp)
         return dur + b.get("pause", 0.2)
 
     def b_line(self, b):
@@ -504,15 +572,23 @@ class Film:
 
     def b_victory(self, b):
         who = b["who"]; t = self.t; dur = b.get("dur", 2.5)
-        self.seg(t=t, actor=who, do=b.get("do", "celebrate"), dur=r2(dur), face=b.get("face", 0))
+        p = self.pos[who]; sites = self.sites(); hd = [0, -1]
+        for c in ([0, -1], [0, 1], [1, 0], [-1, 0], [0.7, -0.7], [-0.7, -0.7], [0.7, 0.7], [-0.7, 0.7]):  # a free side for the camera...
+            cn = [-c[1] * self.side, c[0] * self.side]; cp = v_add(p, v_add(v_mul(c, 2.9), v_mul(cn, 1.5)))
+            if not any(math.hypot(cp[0] - x, cp[1] - z) < r for x, z, r in sites):
+                hd = c; break
+        facing = b.get("face", [r2(p[0] + hd[0] * 4), None, r2(p[1] + hd[1] * 4)])  # ...and the winner turns to face it
+        self.seg(t=t, actor=who, do=b.get("do", "celebrate"), dur=r2(dur), face=facing)
         self.face(t, who, mouth="smile", eyes="open")
         self.sound(["random/levelup"], t + 0.2, 0.6)
-        self.cam(t, dur, "low", who, None, fovTo=50, handheld=0.2)
+        self.cam(t, dur, "low", who, None, heading=hd, fovTo=54, handheld=0.2)
         return dur
 
     def b_act(self, b):
         who = b["who"]; t = self.t; dur = b.get("dur", 1.5); seg = {k: v for k, v in b.items() if k not in ("beat", "who", "shot", "with")}
         seg.setdefault("do", "idle"); seg["dur"] = dur
+        if b.get("with") and "face" not in seg:  # play the action toward the other character
+            seg["face"] = b["with"]
         if "to" in seg:
             self.pos[who] = list(seg["to"][::2]) if len(seg["to"]) == 3 else list(seg["to"]); seg["to"] = self.p3(self.pos[who])
         self.seg(t=t, actor=who, **seg)
@@ -534,6 +610,103 @@ class Film:
     def b_title(self, b):  # a title card over the next beat (no time of its own)
         self.story["titles"].append({"t": r2(self.t + b.get("delay", 0.3)), "dur": b.get("dur", 2.2), "text": b["text"], "size": b.get("size", 56), **({"color": b["color"]} if "color" in b else {})})
         return 0.0
+
+
+    # ------------------------------------------------------------------------------ building, mining, mobs ----
+    def expand_structure(self, op):
+        """The block list of a structure, from the engine's own generator (node), so a build matches what the world op would make."""
+        js = ("import('./core/engine/worldgen.js').then(m => { const g = m.expandWorld([" + json.dumps(op) + "], 1);"
+              " console.log(JSON.stringify([...g].map(([k, b]) => [b, k.split(',').map(Number)]))); })")
+        r = subprocess.run(["node", "-e", js], cwd=ROOT, capture_output=True, text=True)
+        if r.returncode:
+            raise SystemExit("node is needed to expand a structure: " + r.stderr[-300:])
+        return json.loads(r.stdout)
+
+    def b_build(self, b):
+        """A build timelapse: blocks appear bottom-up while the builder works, the camera circles the site."""
+        who = b["who"]; t = self.t; dur = b.get("dur", 8.0); at = b["at"]; y = self.arena["y"] + 1
+        if "blocks" in b:
+            blocks = [[blk, [p[0], p[1] if p[1] is not None else y, p[2]]] for blk, p in b["blocks"]]
+        else:
+            op = {"structure": b.get("structure", "house"), "pos": [at[0], y, at[1]], "foundation": False, **{k: b[k] for k in ("w", "d", "h", "r", "block") if k in b}}
+            blocks = [x for x in self.expand_structure(op) if x[1][1] >= y - 1]
+        blocks.sort(key=lambda x: (x[1][1], math.atan2(x[1][2] - at[1], x[1][0] - at[0])))
+        span = max(abs(p[0] - at[0]) for _, p in blocks) + 1 if blocks else 3
+        stand = self.clamp(v_add(at, [0, span + 1.6])) if v_len(v_sub(self.pos[who], at)) < span + 1 else self.pos[who]
+        if v_len(v_sub(stand, self.pos[who])) > 0.3:
+            t += self.walk_to(who, stand, t)
+        self.pos[who] = stand; work = max(1.0, dur - (t - self.t) - 0.6)
+        self.seg(t=t, actor=who, do="mine", dur=r2(work), face=[at[0], None, at[1]], holding=b.get("holding", "planks"))
+        n = len(blocks)
+        for i, (blk, p) in enumerate(blocks):
+            ti = t + 0.2 + work * 0.95 * i / max(1, n)
+            self.story["changes"].append({"t": r2(ti), "place": p, "block": blk})
+            if i % max(1, n // max(1, int(work * 3))) == 0:
+                wood = any(k in blk for k in ("plank", "log", "oak", "stairs", "slab"))
+                self.sound(["dig/wood1"] if wood else ["dig/stone1", "dig/stone2", "dig/stone3"][i % 3:], ti, 0.35)
+        self.seg(t=t + work, actor=who, do=b.get("then", "idle"), dur=1, holding=None)
+        self.cam(self.t, (t - self.t) + work * 0.6, "orbit", None, center=[at[0], y + 1.5, at[1]], radius=span * 2.6 + 4, height=span + 2, from_=-60, to_=40, ease="linear")
+        hd = v_norm(v_sub(at, stand)); hn = [-hd[1] * self.side, hd[0] * self.side]  # over the builder's shoulder onto the rising house
+        self.story["camera"].append({"t": r2(t + work * 0.6), "dur": r2(work * 0.4 + 0.6), "pos": {"actor": who, "offset": [r2(-hd[0] * 2.6 + hn[0] * 1.3), 2.2, r2(-hd[1] * 2.6 + hn[1] * 1.3)]},
+                                     "look": [at[0], y + 2, at[1]], "fov": 50, "handheld": 0.2})
+        self.shots.append((r2(t + work * 0.6), r2(work * 0.4 + 0.6), "ots-build", who, None))
+        self.built = getattr(self, "built", []) + [(at, blocks)]
+        return (t - self.t) + work + 0.6
+
+    def b_mine(self, b):
+        """Break blocks one after another with cracks, debris and the dig sound of each material."""
+        who = b["who"]; t = self.t; per = b.get("per", 0.7); blocks = b["blocks"]
+        self.seg(t=t, actor=who, do="mine", dur=r2(per * len(blocks)), holding=b.get("holding", "iron_pickaxe"), face=blocks[0])
+        for i, p in enumerate(blocks):
+            tb = t + per * (i + 1) - 0.05
+            self.story["changes"].append({"t": r2(tb), "break": p, "crack": r2(per * 0.85)})
+            self.sound(["dig/stone1", "dig/stone2", "dig/stone3", "dig/stone4"][i % 4:], tb, 0.7)
+        self.cam(t, per * len(blocks), b.get("shot", "track"), who, None, handheld=0.2)
+        return per * len(blocks) + 0.3
+
+    def b_creeper(self, b):
+        """The classic: a creeper creeps up, hisses, swells and explodes. Blocks nearby are blown away, the victim is thrown."""
+        who = b["who"]; tgt = b.get("target"); t = self.t; tp = self.pos[tgt] if isinstance(tgt, str) else (tgt or self.pos[who])
+        d = v_norm(v_sub(tp, self.pos[who])); stop = v_sub(tp, v_mul(d, b.get("distance", 1.6)))
+        if self.hidden and who in self.hidden:
+            self.show(who, t)
+        walk = self.walk_to(who, stop, t, speed=1.6) if v_len(v_sub(stop, self.pos[who])) > 0.3 else 0.0
+        cam_t = t
+        if isinstance(tgt, str):
+            self.cam(cam_t, walk, "wide", tgt, who, handheld=0.2)
+        ts = t + walk + b.get("wait", 0.4); fuse = 1.5
+        self.seg(t=ts, actor=who, do="swell", dur=fuse, face=tgt if isinstance(tgt, str) else None)
+        self.sound(["random/fuse"], ts, 0.9); self.sound(["mob/creeper/say1"], ts + 0.05, 0.6)
+        self.cam(ts, fuse, "close", who, tgt if isinstance(tgt, str) else None, fovTo=34, handheld=0.3)
+        if isinstance(tgt, str) and b.get("react", True):
+            self.face(ts + 0.5, tgt, eyes="wide", mouth="shout", dur=1.0)
+        te = ts + fuse; p = self.pos[who]
+        self.story["changes"].append({"t": r2(te), "explode": [int(math.floor(p[0])), self.arena["y"] + 1, int(math.floor(p[1]))], "radius": b.get("radius", 3)})
+        self.hide(who, te); self.sound(["random/explode1", "random/explode2", "random/explode4"], te, 1.0)
+        self.story["transitions"].append({"t": r2(te), "type": "flash", "dur": 0.35, "peak": 0.55})
+        if isinstance(tgt, str):
+            back = self.clamp(v_add(tp, v_mul(d, 3.0)))
+            self.seg(t=te, actor=tgt, do="knockback", dur=0.9, to=self.p3(back), arc=0.8, ease="outCubic", face=who); self.pos[tgt] = back
+            self.seg(t=te + 0.9, actor=tgt, do=b.get("then", "fall"), dur=1.0, hold=True)
+            self.sound(["damage/hit1"], te + 0.05, 0.8)
+        self.cam(te, 2.4, "wide", tgt if isinstance(tgt, str) else who, None, dist=9, shake=0.05, handheld=0.6, heading=[-d[1], d[0]])
+        return te - t + 2.4
+
+    def b_chase(self, b):
+        """One runs along a path, the other follows half a second behind; the camera tracks then faces the runner."""
+        run, ch = b["runner"], b["chaser"]; t = self.t; path = b["path"]; lag = b.get("lag", 0.6); total = 0.0; self.pos_start_run = list(self.pos[run])
+        tt = t
+        for i, wp in enumerate(path):
+            d0 = self.walk_to(run, wp, tt, run=True, speed=b.get("speed", 4.5))
+            follow = v_sub(wp, v_mul(v_norm(v_sub(wp, self.pos[ch])), b.get("gap", 2.2)))
+            self.walk_to(ch, follow, tt + lag, run=True, speed=b.get("speed", 4.5) * 0.98); tt += d0
+        total = tt - t + lag
+        last_dir = v_norm(v_sub(path[-1], path[-2])) if len(path) > 1 else [0, -1]
+        pts = [list(self.pos_start_run)] + [list(w) for w in path]
+        samp = [v_add(pts[i], v_mul(v_sub(pts[i + 1], pts[i]), f)) for i in range(len(pts) - 1) for f in (0, 0.25, 0.5, 0.75, 1)]
+        self.cam(t, total * 0.5, "track", run, None, dir=last_dir, handheld=0.6, samples=samp)
+        self.cam(t + total * 0.5, total * 0.5, "front", run, None, dir=last_dir, handheld=0.6, samples=samp)
+        return total
 
     # ----------------------------------------------------------------------------------------------- build ----
     def build(self, music=True):

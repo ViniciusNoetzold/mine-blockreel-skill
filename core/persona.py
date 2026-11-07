@@ -155,31 +155,42 @@ class Painter:
             if fh == "goatee":
                 for x in (3, 4):
                     cv.px("head", "front", x, 7, FH)
-        # overlay: hair volume / accessories (the hat layer is 0.5 px bigger, so it reads as 3D)
-        if not bald and style not in ("buzz",):
-            hv = HR[2]
+        # overlay: hair volume. The hat layer is a shell 0.5 px bigger than the head: a partial shell reads as steps or a missing
+        # piece, so short styles stay on the base layer (a clean cube, like the default skins) and volume styles get a shell that
+        # follows the base hair EXACTLY on every face (same rows front, sides and back): one continuous layer of hair, no steps.
+        VOLUME = {"long": (2, 7, 8), "ponytail": (2, 7, 8), "bob": (3, 7, 8), "afro": (2, 3, 6), "curly": (2, 3, 6), "bun": (1, 3, 6)}
+        if not bald and style in VOLUME:
+            fr, sd, bk = VOLUME[style]; hv = HR[2]
             self.shade_face("hat", "top", hv, noise=0.04)
-            vol_back = {"long": 8, "ponytail": 8, "bob": 6, "afro": 7, "curly": 5, "bun": 4}.get(style, 3)
-            self.shade_face("hat", "back", hv, h=vol_back)
+            self.shade_face("hat", "back", hv, h=bk)
             for side in ("left", "right"):
-                self.shade_face("hat", side, hv, h={"long": 7, "bob": 5, "afro": 5, "curly": 3}.get(style, 2))
-            self.shade_face("hat", "front", hv, h=1, grad=0)
-            if style in ("spiky", "curly", "afro"):
-                for x in range(0, 8, 2):
-                    cv.px("hat", "front", x, 1, HR[1 if style != "spiky" else 3])
+                self.shade_face("hat", side, hv, h=sd)
+            self.shade_face("hat", "front", hv, h=fr, grad=0)
+            if long_ or style == "bob":  # the strands framing the face continue down the shell, as on the base
+                for y in range(fr, 7 if long_ else 5):
+                    cv.px("hat", "front", 0, y, HR[1]); cv.px("hat", "front", 7, y, HR[1])
+            if style in ("curly", "afro"):  # curls as texture inside the shell (never loose pixels below its edge)
+                for f, rows in (("front", fr), ("left", sd), ("right", sd), ("back", bk), ("top", 8)):
+                    for y in range(rows):
+                        for x in range(8):
+                            if (x + y * 3) % 4 == 0:
+                                cv.px("hat", f, x, y, HR[1] if (x + y) % 2 else HR[3])
             if style == "ponytail":
                 for y in range(4, 8):
                     cv.px("hat", "back", 3, y, HR[1]); cv.px("hat", "back", 4, y, HR[2])
             if style == "bun":
                 for x in (3, 4):
                     cv.px("hat", "top", x, 6, HR[3]); cv.px("hat", "back", x, 0, HR[3])
-            if style == "mohawk":
-                for f in ("left", "right"):
-                    self.cv.clear("hat", f)
-                self.cv.clear("hat", "top")
-                for y in range(8):
-                    for x in (3, 4):
-                        cv.px("hat", "top", x, y, HR[3])
+        if style == "spiky" and not bald:  # spikes are texture on the base, not loose bits of shell
+            for x in range(0, 8, 2):
+                cv.px("head", "front", x, 1, HR[3])
+        if style == "mohawk":  # the one intended raised strip
+            for y in range(8):
+                for x in (3, 4):
+                    cv.px("hat", "top", x, y, HR[3])
+            for f in ("front", "back"):
+                for x in (3, 4):
+                    cv.px("hat", f, x, 0, HR[3])
         g = p.get("glasses")
         if g:
             gc = _c(g.get("color") if isinstance(g, dict) else None, "#2e2e30"); st = g.get("style", "square") if isinstance(g, dict) else "square"
@@ -193,9 +204,9 @@ class Painter:
             if st == "round":
                 for x in (1, 6):
                     cv.px("hat", "front", x, 5, shade(gc, 1.3))
-            for side in ("left", "right"):  # temples: two pixels along the side of the head
-                for x in ((6, 7) if side == "right" else (0, 1)):
-                    cv.px("hat", side, x, 4, gc)
+            for side in ("left", "right"):  # temples on the base layer (a loose bit of the shell would float)
+                for x in ((5, 6, 7) if side == "right" else (0, 1, 2)):
+                    cv.px("head", side, x, 4, gc)
         acc = p.get("accessory", "none"); A = _c(p.get("accessory_color"), "#c03030")
         if acc in ("cap", "beanie", "crown", "hood"):
             for f in ("top", "front", "back", "left", "right"):

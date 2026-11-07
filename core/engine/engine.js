@@ -179,20 +179,22 @@ function clearCameraFoliage() {
   // a tree whose leaves touch the lens, or the first 6 blocks of the line of sight, is not planted at all (flood-fill its
   // leaves and logs): a clean frame instead of a camera buried in a canopy. Plants just in front of the lens are removed too.
   const TREE = /leaves|log/; let n = 0; const R = story.foliageClearance ?? 1.3;
-  const removeTree = (k0) => {
-    const q = [k0]; const seen = new Set([k0]);
-    while (q.length && seen.size < 400) {
-      const k = q.pop(); const b = grid.get(k); if (!b || !TREE.test(b)) continue; grid.delete(k); n++;
+  const removeTree = (k0) => { // flood the connected logs + leaves; delete only if it is a tree (has leaves), never a house's log pillars
+    const q = [k0]; const seen = new Set([k0]); const comp = [];
+    while (q.length && seen.size < 600) {
+      const k = q.pop(); const b = grid.get(k); if (!b || !TREE.test(b)) continue; comp.push(k);
       const [x, y, z] = k.split(',').map(Number);
       for (const [dx, dy, dz] of [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]) { const k2 = `${x + dx},${y + dy},${z + dz}`; if (!seen.has(k2) && TREE.test(grid.get(k2) || '')) { seen.add(k2); q.push(k2); } }
     }
+    if (!comp.some((k) => /leaves/.test(grid.get(k)))) return;
+    for (const k of comp) { grid.delete(k); n++; }
   };
   const probe = (x, y, z, r) => {
     for (let dx = -2; dx <= 2; dx++) for (let dy = -2; dy <= 2; dy++) for (let dz = -2; dz <= 2; dz++) {
       const bx = Math.floor(x) + dx, by = Math.floor(y) + dy, bz = Math.floor(z) + dz;
       if (Math.hypot(bx + 0.5 - x, by + 0.5 - y, bz + 0.5 - z) > r) continue;
       const k = `${bx},${by},${bz}`; const b = grid.get(k); if (!b) continue;
-      if (/leaves/.test(b)) removeTree(k); else if (defOf(b).shape === 'cross') { grid.delete(k); n++; }
+      if (TREE.test(b)) removeTree(k); else if (defOf(b).shape === 'cross') { grid.delete(k); n++; }
     }
   };
   for (const [c, l] of cameraPath(0.2)) {

@@ -1,0 +1,26 @@
+{
+ "title": "Primeira Noite", "size": [1280, 720], "fps": 30, "seed": 5, "style": "nightfall",
+ "styleOverride": {"letterbox": 2.0, "ambient": {"color": "#8090ff", "intensity": 0.95}, "sun": {"color": "#b8c8ff", "intensity": 1.1, "dir": [0.4, 1, -0.3]}},
+ "post": {"bloom": {"strength": 0.5, "threshold": 0.82}, "grain": 0.03},
+ "world": {"biome": "forest", "radius": 40, "arena": {"center": [0, 0], "radius": 11, "y": 4}, "trees": 0.045,
+           "structures": [{"structure": "ruins", "pos": [0, null, -15]}, {"structure": "campfire", "pos": [0, null, 0]}]},
+ "cast": {
+  "nina": {"persona": {"skin": "#f0c8a8", "hair": {"color": "#e8d070", "style": "bob"}, "top": {"type": "hoodie", "color": "#5a3a8a"},
+                       "bottom": {"type": "jeans", "color": "#2a3a5a"}, "shoes": {"type": "boots", "color": "#3a2a1a"}}, "name": "Nina", "holding": "stone_sword"},
+  "zumbi": {"mob": "zombie"}
+ },
+ "marks": {"nina": [-3, 4], "zumbi": [8, -7]},
+ "beats": [
+  {"beat": "establish", "dur": 3.5, "text": "PRIMEIRA NOITE", "eerie": true},
+  {"beat": "act", "who": "nina", "do": "idle", "dur": 1.6, "shot": "close", "with": "zumbi"},
+  {"beat": "look", "who": "nina", "at": "zumbi", "emotion": "scared"},
+  {"beat": "line", "who": "nina", "to": "zumbi", "text": "Ah não. Zumbi!", "emotion": "scared"},
+  {"beat": "chase", "runner": "nina", "chaser": "zumbi", "path": [[-8, 2], [-6, -6], [2, -8]]},
+  {"beat": "faceoff", "a": "nina", "b": "zumbi", "dur": 1.8},
+  {"beat": "duel", "a": "nina", "b": "zumbi", "exchanges": ["nina:slash:hit", "zumbi:swing:dodge", "nina:thrust:hit", "nina:sweep:knockback"]},
+  {"beat": "finisher", "a": "nina", "b": "zumbi", "move": "overhead", "result": "vanish"},
+  {"beat": "victory", "who": "nina"},
+  {"beat": "ending", "dur": 4, "text": "Sobrevivi."}
+ ],
+ "music": {"key": "E", "bpm": 116}
+}

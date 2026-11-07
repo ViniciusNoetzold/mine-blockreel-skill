@@ -64,7 +64,11 @@ python tools/compose.py films/<name>/plan.json --out films/<name>
 python tools/render.py films/<name>/story.json --preset preview --workers 4 --out films/<name>/preview.mp4
 ```
 Every beat and option: `docs/DIRECTOR-PLAN.md`. Still do A (briefing), C (look at `shotlist.md`), E (QA) - skip B for simple requests.
-Write the plan in the user's language (subtitles, title, end card). Mix beats freely: not every film is a fight.
+Write the plan in the user's language (subtitles, title, end card). Mix beats freely: **not every film is a fight**. The skill is for
+any Minecraft animation the user imagines: comedy (`examples/creeper-surprise`), survival and chases (`examples/zombie-night`),
+builds and timelapses (`build`), mining (`mine`), dialogue episodes (`line`/`look`), calm moods (`walk`/`act`/`wait`), action
+(`examples/herobrine-duel`). When a beat does not exist for what the user wants, use `act` (any clip) and world `changes`, or write that
+part of `story.json` by hand after compiling.
 
 **Prompt → plan, worked example.** *"Me faça no Minecraft numa batalha contra o Herobrine"*: the user = `persona` from their photo
 (or their skin, or ask once), Herobrine = `preset: herobrine`, `eyes: glow`, `hidden: true` (he arrives by `reveal`); night style;

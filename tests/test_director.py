@@ -1,5 +1,6 @@
 """v0.2: persona skins (photo -> skin), the director compiler (plan -> story) and the new engine features in a real render."""
 import json
+import math
 import shutil
 import subprocess
 import sys
@@ -104,3 +105,52 @@ def test_composed_film_renders_with_builtin_textures(tmp_path):
     assert rc == 0
     im = Image.open(tmp_path / "f.png").convert("RGB"); w, h = im.size
     assert sum(ImageStat.Stat(im.crop((w // 4, h // 4, 3 * w // 4, 3 * h // 4))).stddev) > 15, "the duel frame has content"
+
+
+def test_head_shell_never_has_steps_or_loose_pixels():
+    """The hat layer is a shell around the head: a partial shell reads as a head with a missing piece. Short styles keep it empty;
+    volume styles fill it as one band per face, with no pixel below the band (no loose 'teeth')."""
+    from skin import face_rect
+    for style in ("short", "buzz", "sidepart", "spiky"):
+        im = persona.paint({**persona.EXAMPLE, "hair": {"style": style, "color": "#332211"}})
+        assert all(im.getpixel((x, y))[3] == 0 for x in range(32, 64) for y in range(0, 16)), f"{style}: hat layer must stay empty"
+    for style in ("long", "afro", "curly", "bun", "bob"):
+        im = persona.paint({**persona.EXAMPLE, "hair": {"style": style, "color": "#332211"}})
+        for face in ("front", "left", "right", "back"):
+            fx, fy, fw, fh = face_rect("hat", face)
+            rows = [any(im.getpixel((fx + x, fy + y))[3] for x in range(fw)) for y in range(fh)]
+            first_empty = rows.index(False) if False in rows else fh
+            if face != "front":
+                assert not any(rows[first_empty:]), f"{style}/{face}: pixels below the end of the hair band"
+                assert all(im.getpixel((fx + x, fy + y))[3] for x in range(fw) for y in range(first_empty)), f"{style}/{face}: holes in the band"
+
+
+@pytest.mark.parametrize("example", ["creeper-surprise", "zombie-night", "herobrine-duel"])
+def test_every_shipped_plan_compiles(tmp_path, example):
+    """The director is not only for fights: building, mobs, chases and comedy plans compile too."""
+    import compose
+    if not shutil.which("node"):
+        pytest.skip("node is needed to expand structures for build beats")
+    plan = json.loads((ROOT / "examples" / example / "plan.json").read_text())
+    plan["textures"] = "builtin"
+    for c in plan.get("cast", {}).values():
+        c["classic"] = False
+    (tmp_path / "plan.json").write_text(json.dumps(plan))
+    assert compose.main([str(tmp_path / "plan.json"), "--out", str(tmp_path / "f"), "--no-music"]) == 0
+    st = json.loads((tmp_path / "f" / "story.json").read_text())
+    assert st["duration"] > 20 and len(st["camera"]) >= 8
+    if example == "creeper-surprise":
+        places = [c for c in st["changes"] if "place" in c]
+        assert len(places) > 60, "the house is built block by block"
+        assert any("explode" in c for c in st["changes"]) and st["actors"]["creeper"]["type"] == "creeper"
+    if example == "zombie-night":
+        assert st["actors"]["zumbi"]["skin"].endswith("zombie-layout.png") and any(s.get("do") == "zombie" for s in st["timeline"])
+
+
+def test_cameras_are_kept_out_of_buildings(tmp_path):
+    import compose
+    f = compose.Film({"world": {"arena": {"center": [0, 0], "radius": 8, "y": 4}, "structures": [{"structure": "tower", "pos": [4, None, 0]}]}}, tmp_path)
+    f.world(); f.pos = {"a": [0.0, 0.0], "b": [0.0, -4.0]}
+    shot = f.cam(0, 2, "side", "a", "b")          # the side shot would stand at x ~ +4.2: inside the tower
+    off = shot["pos"]["offset"]
+    assert math.hypot(off[0] - 4, off[2]) > 4.6, off

@@ -31,7 +31,7 @@ Re-running `compose.py` overwrites it, so prefer fixing the plan.
 | `title`, `size`, `fps`, `seed` | as in `story.json` |
 | `style`, `styleOverride`, `post`, `sky`, `weather`, `lighting`, `textures`, `blocks` | copied into the story (see `docs/STORYBOARD.md`) |
 | `world` | `{ "biome", "radius", "arena": {"center":[x,z], "radius", "y"}, "trees", "water", "amp", "scale", "structures": [...], "extra": [...ops], "arenaFloor": "stone_bricks" }`, or a raw list of world ops |
-| `cast` | `name -> { "skin": "file.png" \| "persona": {...} \| "preset": "herobrine", "name": "Shown name", "holding": "diamond_sword", "offhand", "eyes": "glow", "hidden": true, "nametag": true }` |
+| `cast` | `name -> { "skin": "file.png" \| "persona": {...} \| "preset": "herobrine", "name": "Shown name", "holding": "diamond_sword", "offhand", "eyes": "glow", "hidden": true, "nametag": true }`, or a mob: `{ "mob": "zombie\|creeper\|pig\|spider", "hidden": true }` (the game's textures when cached; zombies walk with arms forward) |
 | `marks` | `name -> [x, z]` start positions (defaults: first actor south of the centre, second north) |
 | `beats` | the film, in order (below). Any beat may carry `"title"` (a title card over it), `"lighting"` (a key at its start) and `"music"` (override its mood) |
 | `music` | `{ "key": "D", "bpm": 108, "volume": 0.55 }` or `false` |
@@ -58,6 +58,10 @@ Biomes: `plains forest taiga desert snowy nether wasteland` (top block, trees, p
 | `knockdown` / `getup` | `who`, `by` / `facing` | fall flat on the back / stand back up angry |
 | `finisher` | `a`, `b`, `move`, `result: vanish\|die\|fall\|knockback` | a held beat (silence) on the winner's face, then the decisive slow-motion hit |
 | `explode` | `at: [x,z]`, `radius`, `tnt` | TNT with fuse (or a plain explosion), crater, debris |
+| `build` | `who`, `structure: house\|tower\|ruins\|shrine\|pillar\|campfire` (+ `w d h r block`) or `blocks: [[block,[x,y,z]],...]`, `at: [x,z]`, `dur`, `holding` | a build timelapse: the builder works, blocks pop in bottom-up with the right dig sounds, the camera circles the site then looks over the builder's shoulder. The site is kept free of trees automatically |
+| `mine` | `who`, `blocks: [[x,y,z],...]`, `per`, `holding` | mining: cracks, debris and dig sounds block after block |
+| `creeper` | `who` (a creeper in the cast), `target` (actor or `[x,z]`), `radius`, `then` | creeps up, hisses, swells and explodes: crater, blocks of nearby builds blown away, the victim thrown |
+| `chase` | `runner`, `chaser`, `path: [[x,z],...]`, `speed`, `lag`, `gap` | a run along waypoints with the pursuer half a second behind; tracking then front shots |
 | `silence` | `who`, `at`, `dur` | the held emotional beat after the climax: slow push-in, music silent |
 | `victory` | `who`, `do` | celebrate + level-up sound |
 | `act` | `who`, `do`, `dur`, `to`, `face`, ... | any raw timeline action (all clips in `docs/STORYBOARD.md`) |
@@ -77,13 +81,25 @@ Biomes: `plains forest taiga desert snowy nether wasteland` (top block, trees, p
 
 The attacker closes the distance with a short charge when the gap is over ~2.6 blocks; nobody leaves the arena.
 
+Cameras stay out of buildings: if a planned camera would stand inside a structure (from `world.structures` or a `build`) anywhere
+along the actor's path, it is mirrored to the other side of the action or pulled in.
+
+## Shipped examples (all compile with `python tools/compose.py examples/<name>/plan.json --out films/<name>`)
+
+| example | genre | what it shows |
+|---|---|---|
+| `herobrine-duel` | action / supernatural | reveal in lightning, dialogue, duel, teleport, lightning power, finisher, silence, ending |
+| `creeper-surprise` | comedy / building | dialogue, a house built in a timelapse, a creeper sneaks up and blows half of it away, the punchline |
+| `zombie-night` | survival / chase | first night: a zombie appears, a chase through the forest, a stone-sword fight, victory |
+
 ## From a prompt to a plan (examples)
 
 - *"me in Minecraft fighting Herobrine"* → a persona from the user's photo (or their skin), `preset: herobrine` with `eyes: glow`
   and `hidden: true`, a night style, a shrine; beats: establish → walk → reveal → line ×2 → faceoff → duel → teleport → power → getup →
   duel → finisher → silence → ending. This is `python tools/compose.py --example`.
-- *"two friends build a house and a creeper blows it up"* → `act` beats with `mine`/`place` (or world `changes`), `look` reactions,
-  `explode` at the house, `line` for the punchline, `victory` for the creeper's "win".
+- *"two friends build a house and a creeper blows it up"* → `build` + `creeper` + `line` for the punchline: `examples/creeper-surprise`.
+- *"my first night: a zombie chases me"* → `mob: zombie` in the cast, `chase`, `duel`, `victory`: `examples/zombie-night`.
+- *"a mining trip that finds diamonds"* → a hand-built cave (`hollow` + `fill` ores), `mine` with `iron_pickaxe`, `look` + `line`, `victory`.
 - *"a calm sunset fishing video"* → `golden-hour`, `walk`, `act` (`sit`, hold), `wait` shots, `ending`; music `calm`/`dawn` only.
 
 Not everything is action: use `line`, `look`, `wait`, `walk` and `act` alone for dialogue, comedy and calm films.
