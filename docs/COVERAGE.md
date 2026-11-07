@@ -9,9 +9,11 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 |---|---|---|
 | Player model from a skin (classic / slim, legacy 64x32, both layers) | done | proportions checked against the game: shoulders flush with the torso top, head sits directly on the body (no neck) |
 | Face: blink, eyes, mouth, wounds, glow, lip-sync | done | rows 3-7 of the face are repainted; skins must keep eyes on row 4 |
-| Creeper-, pig-, spider-shaped mobs | partial | boxes and clips work; **texture offsets unverified** (`docs/MOBS.md`) |
+| ~70 mobs with the game's own geometry and texture (cow, sheep, horse, villager, skeleton, enderman, iron golem, warden, ender dragon...) | done | `tools/vanilla.py mobs` + `core/engine/geo.js`; walk/idle/look/hit/die/swell animated by bone names; all rendered and checked (`docs/MOBS.md`) |
+| Blaze rods, magma cube segments | partial | placed by the game's Molang animations, not evaluated |
+| Creeper-, pig-, spider-shaped rigs without the cache | done | CC0 fallback rigs (`core/engine/mobs.js`) |
 | Zombie / any humanoid mob | done | a normal actor with its texture and the `zombie` clip |
-| Enderman, skeleton (bow), villager, iron golem, wolf, cow, sheep, chicken, horse, bat, ghast, wither, dragon, fish | missing | each needs its own rig (boxes + UV table + clips) |
+| Mob-specific animations (a spider's crawl, a horse's gallop, a dragon's flight path) | partial | generic leg/arm/wing/tail rules; exact per-mob animations would need a Molang interpreter |
 | Baby mobs, mob variants | missing | |
 | Armor layers, capes, elytra, shields | missing | |
 | Crowds of hundreds | missing | many actors work, but there is no instancing |
@@ -84,7 +86,7 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 
 ## Suggested order to close the gaps (highest impact first)
 
-1. **More mobs**: enderman, skeleton, villager, iron golem, cow, sheep, wolf (and a verified UV table for each).
+1. **Molang animations** for exact per-mob motion (blaze rods, magma cube, gallop, flight).
 2. **Armor, capes, elytra, shields** layers.
 3. **Player clips**: swim, ride, eat, sleep, climb, crawl.
 4. **Doors/trapdoors/beds/signs as blocks**, villages, caves.

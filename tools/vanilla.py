@@ -5,6 +5,7 @@
   python tools/vanilla.py fetch --source ztech  # mirror: github.com/ZtechNetwork/MCBVanillaResourcePack
   python tools/vanilla.py sounds                # original sound effects (Java asset index, official Mojang servers)
   python tools/vanilla.py font                  # the game's bitmap font (read from client.jar with HTTP ranges, ~1 MB)
+  python tools/vanilla.py mobs                  # every mob's own geometry + texture (cow, villager, skeleton, horse, dragon...)
   python tools/vanilla.py all                   # everything above
   python tools/vanilla.py status
 
@@ -247,6 +248,126 @@ def sounds():
     print(f"vanilla sounds ready: {got} files from Java {rel} ({size // 1024} KB) -> {out}" + (f"; not in this version: {', '.join(miss)}" if miss else ""))
 
 
+
+# ---------------------------------------------------------------------------------------------------- mobs ----
+# Every mob with the game's own geometry: Mojang's bedrock-samples ship each entity's client definition (which geometry and
+# texture it uses) and the geometry files (bones, cubes, pivots, UVs). They are normalised into work/vanilla/mobs/<mob>.geo.json
+# + <mob>.png, which the engine builds into a rig (core/engine/geo.js) and animates by bone names.
+MOB_ENTITIES = {  # engine name -> entity file in bedrock-samples/resource_pack/entity
+    "cow": "cow", "pig": "pig", "sheep": "sheep", "chicken": "chicken", "wolf": "wolf", "cat": "cat", "ocelot": "ocelot", "fox": "fox",
+    "horse": "horse_v3", "donkey": "donkey_v3", "skeleton_horse": "skeleton_horse_v3", "zombie_horse": "zombie_horse_v3",
+    "rabbit": "rabbit", "llama": "llama", "goat": "goat", "mooshroom": "mooshroom", "panda": "panda", "polar_bear": "polar_bear",
+    "villager": "villager_v2", "zombie_villager": "zombie_villager_v2", "witch": "witch", "pillager": "pillager", "vindicator": "vindicator",
+    "evoker": "evoker", "iron_golem": "iron_golem", "snow_golem": "snow_golem", "allay": "allay",
+    "skeleton": "skeleton", "stray": "stray", "wither_skeleton": "wither_skeleton", "zombie": "zombie", "husk": "husk", "drowned": "drowned",
+    "zombie_pigman": "zombie_pigman", "piglin": "piglin", "hoglin": "hoglin", "creeper": "creeper", "spider": "spider", "cave_spider": "cave_spider",
+    "enderman": "enderman", "endermite": "endermite", "silverfish": "silverfish", "slime": "slime", "magma_cube": "magma_cube", "ghast": "ghast",
+    "blaze": "blaze", "bat": "bat", "bee": "bee", "parrot": "parrot", "phantom": "phantom", "vex": "vex", "guardian": "guardian",
+    "ravager": "ravager", "shulker": "shulker", "warden": "warden", "ender_dragon": "ender_dragon", "wither": "wither",
+    "axolotl": "axolotl", "frog": "frog", "squid": "squid", "glow_squid": "glow_squid", "dolphin": "dolphin", "turtle": "turtle", "cod": "cod",
+    "salmon": "salmon", "camel": "camel", "sniffer": "sniffer", "strider": "strider", "breeze": "breeze", "armadillo": "armadillo",
+    "minecart": "minecart", "boat": "boat", "armor_stand": "armor_stand",
+}
+GEO_FILES = """allay armadillo armor_stand arrow axolotl bat bat_v2 bee blaze bogged breeze camel cat chicken chicken.cold cod cow cow.cold cow.v2 cow.warm
+cow_v1.0 creaking creeper creeper.v1.0 dolphin drowned drowned_v1.0 ender_crystal ender_dragon enderman enderman_v1.0 endermite evoker evoker_v1.0
+fox frog ghast glow_squid goat guardian guardian.v1.0 happy_ghast hoglin horse_v1 horse_v2 horse_v3 humanoid.custom husk husk.v1.0 iron_golem llama
+llama_v1.0 magma_cube magma_cube_v2 minecart minecart_v1.0 mooshroom mooshroom.v2 mooshroom_v1.0 ocelot ocelot_v1.0 panda parrot phantom pig pig.v3
+pig_v1.0 piglin pillager polar_bear pufferfish rabbit rabbit.v2 rabbit_v1.0 ravager salmon sheep sheep_v1.0 shield shulker shulker_v1.0 silverfish
+skeleton skeleton.v1.0 slime sniffer snow_golem snow_golem.v1.0 spider spider_v1.0 squid stray stray_v1.0 strider tropical_fish turtle vex vex.v1.0
+villager villager_v1.0 villager_v2 vindicator vindicator_v1.0 warden witch witch_v1.0 wither_boss wither_skeleton wither_skeleton.v1.0 wolf zombie
+zombie.v1.0 zombie_pigman zombie_pigman.v1.0 zombie_villager zombie_villager.v1.0 zombie_villager_v2""".split()
+
+
+MOB_FIXES = {"polar_bear": {"body": [90, 0, 0]}, "cat": {"body": [90, 0, 0]}, "ocelot": {"body": [90, 0, 0]}}
+
+
+def _loose_json(t):
+    import re
+    t = re.sub(r'(?m)^\s*//.*$', '', t); t = re.sub(r'(?<![:"])//[^\n"]*$', '', t, flags=re.M)
+    return json.loads(t)
+
+
+def _geo_index(base, raw):
+    """identifier -> (geometry dict, parent identifier or None), from mobs.json and every .geo.json file."""
+    idx = {}
+    def take(ident, g):
+        name, _, parent = ident.partition(":")
+        idx[name] = (g, parent or None)
+    files = ["models/mobs.json"] + [f"models/entity/{n}.geo.json" for n in GEO_FILES]
+    for rel in files:
+        dst = raw / rel
+        try:
+            if not dst.exists():
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                req = urllib.request.Request(base + rel, headers={"User-Agent": "blockreel-vanilla-fetch"})
+                with urllib.request.urlopen(req, timeout=30) as r:
+                    dst.write_bytes(r.read())
+            d = _loose_json(dst.read_text(encoding="utf-8", errors="replace"))
+        except Exception:
+            continue
+        for k, v in d.items():
+            if k == "minecraft:geometry":
+                for g in v:
+                    take(g["description"]["identifier"], {"bones": g.get("bones", []), "tw": g["description"].get("texture_width", 64), "th": g["description"].get("texture_height", 64)})
+            elif k.startswith("geometry.") and isinstance(v, dict):
+                take(k, {"bones": v.get("bones", []), "tw": v.get("texturewidth", 64), "th": v.get("textureheight", 64)})
+    return idx
+
+
+def _resolve(idx, ident, depth=0):
+    g, parent = idx[ident]
+    if not parent or parent not in idx or depth > 6:
+        return {"bones": [dict(b) for b in g["bones"]], "tw": g["tw"], "th": g["th"]}
+    base = _resolve(idx, parent, depth + 1); bones = {b["name"].lower(): b for b in base["bones"]}; order = [b["name"].lower() for b in base["bones"]]
+    for b in g["bones"]:  # a child geometry overrides bones by name and adds new ones
+        k = b["name"].lower()
+        bones[k] = {**bones.get(k, {}), **b}
+        if k not in order:
+            order.append(k)
+    tw = g["tw"] if g["bones"] or not base["tw"] else base["tw"]
+    return {"bones": [bones[k] for k in order], "tw": g.get("tw") or base["tw"], "th": g.get("th") or base["th"]}
+
+
+def mobs(source="mojang"):
+    base = SOURCES[source]; raw = OUT / "raw" / source; out = OUT / "mobs"; out.mkdir(parents=True, exist_ok=True)
+    idx = _geo_index(base, raw); done, missing = {}, []
+    for name, ent in MOB_ENTITIES.items():
+        try:
+            rel = f"entity/{ent}.entity.json"; dst = raw / rel
+            if not dst.exists():
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                req = urllib.request.Request(base + rel, headers={"User-Agent": "blockreel-vanilla-fetch"})
+                with urllib.request.urlopen(req, timeout=30) as r:
+                    dst.write_bytes(r.read())
+            desc = _loose_json(dst.read_text(encoding="utf-8", errors="replace"))["minecraft:client_entity"]["description"]
+            geos = desc.get("geometry", {}); texs = desc.get("textures", {})
+            gid = geos.get("default") or next(iter(geos.values())); tpath = texs.get("default") or next(iter(texs.values()))
+            if gid not in idx:
+                missing.append(f"{name} (geometry {gid})"); continue
+            geo = _resolve(idx, gid)
+            for bone, r in MOB_FIXES.get(name, {}).items():  # poses the game sets in code, not in the geometry files
+                for b in geo["bones"]:
+                    if b["name"].lower() == bone and not b.get("rotation") and not b.get("bind_pose_rotation"):
+                        b["bind_pose_rotation"] = r
+            img = None
+            for ext in (".png", ".tga"):
+                try:
+                    img = get(base, tpath + ext, raw); break
+                except Exception:
+                    continue
+            if img is None:
+                missing.append(f"{name} (texture {tpath})"); continue
+            img.save(out / f"{name}.png")
+            geo["texture"] = f"{name}.png"; geo["entity"] = ent; geo["geometry"] = gid
+            (out / f"{name}.geo.json").write_text(json.dumps(geo))
+            done[name] = {"geo": f"{name}.geo.json", "texture": f"{name}.png"}
+        except Exception as e:
+            missing.append(f"{name} ({e})")
+    (out / "index.json").write_text(json.dumps({"mobs": done}, indent=1))
+    print(f"vanilla mobs ready: {len(done)} mobs with the game's geometry -> {out}" + (f"; skipped: {', '.join(missing)}" if missing else ""))
+    return 0
+
+
 # ---------------------------------------------------------------------------------------------------- font ----
 def _zip_member(url, size, names):
     """Read a few members of a remote zip (the game's client.jar, ~40 MB) with HTTP Range requests: ~1 MB instead of 40."""
@@ -305,7 +426,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     f = sub.add_parser("fetch"); f.add_argument("--source", choices=sorted(SOURCES), default="mojang")
-    sub.add_parser("status"); sub.add_parser("sounds"); sub.add_parser("font")
+    sub.add_parser("status"); sub.add_parser("sounds"); sub.add_parser("font"); sub.add_parser("mobs")
     sub.add_parser("all", help="fetch + sounds + font")
     a = ap.parse_args(argv)
     if a.cmd == "fetch":
@@ -314,8 +435,10 @@ def main(argv=None):
         sounds(); return 0
     if a.cmd == "font":
         return font()
+    if a.cmd == "mobs":
+        return mobs()
     if a.cmd == "all":
-        fetch("mojang"); sounds(); return font()
+        fetch("mojang"); sounds(); mobs(); return font()
     return status()
 
 

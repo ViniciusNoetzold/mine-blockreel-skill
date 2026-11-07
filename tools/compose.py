@@ -103,13 +103,19 @@ class Film:
     def add_mob(self, name, c, i):
         kind = c["mob"]; cx, cz = self.arena["center"]; m = self.p.get("marks", {}).get(name, [cx + 5 + i, cz + 5])
         self.pos[name] = [float(m[0]), float(m[1])]; self.cast_names[name] = c.get("name", kind.capitalize()); self.mobs = getattr(self, "mobs", {}); self.mobs[name] = kind
+        builtin_ok = self.p.get("textures") != "builtin"
         cached = ROOT / "work" / "vanilla" / "entity" / f"{kind}.png"
-        tex = c.get("texture") or (f"/work/vanilla/entity/{kind}.png" if cached.exists() and self.p.get("textures") != "builtin" else f"/core/builtin/mobs/sample-{kind}-layout.png")
+        geo = (ROOT / "work" / "vanilla" / "mobs" / f"{kind}.geo.json").exists() and builtin_ok
+        tex = c.get("texture") or (f"/work/vanilla/entity/{kind}.png" if cached.exists() and builtin_ok else f"/core/builtin/mobs/sample-{kind}-layout.png")
         a = {"pos": [m[0], None, m[1]], "face": c.get("face", 0)}
-        if kind == "zombie":
-            a["skin"] = tex
+        if kind == "zombie" and not c.get("geo"):
+            a["skin"] = tex  # zombies on the player rig: every player clip (hit, die, duel moves) works on them
+        elif geo or kind in ("creeper", "pig", "spider"):
+            a.update(type=kind, **({"texture": tex} if not geo else {}))
+            if c.get("parts"):
+                a["parts"] = c["parts"]
         else:
-            a.update(type=kind, texture=tex)
+            raise SystemExit(f"mob {kind!r}: run  python tools/vanilla.py mobs  (the game's geometry for ~70 mobs) or use creeper/pig/spider/zombie")
         for k in ("scale", "holding"):
             if k in c:
                 a[k] = c[k]

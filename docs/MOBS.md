@@ -1,51 +1,38 @@
-# Mobs (box-model rigs)
+# Mobs
 
-BlockReel ships rigs for four mob shapes. **You provide the texture**: the repo contains only original placeholder
-textures (`core/builtin/mobs/sample-*-layout.png`, CC0) so the rigs can be tested. Never commit game textures (`docs/LEGAL.md`).
+## Every mob, with the game's own geometry (recommended)
 
-```json
-"actors": {
-  "boomer":  { "type": "creeper", "texture": "assets/creeper.png", "pos": [0,1,0], "face": 0, "scale": 1, "nametag": "Boomer" },
-  "oinker":  { "type": "pig",     "texture": "assets/pig.png",     "pos": [2,1,0] },
-  "crawler": { "type": "spider",  "texture": "assets/spider.png",  "pos": [4,1,0] },
-  "groaner": { "type": "player",  "skin": "assets/zombie.png",     "pos": [6,1,0] }
-}
+```bash
+python tools/vanilla.py mobs      # ~70 mobs: geometry + texture into work/vanilla/mobs/ (local cache, never committed)
 ```
-Zombie-shaped mobs are normal actors (`skin` = a 64x64 or 64x32 zombie-layout texture) driven with the `zombie` clip.
+`tools/vanilla.py mobs` reads Mojang's official `bedrock-samples`: each entity's client definition (which geometry and texture it uses)
+and the geometry files (bones, pivots, cubes, UVs, inflate, mirror), resolves inherited geometries (a zombie is a humanoid) and writes a
+normalised `<mob>.geo.json` + `<mob>.png`. The engine (`core/engine/geo.js`) builds the rig and animates it **by bone names**:
+legs in diagonal pairs (two-legged mobs alternate), arms opposite the legs (zombies, husks, drowned and zombified piglins hold them
+forward), wings flap, tails wag, tentacles wave, the head idles and follows `lookAt`, `swell` inflates and flashes like a creeper,
+`hit`/`knockback` tilt back, `die` falls sideways like the game, attack clips swing the right arm, `cast`/`summon` raise both.
 
-## Texture layouts (64x32)
+Use: `"actors": { "moo": { "type": "cow", "pos": [3, null, 2] } }`. Optional equipment (saddle, saddlebags, chest, reins, armour,
+collar) is hidden like in the game unless you ask for it: `"parts": ["saddle"]`. In the director: `"cast": { "moo": { "mob": "cow" } }`.
 
-Boxes are unfolded like a skin: `(u, v)` is the box's top-left corner on the sheet, `w x h x d` its size in pixels.
+Names: `cow pig sheep chicken wolf cat ocelot fox horse donkey skeleton_horse zombie_horse rabbit llama goat mooshroom panda polar_bear
+villager zombie_villager witch pillager vindicator iron_golem snow_golem allay skeleton stray wither_skeleton zombie husk drowned
+zombie_pigman piglin hoglin creeper spider cave_spider enderman endermite silverfish slime magma_cube ghast blaze bat bee parrot phantom
+vex guardian ravager shulker warden ender_dragon wither axolotl frog squid glow_squid dolphin turtle cod salmon camel sniffer strider
+breeze armadillo minecart armor_stand` (`work/vanilla/mobs/index.json` lists what your cache has).
 
-| Mob | Part | `u, v` | `w x h x d` |
-|---|---|---|---|
-| creeper | head | 0, 0 | 8 x 8 x 8 |
-| | body | 16, 16 | 8 x 12 x 4 |
-| | 4 legs (all use the same region) | 0, 16 | 4 x 6 x 4 |
-| pig | head | 0, 0 | 8 x 8 x 8 |
-| | snout | 16, 16 | 4 x 3 x 1 |
-| | body (rotated so the long side runs front to back) | 28, 8 | 10 x 16 x 8 |
-| | 4 legs | 0, 16 | 4 x 6 x 4 |
-| spider | neck | 0, 0 | 6 x 6 x 6 |
-| | head | 32, 4 | 8 x 8 x 8 |
-| | body | 0, 12 | 10 x 8 x 12 |
-| | 8 legs (all use the same region) | 18, 0 | 16 x 2 x 2 |
+Checked by rendering all of them walking (and by `tests/geo_check.mjs` for the rules): bodies lie down where the game lays them
+(`bind_pose_rotation`, pivot-less cube rotations turn about the cube's centre; the polar bear, cat and ocelot body poses the game sets in
+code are added by the fetch tool), bones marked `neverRender` hide only their own cubes.
 
-**Not verified.** These offsets come from my recollection of the classic Java entity models; I searched for an authoritative
-source and could not confirm the numbers. They are consistent with the original sample textures in this repo, but you must
-check them against the texture you use: render one still (`python tools/render.py story.json --frame 1`) and look at the mob
-from the front and back. If a part shows the wrong region, edit the numbers in `core/engine/mobs.js` (`buildMob`), one line per part.
-Textures that use another layout (e.g. 64x64 entity sheets) are not supported yet.
+**Partial:** the blaze's rods and the magma cube's segments are placed by the game's Molang animations, which are not evaluated:
+their parts sit stacked. The evoker and the boat are not in the samples under those names.
 
-## Clips
+**Zombie as an actor:** a zombie can also be a normal actor with the zombie texture as its skin and the `zombie` walk clip
+(`compose.py` does this): every player clip (fights, falls, faces) then works on it.
 
-`walk`, `run` (leg cycle; spider legs ripple), `swell` (creeper-style inflate with white flashes over the segment `dur`),
-`hit` (rock back), `die` (fall over), idle (head sway). Pair `swell` with a `changes` explosion and a `hide`:
+## Without the cache: original rigs and textures
 
-```json
-{ "t": 2.2, "actor": "boomer", "do": "swell", "dur": 1.6 },
-{ "t": 3.8, "actor": "boomer", "hide": true }
-...
-"changes": [ { "t": 3.8, "explode": [-2, 0, 2], "radius": 2.2 } ]
-```
-Mobs support `lookAt`, `face`, `to`, camera targets and particles like any actor. They have no face states or skin layers.
+Three box rigs ship with BlockReel (`core/engine/mobs.js`): `creeper`, `pig`, `spider`, driven by a 64x32 texture you provide in the
+classic layout (`core/builtin/mobs/sample-*-layout.png` are CC0 placeholders that show the layout). They are used only when the game's
+geometry is not cached or `"textures": "builtin"` is set.

@@ -129,7 +129,7 @@ Cada imagem é um render real do laboratório `examples/*-lab` correspondente (r
 <details><summary><b>Partículas</b>: quebra, explosão, fumaça, fogo, faíscas, poeira, sangue, confete (determinísticas)</summary><img src="docs/media/gallery-particles.jpg" alt="Partículas"></details>
 <details><summary><b>Ações de mundo</b>: rachaduras, colocar bloco, TNT com pavio, crateras, portas, baús, água e lava</summary><img src="docs/media/gallery-world.jpg" alt="Ações de mundo"></details>
 <details><summary><b>Visual</b>: dia/noite, chuva, neve, bloom, profundidade de campo, grão, color grade</summary><img src="docs/media/gallery-post.jpg" alt="Pós-processamento"></details>
-<details><summary><b>Mobs</b>: rigs de caixas (tipo creeper, porco, aranha) com a sua textura, e zumbis pelo rig do jogador</summary><img src="docs/media/gallery-mobs.jpg" alt="Mobs"></details>
+<details><summary><b>Mobs</b>: cerca de 70 mobs com a geometria e a textura do próprio jogo, animados pelos nomes dos ossos (<code>python tools/vanilla.py mobs</code>)</summary><img src="docs/media/gallery-all-mobs.jpg" alt="Cerca de 70 mobs andando: vaca, porco, ovelha, galinha, lobo, gato, raposa, cavalos, lhama, aldeão, bruxa, illagers, golens, esqueletos, zumbis, piglins, creeper, aranhas, enderman, ghast, abelha, papagaio, phantom, warden, dragão, wither, axolote, golfinho, tartaruga, camelo, sniffer, strider"></details>
 
 ## 🧍 Skins e 🧱 texturas
 

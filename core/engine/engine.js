@@ -8,6 +8,7 @@ import { makeFace, faceStateAt } from './face.js';
 import { skyTexture, lightingAt, createWeather, createSky, createLightning } from './env.js';
 import { createPost, usesPost } from './post.js';
 import { buildMob } from './mobs.js';
+import { buildGeoModel } from './geo.js';
 import { parseChanges, blockState, crackTextures, buildProps } from './world.js';
 import { expandWorld, groundHeight } from './worldgen.js';
 import { meshWorld, computeLight, resolveDef, pixelMipmaps, FACES, CHUNK } from './mesher.js';
@@ -304,9 +305,19 @@ function nametag(text) {
   sp.scale.set((c.width / 4) * 0.025, (c.height / 4) * 0.025, 1); sp.renderOrder = 5; return sp;
 }
 
+// mobs: the game's own geometry when cached (tools/vanilla.py mobs; any of ~70 mobs), else the built-in creeper/pig/spider rigs
+let mobIndex = null;
 async function makeMob(name, cfg) {
-  const tex = await pixelTex(resolve(cfg.texture));
-  const m = buildMob(THREE, cfg.type, tex, cfg);
+  if (mobIndex === null) mobIndex = story.textures !== 'builtin' && await exists('/work/vanilla/mobs/index.json') ? (await getJSON('/work/vanilla/mobs/index.json')).mobs : {};
+  let m;
+  if (cfg.geo || mobIndex[cfg.type]) {
+    const geoUrl = cfg.geo ? resolve(cfg.geo) : `/work/vanilla/mobs/${mobIndex[cfg.type].geo}`;
+    const texUrl = cfg.texture && !cfg.texture.startsWith('/core/builtin/') ? resolve(cfg.texture) : `/work/vanilla/mobs/${mobIndex[cfg.type]?.texture ?? cfg.type + '.png'}`;
+    m = buildGeoModel(THREE, await getJSON(geoUrl), await pixelTex(texUrl), cfg);
+  } else {
+    if (!['creeper', 'pig', 'spider'].includes(cfg.type)) throw new Error(`mob "${cfg.type}" needs the game's geometry: run python tools/vanilla.py mobs`);
+    m = buildMob(THREE, cfg.type, await pixelTex(resolve(cfg.texture)), cfg);
+  }
   m.root.position.set(...(cfg.pos || [0, 1, 0])); scene.add(m.root);
   if (cfg.nametag) { const sp = nametag(cfg.nametag); sp.position.set(0, m.headY + 0.55, 0); m.root.add(sp); }
   m.head.rotation.order = 'YXZ';

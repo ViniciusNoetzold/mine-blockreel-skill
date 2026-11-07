@@ -185,8 +185,8 @@ Each picture below is a real render from the matching `examples/*-lab` storyboar
 </details>
 
 <details>
-<summary><b>Mobs</b>: box rigs for creeper-, pig-, spider-shaped mobs (your textures) and zombies through the player rig</summary>
-<img src="docs/media/gallery-mobs.jpg" alt="Mobs">
+<summary><b>Mobs</b>: about 70 mobs with the game's own geometry and texture, animated by bone names (<code>python tools/vanilla.py mobs</code>)</summary>
+<img src="docs/media/gallery-all-mobs.jpg" alt="About 70 mobs walking: cow, pig, sheep, chicken, wolf, cat, fox, horses, llama, villager, witch, illagers, golems, skeletons, zombies, piglins, creeper, spiders, enderman, ghast, bee, parrot, phantom, warden, ender dragon, wither, axolotl, dolphin, turtle, camel, sniffer, strider">
 </details>
 
 Also: music, sound effects and dialogue with ducking ([`tools/audio.py`](tools/audio.py)), parallel rendering, 1080p60, a live browser preview with a time slider, and a QA tool that renders a contact sheet and flags a camera inside a block, a character out of frame, a face turned away, clipped subtitles and shots that run too long.
