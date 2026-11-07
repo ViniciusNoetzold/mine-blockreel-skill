@@ -129,6 +129,8 @@ Cada imagem é um render real do laboratório `examples/*-lab` correspondente (r
 <details><summary><b>Partículas</b>: quebra, explosão, fumaça, fogo, faíscas, poeira, sangue, confete (determinísticas)</summary><img src="docs/media/gallery-particles.jpg" alt="Partículas"></details>
 <details><summary><b>Ações de mundo</b>: rachaduras, colocar bloco, TNT com pavio, crateras, portas, baús, água e lava</summary><img src="docs/media/gallery-world.jpg" alt="Ações de mundo"></details>
 <details><summary><b>Visual</b>: dia/noite, chuva, neve, bloom, profundidade de campo, grão, color grade</summary><img src="docs/media/gallery-post.jpg" alt="Pós-processamento"></details>
+<details><summary><b>Comemorações e entregas</b>: fogos de artifício, totem, poções; miniatura com título, vertical 9:16, GIF, SRT, motion blur</summary><img src="docs/media/gallery-effects-v3.jpg" alt="Fogos de artifício sobre dois jogadores, totem e poção; miniatura com título na fonte do jogo"></details>
+
 <details><summary><b>Vilas, cavernas e blocos</b>: vilas em terreno nivelado, cavernas com minérios, túneis iluminados, portas, camas, placas com texto, escadas, trepadeiras, trilhos, plantações</summary><img src="docs/media/gallery-villages.jpg" alt="Uma vila gerada ao pôr do sol, placa com texto, portas, camas, cacto e plantações, um túnel iluminado por tochas"></details>
 
 <details><summary><b>Equipamentos e movimentos</b>: armaduras, escudo, capa, élitro; montar, nadar, rastejar, escalar, comer, beber, dormir, planar</summary><img src="docs/media/gallery-equipment.jpg" alt="Armadura de diamante com escudo, couro com capa vermelha correndo, élitro, montando um cavalo, nadando, rastejando, comendo, bebendo, dormindo, planando"></details>

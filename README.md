@@ -185,6 +185,11 @@ Each picture below is a real render from the matching `examples/*-lab` storyboar
 </details>
 
 <details>
+<summary><b>Celebrations and deliverables</b>: fireworks, totem, potion swirls; thumbnails with a title, vertical 9:16, GIF, SRT, motion blur</summary>
+<img src="docs/media/gallery-effects-v3.jpg" alt="Fireworks over two players with a totem burst and a potion swirl; a thumbnail with the title in the game font">
+</details>
+
+<details>
 <summary><b>Villages, caves and blocks</b>: villages on levelled ground, caves with ores, lit tunnels, doors, beds, signs with text, ladders, vines, rails, crops</summary>
 <img src="docs/media/gallery-villages.jpg" alt="A generated village at sunset, a sign with text, doors, beds, cactus and crops, a torch-lit tunnel">
 </details>
