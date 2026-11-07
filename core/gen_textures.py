@@ -140,6 +140,85 @@ def _tool(kind, head, dark, handle=(137, 103, 39), handle_dark=(73, 54, 21)):
     return im
 
 
+def build_blocks_v3(T):
+    """CC0 doors, trapdoor, ladder, vine, rail, iron bars, crops, dirt path, farmland, bed tops, cactus."""
+    def door(upper):
+        im = noisy((166, 128, 76), 0.05, 80 + upper)
+        for y in range(16):
+            for x in range(16):
+                if x in (0, 15) or (y == (15 if not upper else 0)) or (not upper and y in (5, 10)) or (upper and y == 8):
+                    im.putpixel((x, y), (110, 80, 44, 255))
+        if upper:
+            for y in range(2, 7):
+                for x in range(3, 13):
+                    if x not in (7, 8):
+                        im.putpixel((x, y), (0, 0, 0, 0))
+        else:
+            im.putpixel((12, 2), (60, 60, 64, 255)); im.putpixel((12, 3), (60, 60, 64, 255))
+        return im
+    T["door_lower"], T["door_upper"] = door(0), door(1)
+    td = noisy((166, 128, 76), 0.05, 82)
+    for y in range(16):
+        for x in range(16):
+            if x in (0, 15) or y in (0, 15) or (4 < x < 11 and y in (4, 11)) or (4 < y < 11 and x in (4, 11)):
+                td.putpixel((x, y), (110, 80, 44, 255))
+            elif 4 < x < 11 and 4 < y < 11:
+                td.putpixel((x, y), (0, 0, 0, 0))
+    T["trapdoor"] = td
+    ld = _blank()
+    for y in range(16):
+        for x in (2, 3, 12, 13):
+            ld.putpixel((x, y), (126, 94, 54, 255))
+        if y % 4 == 1:
+            for x in range(2, 14):
+                ld.putpixel((x, y), (146, 110, 64, 255))
+    T["ladder"] = ld
+    T["vine"] = _plant((60, 120, 40), seed=83, blades=11)
+    rl = _blank()
+    for y in range(16):
+        for x in (3, 12):
+            rl.putpixel((x, y), (150, 150, 156, 255)); rl.putpixel((x + 1, y), (110, 110, 116, 255))
+        if y % 4 == 1:
+            for x in range(1, 15):
+                rl.putpixel((x, y), (110, 80, 48, 255))
+    T["rail"] = rl
+    ib = _blank()
+    for y in range(16):
+        for x in (1, 5, 9, 13):
+            ib.putpixel((x, y), (170, 170, 176, 255)); ib.putpixel((x + 1, y), (120, 120, 126, 255))
+        if y in (0, 15):
+            for x in range(16):
+                ib.putpixel((x, y), (150, 150, 156, 255))
+    T["iron_bars"] = ib
+    T["wheat"] = _plant((200, 170, 70), accent=None, seed=84, blades=10); T["wheat_young"] = _plant((90, 160, 60), seed=85, blades=8)
+    T["carrots"] = _plant((70, 150, 50), accent=(230, 130, 40), seed=86, blades=5); T["potatoes"] = _plant((80, 150, 60), seed=87, blades=7)
+    T["dirt_path_top"] = speckle(noisy((150, 120, 70), 0.08, 88), (120, 96, 56), 20, 188)
+    pth = noisy((134, 96, 67), 0.09, 89)
+    for y in range(3):
+        for x in range(16):
+            pth.putpixel((x, y), T["dirt_path_top"].getpixel((x, y)))
+    T["dirt_path_side"] = pth
+    fl = noisy((92, 62, 40), 0.08, 90)
+    for y in range(0, 16, 4):
+        for x in range(16):
+            fl.putpixel((x, y), (70, 46, 30, 255))
+    T["farmland"] = fl
+    bh = noisy((170, 40, 40), 0.05, 91)
+    for y in range(0, 7):
+        for x in range(2, 14):
+            bh.putpixel((x, y), (236, 236, 236, 255))
+    T["bed_head_top"] = bh; T["bed_feet_top"] = noisy((170, 40, 40), 0.05, 92)
+    bs = noisy((170, 40, 40), 0.05, 93)
+    for y in range(9, 16):
+        for x in range(16):
+            bs.putpixel((x, y), (0, 0, 0, 0) if 3 < x < 12 and y > 11 else (126, 94, 54, 255))
+    T["bed_side"] = bs
+    cs = noisy((70, 140, 50), 0.08, 94)
+    for y in range(0, 16, 3):
+        cs.putpixel((0, y), (30, 30, 20, 255)); cs.putpixel((15, (y + 1) % 16), (30, 30, 20, 255))
+    T["cactus_side"] = cs; T["cactus_top"] = noisy((90, 160, 60), 0.06, 95)
+
+
 def build_extras(T):
     """Non-cube blocks, more cube blocks and items added in v0.2 (CC0, procedural)."""
     T["tall_grass"] = _plant((96, 158, 62), seed=41, blades=9)
@@ -231,6 +310,17 @@ EXTRA_INDEX = {
     "quartz": "quartz", "dark_oak_planks": "dark_oak_planks", "spruce_planks": "planks", "birch_planks": "planks",
     "stonebrick_mossy": "stonebrick", "mossy_stone_bricks": "stonebrick", "stonebrick_cracked": "stonebrick",
     "crafting_table": {"top": "planks", "side": "planks", "bottom": "planks"}, "dark_oak_log": {"top": "log_top", "side": "spruce_log", "bottom": "log_top"},
+    "oak_door": {"top": "door_upper", "side": "door_lower", "shape": "door"}, "door": {"top": "door_upper", "side": "door_lower", "shape": "door"},
+    "trapdoor": {"all": "trapdoor", "shape": "trapdoor"}, "oak_trapdoor": {"all": "trapdoor", "shape": "trapdoor"},
+    "ladder": {"all": "ladder", "shape": "ladder"}, "vine": {"all": "vine", "shape": "vine"}, "vines": {"all": "vine", "shape": "vine"},
+    "rail": {"all": "rail", "shape": "rail"}, "iron_bars": {"all": "iron_bars", "shape": "pane"},
+    "glass_pane": {"all": "glass", "shape": "pane"}, "wheat": {"all": "wheat", "shape": "crop"}, "wheat_young": {"all": "wheat_young", "shape": "crop"},
+    "carrots": {"all": "carrots", "shape": "crop"}, "potatoes": {"all": "potatoes", "shape": "crop"}, "beetroots": {"all": "potatoes", "shape": "crop"},
+    "dirt_path": {"top": "dirt_path_top", "side": "dirt_path_side", "bottom": "dirt", "shape": "layer", "height": 15},
+    "farmland": {"top": "farmland", "side": "dirt", "bottom": "dirt", "shape": "layer", "height": 15},
+    "bed_head": {"top": "bed_head_top", "side": "bed_side", "bottom": "planks", "shape": "bed"},
+    "bed_foot": {"top": "bed_feet_top", "side": "bed_side", "bottom": "planks", "shape": "bed"},
+    "cactus": {"top": "cactus_top", "side": "cactus_side", "bottom": "cactus_top", "shape": "cactus"},
     "oak_planks": "planks", "oak_log": {"top": "log_top", "side": "log_side", "bottom": "log_top"}, "oak_leaves": {"all": "leaves", "transparent": True},
     "cobble": "cobble", "grass_block": {"top": "grass_top", "side": "grass_side", "bottom": "dirt"},
     "snow_layer": {"all": "snow", "shape": "layer", "height": 2}, "carpet_red": {"all": "wool_red", "shape": "layer", "height": 1},
@@ -383,7 +473,7 @@ def build():
     for y in range(16):
         ch.putpixel((7, y), (190, 190, 196, 255)); ch.putpixel((8, y), (150, 150, 158, 255))
     T["chest"] = ch
-    items, env = build_extras(T)
+    items, env = build_extras(T); build_blocks_v3(T)
     for name, im in T.items():
         im.save(OUT / "blocks" / f"{name}.png")
     (OUT / "items").mkdir(parents=True, exist_ok=True); (OUT / "env").mkdir(parents=True, exist_ok=True)

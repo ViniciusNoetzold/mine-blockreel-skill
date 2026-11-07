@@ -84,6 +84,18 @@ BLOCK_FILES = {
     "clay": ("textures/blocks/clay.png", None), "mycelium_top": ("textures/blocks/mycelium_top.png", None),
     "fire": ("textures/blocks/fire_0.png", None), "beacon": ("textures/blocks/beacon.png", None),
     "cactus_side": ("textures/blocks/cactus_side.tga", None), "cactus_top": ("textures/blocks/cactus_top.tga", None),
+    # v0.3: doors, ladders, rails, panes, crops, paths, beds
+    "door_lower": ("textures/blocks/door_wood_lower.png", None), "door_upper": ("textures/blocks/door_wood_upper.png", None),
+    "spruce_door_lower": ("textures/blocks/door_spruce_lower.png", None), "spruce_door_upper": ("textures/blocks/door_spruce_upper.png", None),
+    "iron_door_lower": ("textures/blocks/door_iron_lower.png", None), "iron_door_upper": ("textures/blocks/door_iron_upper.png", None),
+    "trapdoor": ("textures/blocks/trapdoor.png", None), "ladder": ("textures/blocks/ladder.png", None), "vine": ("textures/blocks/vine.png", FOLIAGE),
+    "rail": ("textures/blocks/rail_normal.png", None), "rail_golden": ("textures/blocks/rail_golden.png", None), "iron_bars": ("textures/blocks/iron_bars.png", None),
+    "wheat": ("textures/blocks/wheat_stage_7.png", None), "wheat_young": ("textures/blocks/wheat_stage_3.png", None),
+    "carrots": ("textures/blocks/carrots_stage_3.png", None), "potatoes": ("textures/blocks/potatoes_stage_3.png", None), "beetroots": ("textures/blocks/beetroots_stage_3.png", None),
+    "dirt_path_top": ("textures/blocks/grass_path_top.png", None), "dirt_path_side": ("textures/blocks/grass_path_side.png", None),
+    "farmland": ("textures/blocks/farmland_wet.png", None), "bed_head_top": ("textures/blocks/bed_head_top.png", None),
+    "bed_feet_top": ("textures/blocks/bed_feet_top.png", None), "bed_side": ("textures/blocks/bed_head_side.png", None),
+    "melon_side": ("textures/blocks/melon_side.png", None), "melon_top": ("textures/blocks/melon_top.png", None), "soul_torch": ("textures/blocks/soul_torch.png", None),
 }
 ITEM_FILES = {  # engine item name -> file in the pack (held items, extruded into 3D by the engine)
     "wooden_sword": "wood_sword", "stone_sword": "stone_sword", "iron_sword": "iron_sword", "golden_sword": "gold_sword",
@@ -126,7 +138,7 @@ INDEX = {
     "jack_o_lantern": {"top": "pumpkin_top", "side": "pumpkin_side", "bottom": "pumpkin_top", "front": "jack_o_lantern", "light": 15},
     "hay": {"top": "hay_top", "side": "hay_side", "bottom": "hay_top"},
     "sea_lantern": {"all": "sea_lantern", "emissive": True, "light": 15},
-    "cactus": {"top": "cactus_top", "side": "cactus_side", "bottom": "cactus_top"},
+    "cactus": {"top": "cactus_top", "side": "cactus_side", "bottom": "cactus_top", "shape": "cactus"},
     "mycelium": {"top": "mycelium_top", "side": "dirt", "bottom": "dirt"},
     "dead_bush": {"all": "dead_bush", "shape": "cross"}, "mushroom_red": {"all": "mushroom_red", "shape": "cross"},
     "mushroom_brown": {"all": "mushroom_brown", "shape": "cross", "light": 1}, "sapling": {"all": "sapling", "shape": "cross"},
@@ -136,6 +148,9 @@ INDEX = {
     "coal_ore": "coal_ore", "iron_ore": "iron_ore", "gold_ore": "gold_ore", "diamond_ore": "diamond_ore", "redstone_ore": "redstone_ore",
     "bookshelf": {"top": "planks", "side": "bookshelf", "bottom": "planks"}, "beacon": {"all": "beacon", "light": 15},
     "spruce_planks": "spruce_planks", "birch_planks": "birch_planks", "dark_oak_planks": "dark_oak_planks",
+    "melon": {"top": "melon_top", "side": "melon_side", "bottom": "melon_top"}, "soul_torch": {"all": "soul_torch", "shape": "torch", "light": 10},
+    "spruce_door": {"top": "spruce_door_upper", "side": "spruce_door_lower", "shape": "door"}, "iron_door": {"top": "iron_door_upper", "side": "iron_door_lower", "shape": "door"},
+    "rail_golden": {"all": "rail_golden", "shape": "rail"},
     "wool_black": "wool_black", "wool_gray": "wool_gray", "concrete_black": "concrete_black", "clay": "clay",
 }
 

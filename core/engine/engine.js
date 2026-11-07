@@ -144,7 +144,7 @@ async function blockMaterials(block) {
 
 // --------------------------------------------------------------- world ----
 // [x, null, z] means "on the ground here" for actors, moves, effects and lightning; cameras get eye height (1.7) above it
-const passableBlock = (b) => { const d = defOf(b); return d.shape === 'cross' || d.shape === 'torch' || d.shape === 'layer' || d.shape === 'liquid'; };
+const passableBlock = (b) => { const d = defOf(b); return ['cross', 'torch', 'layer', 'liquid', 'crop', 'rail', 'ladder', 'vine', 'door', 'trapdoor'].includes(d.shape); };
 function snapToGround() {
   // actors stand on the terrain, never on a canopy; cameras ignore trees entirely (eye height above the real ground)
   const leafy = (b) => /leaves/.test(b) || passableBlock(b); const woody = (b) => /leaves|log/.test(b) || passableBlock(b);
@@ -255,7 +255,7 @@ async function buildWorld() {
       cracks.push({ mesh: m2, mat, tex, c });
     }
   }
-  props = await buildProps(THREE, scene, story.props, blockMaterials);
+  props = await buildProps(THREE, scene, story.props, blockMaterials, { textCanvas });
 }
 
 const _m4 = new THREE.Matrix4(), _col = new THREE.Color();

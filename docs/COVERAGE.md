@@ -25,7 +25,7 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 | A block in the hand | done | `"holding": "planks"` |
 | Tools, swords, bows, torches as items (extruded sprite from an item texture) | done | `holding`/`offhand`, switchable per segment; the blade follows the strike (`wrist`) |
 | Doors, chests | done | `props`; chest lid now 90° / 0.5 s / ease-out like the game. **Open:** the chest uses a block texture, not the entity texture (`entity/chest.png` is fetched but not mapped yet) |
-| Beds, signs, furnaces, minecarts, boats, rails | missing | |
+| Beds, signs with text, rails, minecarts (mob rig) | done | furnaces as blocks; boats missing |
 
 ## Animation (player)
 
@@ -46,11 +46,13 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 | Cube blocks with any texture, tops/sides/bottoms, transparency, emissive, flowing water/lava | done | |
 | Break, place, TNT, explosions, crack stages, debris | done | |
 | Non-cube blocks: stairs, slabs, fences, walls, torches, plants (cross), snow layers, carpets, fire | done | `core/engine/mesher.js` shapes |
-| Trapdoors, doors as blocks, vines, rails, redstone, pistons, signs, beds | missing | |
+| Doors (open/closed), trapdoors, ladders, vines, rails, panes, iron bars, crops, cactus, beds, dirt paths, farmland | done | |
+| Redstone, pistons, levers, buttons | missing | |
 | Face culling, the game's face shading, smooth-lighting AO, sky + block light propagation, mip-maps | done | no z-fighting, no shimmer, torches light the night |
 | Terrain generation, biomes, arena flattening, structures (house, tower, ruins, shrine, pillar, campfire) | done | `terrain` / `structure` ops; building sites are kept free of trees |
 | Very large worlds | done | measured: 1.7 M blocks set up in 5 s and render at 0.7 s/frame (720p, software GL); 4.4 M blocks in 13 s and 0.6 s/frame. Dense volume mesher, 32x32 chunks, chunks past the fog are not drawn |
-| Caves, overhangs, villages | missing | |
+| Caves, ores, tunnels, villages (levelled ground, paths, houses facing the paths, farms, well, lamps), structures facing any way | done | |
+| Overhangs, cliffs, other biomes' villages | missing | |
 | Trees | done | oak, birch, spruce, dead; trees blocking a camera are not planted |
 | Sky: sun, moon, stars, the game's cloud layer, lightning | done | dome with a level horizon, sunset glow |
 | Rain and snow | done | |
@@ -87,7 +89,7 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 ## Suggested order to close the gaps (highest impact first)
 
 1. **Molang animations** for exact per-mob motion (blaze rods, magma cube, gallop, flight).
-2. **Doors/trapdoors/beds/signs as blocks**, villages, caves.
+2. **Redstone** (lamps, pistons, levers), boats, overhangs.
 3. **Motion blur**, crowd instancing, audio-driven lip-sync.
 
 ## Polish log

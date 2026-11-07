@@ -211,6 +211,100 @@
       "side": "spruce_log",
       "bottom": "log_top"
     },
+    "oak_door": {
+      "top": "door_upper",
+      "side": "door_lower",
+      "shape": "door"
+    },
+    "door": {
+      "top": "door_upper",
+      "side": "door_lower",
+      "shape": "door"
+    },
+    "trapdoor": {
+      "all": "trapdoor",
+      "shape": "trapdoor"
+    },
+    "oak_trapdoor": {
+      "all": "trapdoor",
+      "shape": "trapdoor"
+    },
+    "ladder": {
+      "all": "ladder",
+      "shape": "ladder"
+    },
+    "vine": {
+      "all": "vine",
+      "shape": "vine"
+    },
+    "vines": {
+      "all": "vine",
+      "shape": "vine"
+    },
+    "rail": {
+      "all": "rail",
+      "shape": "rail"
+    },
+    "iron_bars": {
+      "all": "iron_bars",
+      "shape": "pane"
+    },
+    "glass_pane": {
+      "all": "glass",
+      "shape": "pane"
+    },
+    "wheat": {
+      "all": "wheat",
+      "shape": "crop"
+    },
+    "wheat_young": {
+      "all": "wheat_young",
+      "shape": "crop"
+    },
+    "carrots": {
+      "all": "carrots",
+      "shape": "crop"
+    },
+    "potatoes": {
+      "all": "potatoes",
+      "shape": "crop"
+    },
+    "beetroots": {
+      "all": "potatoes",
+      "shape": "crop"
+    },
+    "dirt_path": {
+      "top": "dirt_path_top",
+      "side": "dirt_path_side",
+      "bottom": "dirt",
+      "shape": "layer",
+      "height": 15
+    },
+    "farmland": {
+      "top": "farmland",
+      "side": "dirt",
+      "bottom": "dirt",
+      "shape": "layer",
+      "height": 15
+    },
+    "bed_head": {
+      "top": "bed_head_top",
+      "side": "bed_side",
+      "bottom": "planks",
+      "shape": "bed"
+    },
+    "bed_foot": {
+      "top": "bed_feet_top",
+      "side": "bed_side",
+      "bottom": "planks",
+      "shape": "bed"
+    },
+    "cactus": {
+      "top": "cactus_top",
+      "side": "cactus_side",
+      "bottom": "cactus_top",
+      "shape": "cactus"
+    },
     "oak_planks": "planks",
     "oak_log": {
       "top": "log_top",

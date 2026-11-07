@@ -156,7 +156,10 @@ bursts. `pos` is `[x,y,z]`, an actor name, or `{actor, offset}`. `block` picks t
                "water": 2, "flat": { "center": [0,0], "radius": 8, "y": 4 }, "trees": 0.02, "plants": 0.07, "flowers": 0.02,
                "clear": [[x, z, r]], "arenaPlants": false, "seed": 1 } }
 { "scatter": ["flower_red", [x0,z0], [x1,z1]], "density": 0.1, "on": ["grass"] }
-{ "structure": "house|tower|ruins|shrine|pillar|campfire", "pos": [x, null, z], "w": 7, "d": 6, "h": 12, "block": "...", "seed": 1 }
+{ "structure": "house|tower|ruins|shrine|pillar|campfire|well|farm|lamp|village", "pos": [x, null, z], "face": "south|north|east|west",
+  "w": 7, "d": 6, "h": 12, "block": "...", "seed": 1 }          // village: "houses": 6, "farms": 2, "size": 18 (levels its ground, paths, well, lamps)
+{ "tunnel": [[x,y,z], [x,y,z], ...], "radius": 1.6, "floor": "gravel", "torches": 6 }   // carve a lit tunnel along a path
+// terrain options: "caves": 6 (winding caves under the surface), "ores": true (coal, iron, gold, diamond in the stone)
 ```
 Building sites are reserved: no tree or plant of the terrain grows on them, the site is cleared and levelled, and the building gets a
 foundation down to the ground. Keep sites out of the arena (`tools/compose.py` warns about overlaps).
@@ -172,7 +175,8 @@ this off; `foliageClearance` sets the lens radius, default 1.3).
 ],
 "props": {
   "door1":  { "type": "door",  "pos": [-1,1,1], "axis": "x", "hinge": "min", "block": "planks", "events": [ { "t": 7.5, "do": "open" }, { "t": 10, "do": "close" } ] },
-  "chest1": { "type": "chest", "pos": [4,1,1], "face": 180, "events": [ { "t": 8, "do": "open" } ] }
+  "chest1": { "type": "chest", "pos": [4,1,1], "face": 180, "events": [ { "t": 8, "do": "open" } ] },
+  "sign1":  { "type": "sign", "pos": [2,1,3], "face": 20, "text": "BEM-VINDO\nà vila", "wall": false }   // up to 4 lines, the game font
 }
 ```
 Explosions remove blocks within `radius` (irregular edge, delayed by distance), spawn fireball, debris and smoke, and spare
@@ -188,7 +192,10 @@ birch_log spruce_log dark_oak_log birch_leaves spruce_leaves dark_oak_planks cra
 dead_bush fire`, light sources `torch redstone_torch lantern`, shapes `stone_slab cobblestone_slab oak_slab oak_stairs cobblestone_stairs
 stone_brick_stairs oak_fence cobblestone_wall snow_layer carpet_red`. With the cache also: ores, `bookshelf furnace pumpkin jack_o_lantern
 hay sea_lantern cactus mycelium emerald_block end_stone nether_bricks beacon mushroom_red mushroom_brown sapling`, wood variants and more.
-A suffix sets orientation: `oak_stairs:east` (the side the stairs climb toward), `log:x` / `log:z` (a log lying down), `stone_slab:top`.
+A suffix sets orientation: `oak_stairs:east` (the side the stairs climb toward), `log:x` / `log:z` (a log lying down), `stone_slab:top`,
+`oak_door:south` / `oak_door:south:open` (2 blocks tall), `trapdoor:north:open`, `ladder:north` / `vine:north` (the wall they hang on),
+`rail:x` (east-west), `bed_head:east` + `bed_foot:east`. Also `cactus`, `iron_bars`, `glass_pane` (connect to neighbours), crops `wheat
+carrots potatoes beetroots`, `dirt_path`, `farmland`, `melon`.
 
 How the world is drawn (`core/engine/mesher.js`): faces between solid blocks are never emitted (no z-fighting, no see-through water);
 each face gets the game's directional shade and per-vertex ambient occlusion; sky light and block light are propagated like in the game

@@ -175,7 +175,7 @@ export function meshWorld(grid, defOf, dynKeys = new Set(), light = null) {
     for (const c of corners) {
       const p = c.p; ps.push([x + p[0], y + p[1], z + p[2]]);
       const uOf = (V) => (V[0] > 0 ? p[0] : V[0] < 0 ? 1 - p[0] : V[1] > 0 ? p[1] : V[1] < 0 ? 1 - p[1] : V[2] > 0 ? p[2] : 1 - p[2]);
-      uvs.push([uOf(R), uOf(U)]);
+      { let uu = uOf(R), vv = uOf(U); for (let r = 0; r < (opts.uvRot || 0); r++) { const t0 = uu; uu = vv; vv = 1 - t0; } uvs.push([uu, vv]); }
       let ao = 3, L = cellLight(x + n[0], y + n[1], z + n[2]);
       if (onB) {
         const s1 = R.map((v) => v * c.sr), s2 = U.map((v) => v * c.su); const ax = x + n[0], ay = y + n[1], az = z + n[2];
@@ -262,6 +262,44 @@ export function meshWorld(grid, defOf, dynKeys = new Set(), light = null) {
         }
         break;
       }
+
+      // ---- v0.3 shapes. Orientation suffix: "oak_door:south", "oak_door:south:open", "ladder:north", "rail:x", "bed_head:east"
+      case 'door': { // two halves 3 px thick on the `facing` side; open = swung against the side wall
+        const parts = (d.prop || 'south').split(':'); const fc = parts[0]; const open = parts.includes('open'); const T = 3 / 16;
+        const slab = { south: [0, 0, 1 - T, 1, 1, 1], north: [0, 0, 0, 1, 1, T], east: [1 - T, 0, 0, 1, 1, 1], west: [0, 0, 0, T, 1, 1] };
+        const swing = { south: 'east', north: 'west', east: 'north', west: 'south' };
+        const bx = slab[open ? swing[fc] : fc] || slab.south;
+        box6(x, y, z, d, bx, { noCull: true, tex: d.tex.side }); box6(x, y + 1, z, d, bx, { noCull: true, tex: d.tex.top });
+        break;
+      }
+      case 'trapdoor': { const parts = (d.prop || 'south').split(':'); const T = 3 / 16;
+        const bx = parts.includes('open') ? ({ south: [0, 0, 1 - T, 1, 1, 1], north: [0, 0, 0, 1, 1, T], east: [1 - T, 0, 0, 1, 1, 1], west: [0, 0, 0, T, 1, 1] }[parts[0]] || [0, 0, 0, 1, 1, T])
+          : parts.includes('top') ? [0, 1 - T, 0, 1, 1, 1] : [0, 0, 0, 1, T, 1];
+        box6(x, y, z, d, bx, { noCull: true }); break; }
+      case 'ladder': case 'vine': { // a flat cutout panel against the wall it hangs on
+        const fc = d.prop || 'north'; const T = 0.8 / 16;
+        const bx = { north: [0, 0, 0, 1, 1, T], south: [0, 0, 1 - T, 1, 1, 1], east: [1 - T, 0, 0, 1, 1, 1], west: [0, 0, 0, T, 1, 1] }[fc] || [0, 0, 0, 1, 1, T];
+        box6(x, y, z, d, bx, { noCull: true, flat: true }); break; }
+      case 'rail': box6(x, y, z, d, [0, 0, 0, 1, 1 / 16, 1], { noCull: true, flat: true, uvRot: d.prop === 'x' || d.prop === 'east' || d.prop === 'west' ? 1 : 0 }); break;
+      case 'pane': { // glass panes and iron bars: a thin post that reaches toward panes and solid blocks around it
+        const a = 7 / 16, b = 9 / 16; box6(x, y, z, d, [a, 0, a, b, 1, b], { noCull: true });
+        const conn = (dx, dz) => { const nb = get(x + dx, y, z + dz); return nb && (nb.shape === 'pane' || solid(nb)); };
+        if (conn(1, 0)) box6(x, y, z, d, [b, 0, a, 1, 1, b], { noCull: true }); if (conn(-1, 0)) box6(x, y, z, d, [0, 0, a, a, 1, b], { noCull: true });
+        if (conn(0, 1)) box6(x, y, z, d, [a, 0, b, b, 1, 1], { noCull: true }); if (conn(0, -1)) box6(x, y, z, d, [a, 0, 0, b, 1, a], { noCull: true });
+        break; }
+      case 'crop': { // the game's crop model: four upright planes in a # pattern
+        const L = cellLight(x, y, z), bl = group(d, d.tex.side); const lits = [L, L, L, L], cols = [1, 1, 1, 1];
+        for (const k of [4 / 16, 12 / 16]) {
+          for (const [q, n] of [[[[x + k, y, z], [x + k, y, z + 1], [x + k, y + 1, z + 1], [x + k, y + 1, z]], [1, 0, 0]], [[[x, y, z + k], [x + 1, y, z + k], [x + 1, y + 1, z + k], [x, y + 1, z + k]], [0, 0, 1]]]) {
+            bl.quad(q, [0, 1, 0], [[0, 0], [1, 0], [1, 1], [0, 1]], cols, lits, false); bl.quad([q[1], q[0], q[3], q[2]], [0, 1, 0], [[1, 0], [0, 0], [0, 1], [1, 1]], cols, lits, false); void n;
+          }
+        }
+        break; }
+      case 'cactus': box6(x, y, z, d, [1 / 16, 0, 1 / 16, 15 / 16, 1, 15 / 16]); break;
+      case 'bed': { // 9 px tall; the top turns with the facing (head toward the facing side)
+        const fc = d.prop || 'south'; const rotTop = { south: 0, west: 1, north: 2, east: 3 }[fc] ?? 0;
+        for (const f of FACES) boxFace(x, y, z, d, f, [0, 0, 0, 1, 9 / 16, 1], f.n[1] === 1 ? { uvRot: rotTop } : {});
+        break; }
       default: box6(x, y, z, d, [0, 0, 0, 1, 1, 1]);
     }
   }

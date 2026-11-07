@@ -98,7 +98,7 @@ export function crackTextures(THREE) {
 }
 
 // ----------------------------------------------------------------- props ----
-export async function buildProps(THREE, scene, props, getMaterials) {
+export async function buildProps(THREE, scene, props, getMaterials, opts = {}) {
   const items = [];
   for (const [name, p] of Object.entries(props || {})) {
     const evs = (p.events || []).slice().sort((a, b) => a.t - b.t);
@@ -122,6 +122,20 @@ export async function buildProps(THREE, scene, props, getMaterials) {
       scene.add(g);
       const sw = p.swing ?? 1;
       items.push({ update: (t) => { g.rotation.y = sw * angleAt(t, Math.PI / 2, 0.38) * (axis === 'x' ? 1 : -1); } });
+    } else if (p.type === 'sign') { // the game's sign: a 24x12 px board (on a 2x14 px post, or flat on a wall) with up to 4 lines of dark text
+      const mats = await getMaterials(p.block || 'planks'); const [x, y, z] = p.pos; const PX = 1 / 16;
+      const root = new THREE.Group(); root.position.set(x + 0.5, y, z + 0.5); root.rotation.y = (p.face ?? 0) * Math.PI / 180;
+      const wall = !!p.wall; const by = wall ? 8 * PX : 20.5 * PX; const bz = wall ? -7 * PX : 0;
+      const board = new THREE.Mesh(new THREE.BoxGeometry(24 * PX, 12 * PX, 2 * PX), mats); board.position.set(0, by, bz); board.castShadow = true; root.add(board);
+      if (!wall) { const post = new THREE.Mesh(new THREE.BoxGeometry(2 * PX, 14 * PX, 2 * PX), mats); post.position.set(0, 7 * PX, 0); post.castShadow = true; root.add(post); }
+      if (opts.textCanvas && p.text) {
+        const lines = String(p.text).split('\n').slice(0, 4); const c = document.createElement('canvas'); c.width = 24 * 8; c.height = 12 * 8; const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
+        lines.forEach((ln, i) => { const tc = opts.textCanvas([[ln, p.color || '#1a1208']], 2, false); const w = Math.min(c.width - 8, tc.width); g.drawImage(tc, (c.width - w) / 2, 6 + i * 22 + (4 - lines.length) * 11, w, tc.height * (w / tc.width)); });
+        const t = new THREE.CanvasTexture(c); t.magFilter = THREE.NearestFilter; t.colorSpace = THREE.SRGBColorSpace;
+        const plane = new THREE.Mesh(new THREE.PlaneGeometry(24 * PX, 12 * PX), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false }));
+        plane.position.set(0, by, bz + 1.05 * PX); root.add(plane);
+      }
+      scene.add(root); items.push({ update: () => {} });
     } else if (p.type === 'chest') {
       const mats = await getMaterials(p.block || 'chest'); const [x, y, z] = p.pos; const PX = 1 / 16;
       const root = new THREE.Group(); root.position.set(x + 0.5, y, z + 0.5); root.rotation.y = (p.face ?? 0) * Math.PI / 180;

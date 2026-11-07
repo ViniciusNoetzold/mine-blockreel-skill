@@ -185,6 +185,11 @@ Each picture below is a real render from the matching `examples/*-lab` storyboar
 </details>
 
 <details>
+<summary><b>Villages, caves and blocks</b>: villages on levelled ground, caves with ores, lit tunnels, doors, beds, signs with text, ladders, vines, rails, crops</summary>
+<img src="docs/media/gallery-villages.jpg" alt="A generated village at sunset, a sign with text, doors, beds, cactus and crops, a torch-lit tunnel">
+</details>
+
+<details>
 <summary><b>Equipment and movement</b>: armour, shield, cape, elytra; ride, swim, crawl, climb, eat, drink, sleep, glide</summary>
 <img src="docs/media/gallery-equipment.jpg" alt="Diamond armour with shield blocking, leather armour with a red cape running, elytra folded, riding a horse, swimming, crawling, eating, drinking, sleeping, gliding">
 </details>

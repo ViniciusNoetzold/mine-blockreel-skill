@@ -58,6 +58,16 @@ const quads = (r) => [...r.groups.values()].reduce((a, g) => a + g.builder.n / 4
   ok(hurtAt(story, a, 1.1) > 0.7 && hurtAt(story, a, 1.6) === 0, 'red hurt tint for half a second after a hit');
   ok(actorState(story, a, 3).clip === 'guard', 'a holding-only entry does not interrupt the running clip');
 }
+// --- structures turn with "face"; villages keep houses apart; tunnels carve
+{
+  const base = [{ fill: ['grass', [-30, 0, -30], [30, 0, 30]] }];
+  const south = expandWorld([...base, { structure: 'house', pos: [0, 1, 0] }]), east = expandWorld([...base, { structure: 'house', pos: [0, 1, 0], face: 'east' }]);
+  ok(south.size === east.size && [...east.values()].some((b) => b === 'oak_stairs:north'), 'a house facing east has its blocks and stair orientations turned');
+  const v = expandWorld([...base, { structure: 'village', pos: [0, 1, 0], houses: 6, farms: 2 }], 4);
+  ok([...v.values()].filter((b) => b === 'dirt_path').length > 60 && [...v.values()].some((b) => b === 'wheat'), 'a village has paths and farms');
+  const t = expandWorld([{ fill: ['stone', [0, 0, -3], [20, 6, 3]] }, { tunnel: [[1, 3, 0], [19, 3, 0]], radius: 1.5, floor: 'gravel', torches: 4 }]);
+  ok(!t.has('10,3,0') && [...t.values()].includes('gravel') && [...t.values()].includes('torch'), 'a tunnel is carved, floored and lit');
+}
 // --- big worlds: a few hundred thousand blocks mesh in well under the old limits
 {
   const t0 = Date.now(); const g = expandWorld([{ terrain: { radius: 80, round: false, base: 8, amp: 8, scale: 30, depth: 5, water: 5, trees: 0.01, seed: 2 } }], 2);
