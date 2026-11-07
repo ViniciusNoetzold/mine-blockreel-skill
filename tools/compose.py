@@ -677,9 +677,13 @@ class Film:
         ts = t + walk + b.get("wait", 0.4); fuse = 1.5
         self.seg(t=ts, actor=who, do="swell", dur=fuse, face=tgt if isinstance(tgt, str) else None)
         self.sound(["random/fuse"], ts, 0.9); self.sound(["mob/creeper/say1"], ts + 0.05, 0.6)
-        self.cam(ts, fuse, "close", who, tgt if isinstance(tgt, str) else None, fovTo=34, handheld=0.3)
-        if isinstance(tgt, str) and b.get("react", True):
-            self.face(ts + 0.5, tgt, eyes="wide", mouth="shout", dur=1.0)
+        if isinstance(tgt, str):  # the swelling creeper AND the victim realising it, in one frame (the gag reads in a two-shot)
+            self.cam(ts, fuse, "ots", who, tgt, fov=52, fovTo=44, handheld=0.3)
+        else:
+            self.cam(ts, fuse, "wide", who, None, fovTo=40, handheld=0.3)
+        if isinstance(tgt, str) and b.get("react", True):  # the double take: the hiss, the victim turns around, eyes wide
+            self.seg(t=ts + 0.35, actor=tgt, face=who, lookAt=who, turn=0.3)
+            self.face(ts + 0.6, tgt, eyes="wide", mouth="shout", dur=0.9)
         te = ts + fuse; p = self.pos[who]
         self.story["changes"].append({"t": r2(te), "explode": [int(math.floor(p[0])), self.arena["y"] + 1, int(math.floor(p[1]))], "radius": b.get("radius", 3)})
         self.hide(who, te); self.sound(["random/explode1", "random/explode2", "random/explode4"], te, 1.0)

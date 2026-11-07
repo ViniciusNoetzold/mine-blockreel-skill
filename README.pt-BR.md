@@ -52,6 +52,25 @@ O filme inteiro é o plano de 30 linhas em [`examples/herobrine-duel/plan.json`]
 decisivos, passos, espadas, escudo e trovões com os sons do jogo, e uma trilha que vai de calma → tensão → batalha → silêncio → amanhecer.
 O herói é uma **persona pintada a partir da descrição de uma foto** (`core/persona.py`); o Herobrine é um preset.
 
+**Não é só luta.** O mesmo diretor faz qualquer tipo de animação de Minecraft. Mais dois filmes, a partir dos planos que vêm no repositório:
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/media/casa-nova.gif" alt="A Casa Nova: um creeper chega de mansinho na casa recém-construída e explode metade dela"><br>
+      <a href="docs/media/creeper-surprise.mp4"><b>▶ <i>A Casa Nova</i></b></a> — comédia: uma casa construída em timelapse, depois um creeper
+      (<a href="examples/creeper-surprise/plan.json">plano</a>)</td>
+    <td width="50%"><img src="docs/media/noite-1-chase.jpg" alt="Primeira Noite: um zumbi persegue a heroína por uma floresta de bétulas à noite"><br>
+      <a href="docs/media/zombie-night.mp4"><b>▶ <i>Primeira Noite</i></b></a> — sobrevivência: perseguição de zumbi na floresta e luta de espada de pedra
+      (<a href="examples/zombie-night/plan.json">plano</a>)</td>
+  </tr>
+  <tr>
+    <td><img src="docs/media/casa-1-build.jpg" alt="O timelapse da construção: a casa sobe bloco a bloco"></td>
+    <td><img src="docs/media/noite-2-victory.jpg" alt="Comemoração sob as estrelas ao lado das ruínas"></td>
+  </tr>
+</table>
+
+Beats para construção (timelapse com `build`), mineração, creepers, perseguições de mobs, diálogos, cenas calmas e lutas: [docs/DIRECTOR-PLAN.md](docs/DIRECTOR-PLAN.md).
+
 O que deixa com cara de jogo (v0.2):
 
 - **O mundo é desenhado como o jogo desenha os chunks**: faces escondidas eliminadas (sem z-fighting, sem textura piscando, sem água

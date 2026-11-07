@@ -59,6 +59,25 @@ The whole film is the 30-line plan in [`examples/herobrine-duel/plan.json`](exam
 decisive hits, footsteps, sword, shield and thunder sounds from the game, and a score that goes calm → build → battle → silence → dawn.
 The hero is a **persona painted from a description of a photo** (`core/persona.py`); Herobrine is a preset.
 
+**Not only fights.** The same director makes any kind of Minecraft animation. Two more films from the shipped plans:
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/media/casa-nova.gif" alt="A Casa Nova: a creeper sneaks up on a freshly built house and blows half of it away"><br>
+      <a href="docs/media/creeper-surprise.mp4"><b>▶ <i>A Casa Nova</i></b></a> — comedy: a house built in a timelapse, then a creeper
+      (<a href="examples/creeper-surprise/plan.json">plan</a>)</td>
+    <td width="50%"><img src="docs/media/noite-1-chase.jpg" alt="Primeira Noite: a zombie chases the hero through a birch forest at night"><br>
+      <a href="docs/media/zombie-night.mp4"><b>▶ <i>Primeira Noite</i></b></a> — survival: a zombie chase through the forest and a stone-sword fight
+      (<a href="examples/zombie-night/plan.json">plan</a>)</td>
+  </tr>
+  <tr>
+    <td><img src="docs/media/casa-1-build.jpg" alt="The build timelapse: the house rises block by block"></td>
+    <td><img src="docs/media/noite-2-victory.jpg" alt="Victory pose under the stars next to the ruins"></td>
+  </tr>
+</table>
+
+Beats for building (`build` timelapses), mining, creepers, mob chases, dialogue, calm moods and fights: [docs/DIRECTOR-PLAN.md](docs/DIRECTOR-PLAN.md).
+
 What makes it look like the game (v0.2):
 
 - **The world is drawn like the game draws chunks**: hidden faces culled (no z-fighting, no flicker, no see-through water), the game's
