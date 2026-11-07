@@ -113,13 +113,21 @@ export function animateEntity(geo, queries, rest) {
   // situational ones (sleeping, sitting, riding, baby, attacks...) play only when the actor's clip asks for them
   const A = geo.anims || {};
   const resolveName = (n) => { if (A[n]) return n; if (n.endsWith('_controller')) { const b = n.slice(0, -11); for (const c of [b, b + '_default', b + '.rotations', b + '.v1.0']) if (A[c]) return c; } return null; };
-  const allow = (n) => (queries.is_attacking && /attack|bare_hand/.test(n)) || (queries.is_sprinting && /sprint/.test(n)) || (queries.is_flying && /fly/.test(n)) || (queries.is_sitting && /sit/.test(n)) || (queries.is_sleeping && /sleep|bed|lie/.test(n)) || (queries.is_baby && /baby/.test(n)) || (/bare_hand/.test(n) && queries.undead_arms);
-  const SITUATIONAL = /bed|sleep|lying|rolling|sneez|unhappy|baby|sit|lie_?down|rear|eat|graz|swim|sneak|rid(e|ing)|spear|bow|holding|use_item|damage|scary|carry|charg|celebr|roar|sniff|dig|emerge|sonic|ram_|shake|beg|panic|stand|inflate|attack|bare_hand|spyglass|gliding|crossbow|tongue|croak|jump|sprint|fly|tame|angry|interest|look_at_player_while/;
+  const allow0 = (n) => (queries.is_attacking && /attack|bare_hand/.test(n)) || (queries.is_sprinting && /sprint/.test(n)) || (queries.is_flying && /fly/.test(n)) || (queries.is_sitting && /sit/.test(n)) || (queries.is_sleeping && /sleep|bed|lie/.test(n)) || (queries.is_baby && /baby/.test(n)) || (/bare_hand/.test(n) && queries.undead_arms);
+  // a baby animation plays for babies, unless it is also situational (baby_sit, baby_lie_down) and that situation is off
+  const allow = (n) => { if (!/baby/.test(n)) return allow0(n); const rest = n.replace(/baby_?/g, ''); return !!queries.is_baby && (!SITUATIONAL.test(rest) || allow0(rest)); };
+  const SITUATIONAL = /play_dead|bed|sleep|lying|rolling|sneez|unhappy|baby|sit|lie_?down|rear|eat|graz|swim|sneak|rid(e|ing)|spear|bow|holding|use_item|damage|scary|carry|charg|celebr|roar|sniff|dig|emerge|sonic|ram_|shake|beg|panic|stand|inflate|attack|bare_hand|spyglass|gliding|crossbow|tongue|croak|jump|sprint|fly|tame|angry|interest|look_at_player_while/;
   const entries = (geo.animate && geo.animate.length ? geo.animate : Object.keys(A));
   const list = [];
+  // mobs whose state machine lives in code (axolotl): idle_* only standing, walk_* only moving, *_water / float only in water
+  const names = entries.map((x) => (typeof x === 'string' ? x : Object.keys(x)[0]));
+  const stateful = names.some((x) => /idle/.test(x)) && names.some((x) => /walk/.test(x));
+  const stateOff = (n) => (/_water|float/.test(n) && !queries.is_in_water) || (stateful && ((/idle/.test(n) && queries.is_moving) || (/walk/.test(n) && !queries.is_moving)));
   for (const x of entries) {
     const [n0, c] = typeof x === 'string' ? [x, 1] : Object.entries(x)[0]; const n = resolveName(n0); if (!n) continue;
     if (SITUATIONAL.test(n) && !allow(n)) continue;
+    if (stateOff(n)) continue;
+    if (geo.nativeBaby && /baby_(transform|scal)/.test(n)) continue; // made to shrink the adult model; the game's baby model is already small
     let w = typeof c === 'number' ? c : evaluate(c, env); w = w || (allow(n) ? 1 : 0);
     // a gait driven by distance moved freezes mid-stride when the mob stops: the game fades it with the move speed
     if (typeof c === 'number' && /modified_distance_moved/.test(A[n].anim_time_update || '')) w *= queries.modified_move_speed || 0;

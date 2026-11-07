@@ -21,6 +21,7 @@ LEGAL: these are Mojang's textures. They stay in work/ (gitignored) on the user'
 import argparse
 import io
 import json
+import re
 import sys
 import urllib.request
 from pathlib import Path
@@ -296,7 +297,10 @@ llama_v1.0 magma_cube magma_cube_v2 minecart minecart_v1.0 mooshroom mooshroom.v
 pig_v1.0 piglin pillager polar_bear pufferfish rabbit rabbit.v2 rabbit_v1.0 ravager salmon sheep sheep_v1.0 shield shulker shulker_v1.0 silverfish
 skeleton skeleton.v1.0 slime sniffer snow_golem snow_golem.v1.0 spider spider_v1.0 squid stray stray_v1.0 strider tropical_fish turtle vex vex.v1.0
 villager villager_v1.0 villager_v2 vindicator vindicator_v1.0 warden witch witch_v1.0 wither_boss wither_skeleton wither_skeleton.v1.0 wolf zombie
-zombie.v1.0 zombie_pigman zombie_pigman.v1.0 zombie_villager zombie_villager.v1.0 zombie_villager_v2""".split()
+zombie.v1.0 zombie_pigman zombie_pigman.v1.0 zombie_villager zombie_villager.v1.0 zombie_villager_v2
+baby_armadillo baby_axolotl baby_bee baby_camel baby_cat baby_chicken baby_cow baby_dolphin baby_fox baby_goat baby_hoglin baby_horse
+baby_llama baby_panda baby_pig baby_piglin baby_polar_bear baby_rabbit baby_sheep baby_squid baby_strider baby_turtle baby_villager
+baby_wolf baby_zombie baby_zombie_villager""".split()
 
 
 ANIM_FILES = """actor.animation.json agent.animation.json allay.animation.json armadillo.animation.json armor.animation.json armor_stand.animation.json arrow.animation.json axolotl.animation.json bat.animation.json bee.animation.json blaze.animation.json bow.animation.json breeze.animation.json camel.animation.json cat.animation.json chicken.animation.json cod.animation.json copper_golem.animation.json cow.animation.json creaking.animation.json creeper.animation.json crossbow.animation.json dolphin.animation.json drowned.animation.json drowned.animation.v1.0.json elytra.animation.json ender_crystal.animation.json ender_dragon.animation.json enderman.animation.json enderman.animation.v1.0.json endermite.animation.json evocation_fang.animation.json evoker.animation.json fireworks_rocket.animation.json fox.animation.json frog.animation.json ghast.animation.json goat.animation.json guardian.animation.json guardian.animation.v1.0.json happy_ghast.animation.json hoglin.animation.json horse_v1.animation.json horse_v2.animation.json horse_v3.animation.json humanoid.animation.json iron_golem.animation.json llama.animation.json llama_spit.animation.json look_at_target.animation.json magma_cube.animation.json minecart.animation.json minecart.animation.v1.0.json mooshroom.animation.json nautilus.animation.json npc.animation.json ocelot.animation.json ocelot.animations.v1.0.json panda.animation.json parrot.animation.json phantom.animation.json pig.animation.json piglin.animation.json pillager.animation.json player.animation.json player_firstperson.animation.json polar_bear.animation.json pufferfish.animation.json quadruped.animation.json rabbit.animation.json rabbit.v2.animation.json ravager.animation.json salmon.animation.json sheep.animation.json shield.animation.json shulker.animation.json shulker.animations.v1.0.json shulker_bullet.animation.json silverfish.animation.json skeleton.animation.json skeleton.animations.v1.0.json sniffer.animation.json snow_golem.animation.json snow_golem.animations.v1.0.json spear.animation.json spider.animation.json spyglass.animation.json squid.animation.json strider.animation.json sulfur_cube.animation.json tadpole.animation.json trident.animation.json tripod_camera.animation.json tropicalfish.animation.json turtle.animation.json turtle.animations.json vex.animation.json villager.animation.json vindicator.animation.json warden.animation.json wind_charge.animation.json witch.animation.json wither_boss.animation.json wither_skeleton.animation.json wither_skull.animation.json wolf.animations.json zombie.animation.json""".split()
@@ -373,6 +377,45 @@ def _resolve(idx, ident, depth=0):
     return {"bones": [bones[k] for k in order], "tw": g.get("tw") or base["tw"], "th": g.get("th") or base["th"]}
 
 
+VARIANT_SKIP = re.compile(r"saddle|decor|marking|armou?r|harness|chest|collar|leash|eyes|glow|overlay|invisible|charged|ghost|beam|crack"
+                          r"|dissolve|layer|outer|clothes|sleep|shear|tame|angry|spawn|blink|emissive|wind|crying|zombified|profession|level")
+
+
+LAYERED = {"villager", "zombie_villager"}
+BIOMES = {"desert", "jungle", "plains", "savanna", "snow", "swamp", "taiga"}
+
+
+def _mob_tex(base, raw, tpath):
+    for ext in (".png", ".tga"):
+        try:
+            return get(base, tpath + ext, raw).convert("RGBA")
+        except Exception:
+            continue
+    return None
+
+
+def _layer(img, *overs):
+    for o in overs:
+        if o is not None and o.size == img.size:
+            img = Image.alpha_composite(img, o)
+    return img
+
+
+def _coverage(img):
+    return sum(1 for v in img.getchannel("A").getdata() if v > 0)
+
+
+def _save_skin(img, dst):
+    """Write a mob texture. Emissive-alpha materials (blaze, magma cube, glow squid) keep the glow in the alpha channel: the skin is
+    written opaque and the glow (colour x alpha, like the game's lerp to unlit) next to it as <name>.glow.png. Returns True for those."""
+    a = img.getchannel("A"); glow = 0 < a.getextrema()[1] < 255
+    if glow:
+        from PIL import ImageChops
+        ImageChops.multiply(img.convert("RGB"), Image.merge("RGB", [a, a, a])).save(dst.with_suffix(".glow.png"))
+        img = img.copy(); img.putalpha(255)
+    img.save(dst); return glow
+
+
 def mobs(source="mojang"):
     base = SOURCES[source]; raw = OUT / "raw" / source; out = OUT / "mobs"; out.mkdir(parents=True, exist_ok=True)
     idx = _geo_index(base, raw); aidx = _anim_index(base, raw); done, missing = {}, []
@@ -389,36 +432,73 @@ def mobs(source="mojang"):
             gid = geos.get("default") or next(iter(geos.values())); tpath = texs.get("default") or next(iter(texs.values()))
             if gid not in idx:
                 missing.append(f"{name} (geometry {gid})"); continue
-            geo = _resolve(idx, gid)
-            for bone, r in MOB_FIXES.get(name, {}).items():  # poses the game sets in code, not in the geometry files
-                for b in geo["bones"]:
-                    if b["name"].lower() == bone and not b.get("rotation") and not b.get("bind_pose_rotation"):
-                        b["bind_pose_rotation"] = r
-            img = None
-            for ext in (".png", ".tga"):
-                try:
-                    img = get(base, tpath + ext, raw); break
-                except Exception:
-                    continue
+            anims = {k: aidx[v] for k, v in (desc.get("animations") or {}).items() if isinstance(v, str) and v in aidx}
+            sc = desc.get("scripts") or {}
+
+            def build(g_id, fixes=True):
+                geo = _resolve(idx, g_id)
+                for bone, r in (MOB_FIXES.get(name, {}) if fixes else {}).items():  # poses the game sets in code, not in the geometry
+                    for b in geo["bones"]:
+                        if b["name"].lower() == bone and not b.get("rotation") and not b.get("bind_pose_rotation"):
+                            b["bind_pose_rotation"] = r
+                geo["entity"] = ent; geo["geometry"] = g_id
+                if anims and name not in MOLANG_SKIP:  # the game's animations for this mob (Molang), evaluated by core/engine/molang.js
+                    geo["anims"] = anims; geo["animate"] = sc.get("animate") or list(anims.keys()); geo["absPos"] = name in MOLANG_ABS_POS
+                    geo["pre"] = [x for x in (sc.get("initialize") or []) + (sc.get("pre_animation") or []) if isinstance(x, str)]
+                return geo
+
+            img = _mob_tex(base, raw, tpath)
             if img is None:
                 missing.append(f"{name} (texture {tpath})"); continue
-            img = img.convert("RGBA"); geo["texture"] = f"{name}.png"
-            a = img.getchannel("A")
-            if 0 < a.getextrema()[1] < 255:  # an emissive-alpha material (blaze, magma cube, glow squid): the alpha is the glow mask
-                from PIL import ImageChops     # and the skin itself is opaque; glow = colour x alpha, like the game's lerp to unlit
-                glow = ImageChops.multiply(img.convert("RGB"), Image.merge("RGB", [a, a, a]))
-                glow.save(out / f"{name}.glow.png"); geo["glow"] = f"{name}.glow.png"; img.putalpha(255)
-            img.save(out / f"{name}.png")
-            geo["entity"] = ent; geo["geometry"] = gid
-            # the game's animations for this mob (Molang), evaluated by core/engine/molang.js
-            anims = {k: aidx[v] for k, v in (desc.get("animations") or {}).items() if isinstance(v, str) and v in aidx}
-            if anims and name not in MOLANG_SKIP:
-                sc = desc.get("scripts") or {}
-                geo["anims"] = anims; geo["animate"] = sc.get("animate") or list(anims.keys())
-                geo["absPos"] = name in MOLANG_ABS_POS
-                geo["pre"] = [x for x in (sc.get("initialize") or []) + (sc.get("pre_animation") or []) if isinstance(x, str)]
+            layered = name in LAYERED  # villagers: a bare skin, the biome's clothes and the profession's, layered like the game
+            if layered:
+                bare = {False: img, True: None}; clothes = {}
+                for key, path in texs.items():
+                    k = key[5:] if key.startswith("baby_") else key
+                    if isinstance(path, str) and k in ("default", "base", "plains"):
+                        im = _mob_tex(base, raw, path)
+                        if im is not None:
+                            (bare if k != "plains" else clothes)[key.startswith("baby_")] = im
+                if clothes.get(False) is not None:
+                    img = _layer(img, clothes[False])
+            geo = build(gid); geo["texture"] = f"{name}.png"
+            if _save_skin(img, out / f"{name}.png"):
+                geo["glow"] = f"{name}.glow.png"
             (out / f"{name}.geo.json").write_text(json.dumps(geo))
-            done[name] = {"geo": f"{name}.geo.json", "texture": f"{name}.png"}
+            entry = {"geo": f"{name}.geo.json", "texture": f"{name}.png"}
+            # variants (cat breeds, wolf and rabbit coats, warm/cold cows...) and the game's own baby models and textures
+            full = _coverage(img); seen = {(False, tpath)}; variants, babies = {}, {}
+            adult = next((k for k, p in texs.items() if p == tpath), "default").removeprefix("base_").removesuffix("_default")
+            for key, path in texs.items():
+                baby = key == "baby" or key.startswith("baby_")
+                if not isinstance(path, str) or (baby, path) in seen or VARIANT_SKIP.search(key):
+                    continue
+                v = key[5:] if key.startswith("baby_") else ("default" if baby else key)
+                v = v[:-8] if v.endswith("_default") else v; v = v[5:] if v.startswith("base_") else v
+                im = _mob_tex(base, raw, path)
+                if layered and im is not None:
+                    if re.fullmatch(r"base\d*|default", v) or bare[baby] is None:
+                        continue
+                    if v == "plains":
+                        v = "default" if baby else "plains"
+                    im = _layer(bare[baby], im) if v in BIOMES or v == "default" else _layer(bare[baby], clothes.get(baby), im)  # a profession: on plains clothes
+                elif im is None or not baby and (im.size != img.size or _coverage(im) < full * 0.6):  # overlays (markings, biome cloth) are not skins
+                    continue
+                seen.add((baby, path)); fn = f"{name}.{'baby.' if baby else ''}{v}.png"; _save_skin(im, out / fn)
+                if baby:
+                    babies[v] = fn
+                else:
+                    variants[v] = {"texture": fn}
+                    if geos.get(key) and geos[key] != gid and geos[key] in idx:  # a variant with its own shape (cold cow, cold chicken)
+                        vg = build(geos[key]); vg["texture"] = fn; (out / f"{name}.{v}.geo.json").write_text(json.dumps(vg)); variants[v]["geo"] = f"{name}.{v}.geo.json"
+            if variants:
+                entry["variants"] = variants
+            if geos.get("baby") in idx:
+                bg = build(geos["baby"], fixes=False); bg["nativeBaby"] = True; btex = babies.pop("default", None) or babies.get(adult) or (next(iter(babies.values())) if babies else None)
+                if btex or (bg.get("tw"), bg.get("th")) == (geo.get("tw"), geo.get("th")):  # no baby texture: the adult's, when the layout matches
+                    bg["texture"] = btex or f"{name}.png"; (out / f"{name}.baby.geo.json").write_text(json.dumps(bg))
+                    entry["baby"] = {"geo": f"{name}.baby.geo.json", "texture": bg["texture"], **({"variants": babies} if babies else {})}
+            done[name] = entry
         except Exception as e:
             missing.append(f"{name} ({e})")
     (out / "index.json").write_text(json.dumps({"mobs": done}, indent=1))

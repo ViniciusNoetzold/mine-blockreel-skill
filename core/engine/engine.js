@@ -312,11 +312,19 @@ async function makeMob(name, cfg) {
   if (mobIndex === null) mobIndex = story.textures !== 'builtin' && await exists('/work/vanilla/mobs/index.json') ? (await getJSON('/work/vanilla/mobs/index.json')).mobs : {};
   let m;
   if (cfg.geo || mobIndex[cfg.type]) {
-    const geoUrl = cfg.geo ? resolve(cfg.geo) : `/work/vanilla/mobs/${mobIndex[cfg.type].geo}`;
-    const texUrl = cfg.texture && !cfg.texture.startsWith('/core/builtin/') ? resolve(cfg.texture) : `/work/vanilla/mobs/${mobIndex[cfg.type]?.texture ?? cfg.type + '.png'}`;
+    // "baby": true -> the game's own baby model and texture when it has one (else the adult at half size, head scaled by its scripts);
+    // "variant": "cold" | "siamese" | "librarian"... -> another coat/breed/biome/profession (work/vanilla/mobs/index.json lists them)
+    const ent = mobIndex[cfg.type] || {}; let geoFile = ent.geo, texFile = ent.texture ?? cfg.type + '.png'; let halve = false;
+    const v = cfg.variant;
+    if (v && !(ent.variants || {})[v] && !(cfg.baby && ent.baby && (ent.baby.variants || {})[v])) console.warn(`mob "${cfg.type}" has no variant "${v}"; known: ${Object.keys(ent.variants || {}).join(', ') || 'none'}`);
+    if (cfg.baby && ent.baby) { geoFile = ent.baby.geo; texFile = (ent.baby.variants || {})[v] || ent.baby.texture; }
+    else { const vv = (ent.variants || {})[v]; if (vv) { texFile = vv.texture; geoFile = vv.geo || geoFile; } halve = !!cfg.baby; }
+    const geoUrl = cfg.geo ? resolve(cfg.geo) : `/work/vanilla/mobs/${geoFile}`;
+    const texUrl = cfg.texture && !cfg.texture.startsWith('/core/builtin/') ? resolve(cfg.texture) : `/work/vanilla/mobs/${texFile}`;
     const geo = await getJSON(geoUrl); // emissive mobs (blaze, magma cube, glow squid) carry a glow map: lit in the dark like the game
-    const glow = geo.glow && !cfg.texture ? await pixelTex(`/work/vanilla/mobs/${geo.glow}`) : null;
-    m = buildGeoModel(THREE, geo, await pixelTex(texUrl), { ...cfg, glow });
+    const glowUrl = texUrl.replace(/\.png$/, '.glow.png');
+    const glow = !cfg.texture && await exists(glowUrl) ? await pixelTex(glowUrl) : null;
+    m = buildGeoModel(THREE, geo, await pixelTex(texUrl), { ...cfg, glow, scale: (cfg.scale ?? 1) * (halve ? 0.5 : 1) });
   } else {
     if (!['creeper', 'pig', 'spider'].includes(cfg.type)) throw new Error(`mob "${cfg.type}" needs the game's geometry: run python tools/vanilla.py mobs`);
     m = buildMob(THREE, cfg.type, await pixelTex(resolve(cfg.texture)), cfg);

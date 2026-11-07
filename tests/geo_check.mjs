@@ -47,5 +47,10 @@ ok(near(moving.get('body').rot[0], 90) && near(moving.get('body').pos[1], 0), '`
 ok(near(animateEntity(gait, { life_time: 1, is_sitting: 1 }).get('body').pos[1], -5), 'situational animations play when the clip asks');
 const spikes = { absPos: true, bones: [{ name: 'spike', pivot: [0, 24, 0] }], anims: { s: { bones: { spike: { position: ['-this', '16 - this', '8 - this'] } } } }, animate: ['s'] };
 ok(animateEntity(spikes, { life_time: 1 }).get('spike').pos.every((v, j) => near(v, [0, -8, 8][j])), 'legacy rigs: absolute pivots (guardian spikes)');
+const kid = { anims: { baby_transform: { bones: { head: { scale: 2 } } }, baby_sit: { bones: { body: { position: [0, -3, 0] } } }, baby_walk: { bones: { leg0: { rotation: [10, 0, 0] } } } }, animate: ['baby_transform', 'baby_sit', 'baby_walk'] };
+const kq = animateEntity(kid, { life_time: 1, is_baby: 1 });
+ok(kq.get('head')?.scale === 2 && kq.get('leg0') && !kq.get('body'), 'babies play baby animations, but not baby_sit unless sitting');
+ok(!animateEntity({ ...kid, nativeBaby: true }, { life_time: 1, is_baby: 1 }).get('head'), "the game's own baby model is not shrunk again");
+ok(!animateEntity(kid, { life_time: 1 }).get('leg0'), 'adults skip baby animations');
 if (fails) { console.error(`${fails} geo check(s) failed`); process.exit(1); }
 console.log('geo ok');

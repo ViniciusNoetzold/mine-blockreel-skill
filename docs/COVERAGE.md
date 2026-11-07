@@ -14,7 +14,7 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 | Creeper-, pig-, spider-shaped rigs without the cache | done | CC0 fallback rigs (`core/engine/mobs.js`) |
 | Zombie / any humanoid mob | done | a normal actor with its texture and the `zombie` clip |
 | Mob-specific animations (a horse's gait and tail, a bee's wings, a villager's crossed arms, a blaze's rods) | done | the game's own animations through a Molang interpreter; the wolf, polar bear and ender dragon use the bone-name rules. A dragon's flight *path* is still yours to plan (`to` waypoints) |
-| Baby mobs, mob variants | missing | |
+| Baby mobs, mob variants | done | the game's baby models and textures (~35 mobs, half size otherwise); coats, breeds, warm/cold, villager biomes and professions (`docs/MOBS.md`) |
 | Armour layers (8 materials, leather tinted), shield, cape (swings with speed), elytra (folds / spreads) | done | the game's textures (`tools/vanilla.py equipment`) or CC0 originals |
 | Crowds of hundreds | missing | many actors work, but there is no instancing |
 
@@ -88,9 +88,8 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 
 ## Suggested order to close the gaps (highest impact first)
 
-1. **Baby mobs and variants** (the game's baby scaling is already in the Molang scripts; variant textures are not fetched).
-2. **Redstone** (lamps, pistons, levers), boats, overhangs.
-3. Crowd instancing, shader-pack style reflections, voice generation beyond the offline voices.
+1. **Redstone** (lamps, pistons, levers), boats, overhangs.
+2. Crowd instancing, shader-pack style reflections, voice generation beyond the offline voices.
 
 ## Polish log
 

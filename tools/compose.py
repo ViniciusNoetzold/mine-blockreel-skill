@@ -108,7 +108,7 @@ class Film:
         geo = (ROOT / "work" / "vanilla" / "mobs" / f"{kind}.geo.json").exists() and builtin_ok
         tex = c.get("texture") or (f"/work/vanilla/entity/{kind}.png" if cached.exists() and builtin_ok else f"/core/builtin/mobs/sample-{kind}-layout.png")
         a = {"pos": [m[0], None, m[1]], "face": c.get("face", 0)}
-        if kind == "zombie" and not c.get("geo"):
+        if kind == "zombie" and not c.get("geo") and not (c.get("baby") and geo):
             a["skin"] = tex  # zombies on the player rig: every player clip (hit, die, duel moves) works on them
         elif geo or kind in ("creeper", "pig", "spider"):
             a.update(type=kind, **({"texture": tex} if not geo else {}))
@@ -116,7 +116,7 @@ class Film:
                 a["parts"] = c["parts"]
         else:
             raise SystemExit(f"mob {kind!r}: run  python tools/vanilla.py mobs  (the game's geometry for ~70 mobs) or use creeper/pig/spider/zombie")
-        for k in ("scale", "holding"):
+        for k in ("scale", "holding", "baby", "variant", "molang"):
             if k in c:
                 a[k] = c[k]
         self.story["actors"][name] = a

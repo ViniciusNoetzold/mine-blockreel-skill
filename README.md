@@ -204,6 +204,11 @@ Each picture below is a real render from the matching `examples/*-lab` storyboar
 <img src="docs/media/gallery-all-mobs.jpg" alt="About 70 mobs walking: cow, pig, sheep, chicken, wolf, cat, fox, horses, llama, villager, witch, illagers, golems, skeletons, zombies, piglins, creeper, spiders, enderman, ghast, bee, parrot, phantom, warden, ender dragon, wither, axolotl, dolphin, turtle, camel, sniffer, strider">
 </details>
 
+<details>
+<summary><b>Babies and variants</b>: the game's own baby models (calf, chick, pup, kitten, foal, kid villager, cub, cria) and coats, breeds, biomes and professions (<code>"baby": true</code>, <code>"variant": "siamese"</code>)</summary>
+<img src="docs/media/gallery-babies-variants.jpg" alt="Adults next to their babies: cow, chicken, wolf, cat, horse, villager, panda, llama; then variants: a cold (highland) cow, a Siamese cat, a black wolf, a librarian villager, a desert villager, a zombie farmer, a brown panda, a gold axolotl">
+</details>
+
 Also: music, sound effects and dialogue with ducking ([`tools/audio.py`](tools/audio.py)), parallel rendering, 1080p60, a live browser preview with a time slider, and a QA tool that renders a contact sheet and flags a camera inside a block, a character out of frame, a face turned away, clipped subtitles and shots that run too long.
 
 ---

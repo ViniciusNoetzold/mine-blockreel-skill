@@ -35,6 +35,18 @@ Disable per actor with `"molang": false` (the bone-name rules take over). The wo
 game animations drive an older rig the game builds in code); the guardian's spikes use the game's absolute positions. Emissive mobs (blaze, magma cube, glow squid) glow in the dark: their texture's alpha is
 a glow map, as in the game. The evoker and the boat are not in the samples under those names.
 
+**Babies and variants.** `"baby": true` uses the game's own baby model and texture (calf, piglet, lamb, chick, pup, kitten, foal, cria,
+cub, kid villager, baby zombie... about 35 mobs); a mob without one is drawn at half size with the head its scripts enlarge.
+`"variant"` picks another coat, breed, biome or state the game ships, e.g. `"cow": cold | warm`, `"chicken" / "pig": cold | warm`,
+`"cat": black red siamese british calico persian ragdoll tabby jellie all_black`, `"wolf": ashen black rusty snowy spotted striped woods`,
+`"horse": white creamy black gray darkbrown`, `"rabbit": white black white_splotched gold salt toast`, `"llama": white brown gray`,
+`"fox": arctic`, `"panda": lazy worried playful brown weak aggressive`, `"axolotl": cyan gold lucy wild`, `"frog": cold warm`,
+`"parrot": green red_blue yellow_blue grey`, `"shulker"`: the 16 colours, `"villager"` / `"zombie_villager"`: a biome
+(`desert jungle plains savanna snow swamp taiga`) or a profession on plains clothes (`armorer butcher cartographer cleric farmer fisherman
+fletcher leatherworker librarian shepherd tool_smith weapon_smith stonemason nitwit`). Babies take the same variants where the game has
+them (`{ "type": "cat", "baby": true, "variant": "siamese" }`). `work/vanilla/mobs/index.json` lists what your cache has; an unknown
+variant falls back to the default and logs the known ones. Villagers are layered like the game: bare skin + biome clothes + profession.
+
 **Zombie as an actor:** a zombie can also be a normal actor with the zombie texture as its skin and the `zombie` walk clip
 (`compose.py` does this): every player clip (fights, falls, faces) then works on it.
 
