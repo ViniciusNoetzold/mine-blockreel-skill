@@ -10,10 +10,10 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 | Player model from a skin (classic / slim, legacy 64x32, both layers) | done | proportions checked against the game: shoulders flush with the torso top, head sits directly on the body (no neck) |
 | Face: blink, eyes, mouth, wounds, glow, lip-sync | done | rows 3-7 of the face are repainted; skins must keep eyes on row 4 |
 | ~70 mobs with the game's own geometry and texture (cow, sheep, horse, villager, skeleton, enderman, iron golem, warden, ender dragon...) | done | `tools/vanilla.py mobs` + `core/engine/geo.js`; walk/idle/look/hit/die/swell animated by bone names; all rendered and checked (`docs/MOBS.md`) |
-| Blaze rods, magma cube segments | partial | placed by the game's Molang animations, not evaluated |
+| Blaze rods, magma cube segments, glowing mobs | done | the game's Molang animations are evaluated (`core/engine/molang.js`); emissive textures glow |
 | Creeper-, pig-, spider-shaped rigs without the cache | done | CC0 fallback rigs (`core/engine/mobs.js`) |
 | Zombie / any humanoid mob | done | a normal actor with its texture and the `zombie` clip |
-| Mob-specific animations (a spider's crawl, a horse's gallop, a dragon's flight path) | partial | generic leg/arm/wing/tail rules; exact per-mob animations would need a Molang interpreter |
+| Mob-specific animations (a horse's gait and tail, a bee's wings, a villager's crossed arms, a blaze's rods) | done | the game's own animations through a Molang interpreter; the wolf, polar bear and ender dragon use the bone-name rules. A dragon's flight *path* is still yours to plan (`to` waypoints) |
 | Baby mobs, mob variants | missing | |
 | Armour layers (8 materials, leather tinted), shield, cape (swings with speed), elytra (folds / spreads) | done | the game's textures (`tools/vanilla.py equipment`) or CC0 originals |
 | Crowds of hundreds | missing | many actors work, but there is no instancing |
@@ -88,7 +88,7 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 
 ## Suggested order to close the gaps (highest impact first)
 
-1. **Molang animations** for exact per-mob motion (blaze rods, magma cube, gallop, flight).
+1. **Baby mobs and variants** (the game's baby scaling is already in the Molang scripts; variant textures are not fetched).
 2. **Redstone** (lamps, pistons, levers), boats, overhangs.
 3. Crowd instancing, shader-pack style reflections, voice generation beyond the offline voices.
 

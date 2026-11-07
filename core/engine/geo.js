@@ -3,6 +3,7 @@
 // so a cow, a villager, a horse, a bat or the ender dragon all walk, look and react without hand-made rigs.
 //
 // Frames: Bedrock models face -Z; BlockReel actors face +Z, so every point is turned half a turn around Y: (x, y, z) -> (-x, y, -z).
+import { animateEntity } from './molang.js';
 const PX = 1 / 16;
 const S = Math.sin;
 const DEG = Math.PI / 180;
@@ -37,11 +38,12 @@ const P = (p) => [-(p[0] || 0) * PX, (p[1] || 0) * PX, -(p[2] || 0) * PX];
 export function buildGeoModel(THREE, geo, tex, cfg = {}) {
   const TW = geo.tw || 64, TH = geo.th || 64;
   const mat = new THREE.MeshLambertMaterial({ map: tex, alphaTest: 0.5, side: THREE.DoubleSide });
+  if (cfg.glow) { mat.emissiveMap = cfg.glow; mat.emissive.set(0xffffff); mat.userData.glow = true; }
   const root = new THREE.Group(); const inner = new THREE.Group(); root.add(inner);
   const bones = new Map(); const byName = (n) => bones.get(String(n).toLowerCase());
   let minY = Infinity, maxY = -Infinity;
   for (const b of geo.bones) { // first pass: groups at their pivots (bones may be listed before their parents)
-    const g = new THREE.Group(); g.name = b.name; g.userData = { pivot: P(b.pivot || [0, 0, 0]), rest: rot(b.rotation), bone: b };
+    const g = new THREE.Group(); g.name = b.name; g.userData = { pivot: P(b.pivot || [0, 0, 0]), rest: rot(b.rotation), restDeg: b.rotation || [0, 0, 0], bone: b };
     g.rotation.order = 'ZYX'; g.rotation.set(...g.userData.rest);
     bones.set(b.name.toLowerCase(), g);
   }
@@ -84,9 +86,36 @@ export function buildGeoModel(THREE, geo, tex, cfg = {}) {
   const side = (g) => Math.sign(g.userData.pivot[0]) || 1; const front = (g) => g.userData.pivot[2] >= 0 ? 1 : -1;
   const undeadArms = /zombie|husk|drowned|pigman/i.test(cfg.type || '');
   const headY = Math.max(0.5, maxY) * sc, eyeY = (head ? head.userData.pivot[1] + 0.12 : maxY * 0.85) * sc;
+  // the game's own animations (Molang), when the cache has them: exact walk cycles, wings, the blaze's rods, the magma cube...
+  const useMolang = !!(geo.anims && cfg.molang !== false);
+  const basePos = new Map([...bones.values()].map((g) => [g, g.position.clone()]));
+  const molangUpdate = (st, t) => {
+    const walking = /walk|run|zombie|charge|sneak/.test(st.clip); const run = /run|charge/.test(st.clip);
+    const speed = walking ? (run ? 4.3 : 2.2) * (st.sp || 1) : 0;
+    const q = { life_time: t, anim_time: t, modified_move_speed: walking ? (run ? 0.75 : 0.45) : 0, modified_distance_moved: walking ? st.ct * speed * 4 : 0,
+      distance_moved: walking ? st.ct * speed : 0, ground_speed: speed, is_moving: walking ? 1 : 0, is_on_ground: 1, is_alive: 1, is_baby: cfg.baby ? 1 : 0,
+      delta_time: 1 / 30, time_of_day: 0.3, is_angry: st.clip === 'swell' ? 1 : 0, is_charging: st.clip === 'cast' ? 1 : 0, is_sheared: 0, has_target: 0,
+      target_x_rotation: 0, target_y_rotation: 0, head_x_rotation: () => 0, head_y_rotation: () => 0, body_y_rotation: 0, is_in_water: 0, is_jumping: 0, is_sitting: st.clip === 'sit' ? 1 : 0,
+      is_attacking: /swing|slash|overhead|punch|thrust/.test(st.clip) ? 1 : 0, attack_time: /swing|slash|overhead|punch|thrust/.test(st.clip) ? Math.min(1, st.ct / (st.dur || 0.6)) : 0,
+      is_flying: /fly|glide/.test(st.clip) ? 1 : 0, is_gliding: 0, swell_amount: 0, property: () => 0, all_animations_finished: 1, any_animation_finished: 1,
+      is_sprinting: run ? 1 : 0, is_sleeping: st.clip === 'sleep' ? 1 : 0, undead_arms: /zombie|husk|drowned|pigman/i.test(cfg.type || '') ? 1 : 0 };
+    const offs = animateEntity(geo, q, (b) => { const g = bones.get(b); return g ? g.userData.restDeg : null; });
+    for (const [name, g] of bones) {
+      const o = offs.get(name); const rd = g.userData.restDeg; const bp = basePos.get(g);
+      if (!o) { g.rotation.set(...g.userData.rest); g.position.copy(bp); g.scale.setScalar(1); continue; }
+      g.rotation.set(...rot([rd[0] + o.rot[0], rd[1] + o.rot[1], rd[2] + o.rot[2]]));
+      g.position.set(bp.x - o.pos[0] * PX, bp.y + o.pos[1] * PX, bp.z - o.pos[2] * PX); g.scale.setScalar(o.scale || 1);
+    }
+    let k = 1, flash = 0;
+    if (st.clip === 'swell') { const u = Math.min(1, st.ct / (st.dur || 1.5)); k = 1 + 0.35 * u * u + 0.03 * S(st.ct * 50); flash = Math.floor(st.ct * (5 + 6 * u)) % 2 === 0 ? 1 : 0; }
+    inner.scale.set(k, k, k); api.flash = flash;
+    if (st.clip === 'hit' || st.clip === 'knockback') { const u = Math.min(1, st.ct / (st.dur || 0.5)); inner.rotation.x = -0.35 * Math.sin(Math.PI * u); } else inner.rotation.x = 0;
+    inner.rotation.z = st.clip === 'die' || st.clip === 'fall' ? Math.min(1, st.ct / 0.5) * Math.PI / 2 : 0;
+  };
   const api = {
     root, head: head || inner, headY, eyeY, mats: [mat], flash: 0, bones,
     update(st, t) {
+      if (useMolang) { molangUpdate(st, t); return; }
       const walking = st.clip === 'walk' || st.clip === 'run' || st.clip === 'zombie' || st.clip === 'charge';
       const sp = (st.sp || 1) * (st.clip === 'run' || st.clip === 'charge' ? 1.6 : 1); const w = st.ct * 7 * sp; const amp = walking ? (st.clip === 'run' ? 1.0 : 0.7) : 0;
       for (const g of legs) { // diagonal pairs for four legs and more, alternating for two

@@ -299,7 +299,31 @@ villager villager_v1.0 villager_v2 vindicator vindicator_v1.0 warden witch witch
 zombie.v1.0 zombie_pigman zombie_pigman.v1.0 zombie_villager zombie_villager.v1.0 zombie_villager_v2""".split()
 
 
-MOB_FIXES = {"polar_bear": {"body": [90, 0, 0]}, "cat": {"body": [90, 0, 0]}, "ocelot": {"body": [90, 0, 0]}}
+ANIM_FILES = """actor.animation.json agent.animation.json allay.animation.json armadillo.animation.json armor.animation.json armor_stand.animation.json arrow.animation.json axolotl.animation.json bat.animation.json bee.animation.json blaze.animation.json bow.animation.json breeze.animation.json camel.animation.json cat.animation.json chicken.animation.json cod.animation.json copper_golem.animation.json cow.animation.json creaking.animation.json creeper.animation.json crossbow.animation.json dolphin.animation.json drowned.animation.json drowned.animation.v1.0.json elytra.animation.json ender_crystal.animation.json ender_dragon.animation.json enderman.animation.json enderman.animation.v1.0.json endermite.animation.json evocation_fang.animation.json evoker.animation.json fireworks_rocket.animation.json fox.animation.json frog.animation.json ghast.animation.json goat.animation.json guardian.animation.json guardian.animation.v1.0.json happy_ghast.animation.json hoglin.animation.json horse_v1.animation.json horse_v2.animation.json horse_v3.animation.json humanoid.animation.json iron_golem.animation.json llama.animation.json llama_spit.animation.json look_at_target.animation.json magma_cube.animation.json minecart.animation.json minecart.animation.v1.0.json mooshroom.animation.json nautilus.animation.json npc.animation.json ocelot.animation.json ocelot.animations.v1.0.json panda.animation.json parrot.animation.json phantom.animation.json pig.animation.json piglin.animation.json pillager.animation.json player.animation.json player_firstperson.animation.json polar_bear.animation.json pufferfish.animation.json quadruped.animation.json rabbit.animation.json rabbit.v2.animation.json ravager.animation.json salmon.animation.json sheep.animation.json shield.animation.json shulker.animation.json shulker.animations.v1.0.json shulker_bullet.animation.json silverfish.animation.json skeleton.animation.json skeleton.animations.v1.0.json sniffer.animation.json snow_golem.animation.json snow_golem.animations.v1.0.json spear.animation.json spider.animation.json spyglass.animation.json squid.animation.json strider.animation.json sulfur_cube.animation.json tadpole.animation.json trident.animation.json tripod_camera.animation.json tropicalfish.animation.json turtle.animation.json turtle.animations.json vex.animation.json villager.animation.json vindicator.animation.json warden.animation.json wind_charge.animation.json witch.animation.json wither_boss.animation.json wither_skeleton.animation.json wither_skull.animation.json wolf.animations.json zombie.animation.json""".split()
+
+
+def _anim_index(base, raw):
+    """animation id -> animation definition, from every animation file of the samples."""
+    idx = {}
+    for fn in ANIM_FILES:
+        rel = f"animations/{fn}"; dst = raw / rel
+        try:
+            if not dst.exists():
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                req = urllib.request.Request(base + rel, headers={"User-Agent": "blockreel-vanilla-fetch"})
+                with urllib.request.urlopen(req, timeout=30) as r:
+                    dst.write_bytes(r.read())
+            d = _loose_json(dst.read_text(encoding="utf-8", errors="replace"))
+            idx.update(d.get("animations", {}))
+        except Exception:
+            continue
+    return idx
+
+
+# mobs whose game animations set absolute poses for a legacy rig (they fight our rest pose): animated procedurally instead
+MOLANG_SKIP = {"wolf", "polar_bear", "ender_dragon"}
+MOLANG_ABS_POS = {"guardian", "elder_guardian"}  # their animations write absolute pivots (the spikes)
+MOB_FIXES = {"polar_bear": {"body": [90, 0, 0]}, "llama": {"body": [90, 0, 0]}, "trader_llama": {"body": [90, 0, 0]}, "cat": {"body": [90, 0, 0]}, "ocelot": {"body": [90, 0, 0]}}
 
 
 def _loose_json(t):
@@ -351,7 +375,7 @@ def _resolve(idx, ident, depth=0):
 
 def mobs(source="mojang"):
     base = SOURCES[source]; raw = OUT / "raw" / source; out = OUT / "mobs"; out.mkdir(parents=True, exist_ok=True)
-    idx = _geo_index(base, raw); done, missing = {}, []
+    idx = _geo_index(base, raw); aidx = _anim_index(base, raw); done, missing = {}, []
     for name, ent in MOB_ENTITIES.items():
         try:
             rel = f"entity/{ent}.entity.json"; dst = raw / rel
@@ -378,8 +402,21 @@ def mobs(source="mojang"):
                     continue
             if img is None:
                 missing.append(f"{name} (texture {tpath})"); continue
+            img = img.convert("RGBA"); geo["texture"] = f"{name}.png"
+            a = img.getchannel("A")
+            if 0 < a.getextrema()[1] < 255:  # an emissive-alpha material (blaze, magma cube, glow squid): the alpha is the glow mask
+                from PIL import ImageChops     # and the skin itself is opaque; glow = colour x alpha, like the game's lerp to unlit
+                glow = ImageChops.multiply(img.convert("RGB"), Image.merge("RGB", [a, a, a]))
+                glow.save(out / f"{name}.glow.png"); geo["glow"] = f"{name}.glow.png"; img.putalpha(255)
             img.save(out / f"{name}.png")
-            geo["texture"] = f"{name}.png"; geo["entity"] = ent; geo["geometry"] = gid
+            geo["entity"] = ent; geo["geometry"] = gid
+            # the game's animations for this mob (Molang), evaluated by core/engine/molang.js
+            anims = {k: aidx[v] for k, v in (desc.get("animations") or {}).items() if isinstance(v, str) and v in aidx}
+            if anims and name not in MOLANG_SKIP:
+                sc = desc.get("scripts") or {}
+                geo["anims"] = anims; geo["animate"] = sc.get("animate") or list(anims.keys())
+                geo["absPos"] = name in MOLANG_ABS_POS
+                geo["pre"] = [x for x in (sc.get("initialize") or []) + (sc.get("pre_animation") or []) if isinstance(x, str)]
             (out / f"{name}.geo.json").write_text(json.dumps(geo))
             done[name] = {"geo": f"{name}.geo.json", "texture": f"{name}.png"}
         except Exception as e:

@@ -1,6 +1,7 @@
 // The game-geometry mob builder (core/engine/geo.js) on small synthetic geometries: no network, no cache needed.
 import * as THREE from 'three';
 import { buildGeoModel } from '../core/engine/geo.js';
+import { evaluate, animateEntity } from '../core/engine/molang.js';
 let fails = 0; const ok = (c, m) => { if (!c) { fails++; console.error('FAIL', m); } };
 const tex = new THREE.Texture();
 const box = (g) => { g.root.updateMatrixWorld(true); return new THREE.Box3().setFromObject(g.root); };
@@ -30,5 +31,21 @@ ok(box(buildGeoModel(THREE, horse, tex, {})).max.y < 0.7 && box(buildGeoModel(TH
 const walk = buildGeoModel(THREE, sheep, tex, {}); walk.update({ clip: 'walk', ct: 0.2, sp: 1 }, 0.2);
 const l = (n) => walk.bones.get(n).rotation.x;
 ok(Math.abs(l('leg0') - l('leg3')) < 1e-9 && Math.abs(l('leg0') + l('leg1')) < 1e-6 && Math.abs(l('leg0')) > 0.1, 'diagonal legs move together, sides opposite');
+// Molang: the game's expression language (trigonometry in degrees, short aliases, ternaries, assignments, unknowns read 0)
+const near = (a, b) => Math.abs(a - b) < 1e-6;
+ok(near(evaluate('math.cos(query.anim_time * 38.17) * 80.0', { query: { anim_time: 0 } }), 80), 'molang cos in degrees');
+ok(near(evaluate('q.is_baby ? 2 : 1', { query: { is_baby: 1 } }), 2) && near(evaluate('q.unknown_thing + 3', { query: {} }), 3), 'molang aliases, ternary, unknown queries');
+const env = { query: { x: 2 }, variable: {}, temp: {}, context: {} }; evaluate('v.a = q.x * 3; v.b = v.a + 1;', env);
+ok(near(env.variable.b, 7) && near(evaluate('math.clamp(v.b, 0, 5) ?? 1', env), 5), 'molang assignments, statements, math.clamp');
+const gait = { anims: { walk: { anim_time_update: 'query.modified_distance_moved', loop: true, bones: { leg0: { rotation: ['math.cos(query.anim_time * 38.17) * 80.0', 0, 0] } } },
+  setup: { bones: { body: { rotation: ['90 - this', 0, 0] } } }, sitting: { bones: { body: { position: [0, -5, 0] } } } }, animate: ['setup', 'walk', 'sitting'] };
+const still = animateEntity(gait, { life_time: 1, modified_move_speed: 0, modified_distance_moved: 3 });
+ok(near(still.get('leg0')?.rot[0] ?? 0, 0), 'a distance-driven gait fades out when the mob stands still');
+const moving = animateEntity(gait, { life_time: 1, modified_move_speed: 0.5, modified_distance_moved: 0 });
+ok(near(moving.get('leg0').rot[0], 40), 'the gait plays weighted by the move speed');
+ok(near(moving.get('body').rot[0], 90) && near(moving.get('body').pos[1], 0), '`this` is what earlier animations added; situational ones (sitting) stay off');
+ok(near(animateEntity(gait, { life_time: 1, is_sitting: 1 }).get('body').pos[1], -5), 'situational animations play when the clip asks');
+const spikes = { absPos: true, bones: [{ name: 'spike', pivot: [0, 24, 0] }], anims: { s: { bones: { spike: { position: ['-this', '16 - this', '8 - this'] } } } }, animate: ['s'] };
+ok(animateEntity(spikes, { life_time: 1 }).get('spike').pos.every((v, j) => near(v, [0, -8, 8][j])), 'legacy rigs: absolute pivots (guardian spikes)');
 if (fails) { console.error(`${fails} geo check(s) failed`); process.exit(1); }
 console.log('geo ok');

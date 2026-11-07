@@ -314,7 +314,9 @@ async function makeMob(name, cfg) {
   if (cfg.geo || mobIndex[cfg.type]) {
     const geoUrl = cfg.geo ? resolve(cfg.geo) : `/work/vanilla/mobs/${mobIndex[cfg.type].geo}`;
     const texUrl = cfg.texture && !cfg.texture.startsWith('/core/builtin/') ? resolve(cfg.texture) : `/work/vanilla/mobs/${mobIndex[cfg.type]?.texture ?? cfg.type + '.png'}`;
-    m = buildGeoModel(THREE, await getJSON(geoUrl), await pixelTex(texUrl), cfg);
+    const geo = await getJSON(geoUrl); // emissive mobs (blaze, magma cube, glow squid) carry a glow map: lit in the dark like the game
+    const glow = geo.glow && !cfg.texture ? await pixelTex(`/work/vanilla/mobs/${geo.glow}`) : null;
+    m = buildGeoModel(THREE, geo, await pixelTex(texUrl), { ...cfg, glow });
   } else {
     if (!['creeper', 'pig', 'spider'].includes(cfg.type)) throw new Error(`mob "${cfg.type}" needs the game's geometry: run python tools/vanilla.py mobs`);
     m = buildMob(THREE, cfg.type, await pixelTex(resolve(cfg.texture)), cfg);
@@ -678,6 +680,7 @@ function lightActors() {
     const k = (cave + (1 - cave) * s) * (a.mob && a.mob.flash ? 2.6 : 1); const warm = b * 1.0 * (1 - day * s); const hurt = a._hurt || 0;
     for (const m of a.mats) {
       m.color.setRGB(k, k * (1 - hurt * 0.6), k * (1 - hurt * 0.6));
+      if (m.userData.glow) { m.emissive.setRGB(1, 1 - hurt * 0.5, 1 - hurt * 0.5); continue; } // glowing texels ignore the light
       m.emissive.setRGB(LIGHT_U.uBlockColor.value.r * warm + hurt * 0.45, LIGHT_U.uBlockColor.value.g * warm, LIGHT_U.uBlockColor.value.b * warm);
     }
   }

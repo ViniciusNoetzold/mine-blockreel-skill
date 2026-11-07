@@ -25,8 +25,15 @@ Checked by rendering all of them walking (and by `tests/geo_check.mjs` for the r
 (`bind_pose_rotation`, pivot-less cube rotations turn about the cube's centre; the polar bear, cat and ocelot body poses the game sets in
 code are added by the fetch tool), bones marked `neverRender` hide only their own cubes.
 
-**Partial:** the blaze's rods and the magma cube's segments are placed by the game's Molang animations, which are not evaluated:
-their parts sit stacked. The evoker and the boat are not in the samples under those names.
+**The game's own animations (Molang).** The fetch tool also stores each mob's animations and its `animate` / `pre_animation` scripts;
+`core/engine/molang.js` evaluates them every frame (a small Molang interpreter: math in degrees, `query.*` / `variable.*`, ternaries,
+keyframes, `this`). So the blaze's rods orbit, the magma cube's slices squash, a horse's legs and tail, a bee's wings, a villager's arms,
+a chicken's flaps and ~60 other mobs move exactly like the game. Queries the engine answers: `life_time`, `anim_time`,
+`modified_move_speed`, `modified_distance_moved` (gaits fade out when the mob stops), `is_sprinting`, `is_sleeping`, `is_sitting`,
+`is_attacking`... Situational animations (sitting, lying, sleeping, baby, eating, attacking...) play only when the clip asks for them.
+Disable per actor with `"molang": false` (the bone-name rules take over). The wolf, polar bear and ender dragon keep the bone-name rules (their
+game animations drive an older rig the game builds in code); the guardian's spikes use the game's absolute positions. Emissive mobs (blaze, magma cube, glow squid) glow in the dark: their texture's alpha is
+a glow map, as in the game. The evoker and the boat are not in the samples under those names.
 
 **Zombie as an actor:** a zombie can also be a normal actor with the zombie texture as its skin and the `zombie` walk clip
 (`compose.py` does this): every player clip (fights, falls, faces) then works on it.

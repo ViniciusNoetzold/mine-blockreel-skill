@@ -135,7 +135,7 @@ Cada imagem é um render real do laboratório `examples/*-lab` correspondente (r
 
 <details><summary><b>Equipamentos e movimentos</b>: armaduras, escudo, capa, élitro; montar, nadar, rastejar, escalar, comer, beber, dormir, planar</summary><img src="docs/media/gallery-equipment.jpg" alt="Armadura de diamante com escudo, couro com capa vermelha correndo, élitro, montando um cavalo, nadando, rastejando, comendo, bebendo, dormindo, planando"></details>
 
-<details><summary><b>Mobs</b>: cerca de 70 mobs com a geometria e a textura do próprio jogo, animados pelos nomes dos ossos (<code>python tools/vanilla.py mobs</code>)</summary><img src="docs/media/gallery-all-mobs.jpg" alt="Cerca de 70 mobs andando: vaca, porco, ovelha, galinha, lobo, gato, raposa, cavalos, lhama, aldeão, bruxa, illagers, golens, esqueletos, zumbis, piglins, creeper, aranhas, enderman, ghast, abelha, papagaio, phantom, warden, dragão, wither, axolote, golfinho, tartaruga, camelo, sniffer, strider"></details>
+<details><summary><b>Mobs</b>: cerca de 70 mobs com a geometria, a textura e as animações do próprio jogo (Molang, avaliado pelo motor) (<code>python tools/vanilla.py mobs</code>)</summary><img src="docs/media/gallery-all-mobs.jpg" alt="Cerca de 70 mobs andando: vaca, porco, ovelha, galinha, lobo, gato, raposa, cavalos, lhama, aldeão, bruxa, illagers, golens, esqueletos, zumbis, piglins, creeper, aranhas, enderman, ghast, abelha, papagaio, phantom, warden, dragão, wither, axolote, golfinho, tartaruga, camelo, sniffer, strider"></details>
 
 ## 🧍 Skins e 🧱 texturas
 

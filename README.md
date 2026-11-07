@@ -200,7 +200,7 @@ Each picture below is a real render from the matching `examples/*-lab` storyboar
 </details>
 
 <details>
-<summary><b>Mobs</b>: about 70 mobs with the game's own geometry and texture, animated by bone names (<code>python tools/vanilla.py mobs</code>)</summary>
+<summary><b>Mobs</b>: about 70 mobs with the game's own geometry, texture and animations (Molang, evaluated by the engine; <code>python tools/vanilla.py mobs</code>)</summary>
 <img src="docs/media/gallery-all-mobs.jpg" alt="About 70 mobs walking: cow, pig, sheep, chicken, wolf, cat, fox, horses, llama, villager, witch, illagers, golems, skeletons, zombies, piglins, creeper, spiders, enderman, ghast, bee, parrot, phantom, warden, ender dragon, wither, axolotl, dolphin, turtle, camel, sniffer, strider">
 </details>
 
