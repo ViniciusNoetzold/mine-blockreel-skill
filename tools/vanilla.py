@@ -6,6 +6,7 @@
   python tools/vanilla.py sounds                # original sound effects (Java asset index, official Mojang servers)
   python tools/vanilla.py font                  # the game's bitmap font (read from client.jar with HTTP ranges, ~1 MB)
   python tools/vanilla.py mobs                  # every mob's own geometry + texture (cow, villager, skeleton, horse, dragon...)
+  python tools/vanilla.py equipment             # armour, elytra and shield textures (client.jar, HTTP ranges)
   python tools/vanilla.py all                   # everything above
   python tools/vanilla.py status
 
@@ -416,6 +417,28 @@ def font():
     print(f"vanilla font ready: {len(meta)} glyph sheets from Java {rel} -> {out}"); return 0
 
 
+EQUIPMENT = ["humanoid/" + m for m in ("leather", "leather_overlay", "chainmail", "iron", "gold", "diamond", "netherite", "turtle_scute", "copper")] + \
+            ["humanoid_leggings/" + m for m in ("leather", "leather_overlay", "chainmail", "iron", "gold", "diamond", "netherite", "copper")] + ["wings/elytra"]
+
+
+def equipment():
+    """Armour layers, the elytra and the shield from the game's client.jar (HTTP ranges, ~100 KB) -> work/vanilla/equipment/."""
+    def js(u):
+        req = urllib.request.Request(u, headers={"User-Agent": "blockreel-vanilla-fetch"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return json.loads(r.read())
+    man = js("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json")
+    rel = man["latest"]["release"]; ver = js(next(v["url"] for v in man["versions"] if v["id"] == rel))
+    url, size = ver["downloads"]["client"]["url"], ver["downloads"]["client"]["size"]
+    want = {f"assets/minecraft/textures/entity/equipment/{e}.png": e for e in EQUIPMENT}
+    want["assets/minecraft/textures/entity/shield/shield_base_nopattern.png"] = "shield"
+    data = _zip_member(url, size, set(want)); out = OUT / "equipment"; n = 0
+    for path, name in want.items():
+        if path in data:
+            dst = out / f"{name}.png"; dst.parent.mkdir(parents=True, exist_ok=True); dst.write_bytes(data[path]); n += 1
+    print(f"vanilla equipment ready: {n} textures (armour, elytra, shield) from Java {rel} -> {out}"); return 0
+
+
 def status():
     if not (OUT / "blocks" / "index.json").exists():
         print("no vanilla cache: run  python tools/vanilla.py fetch"); return 1
@@ -426,7 +449,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     f = sub.add_parser("fetch"); f.add_argument("--source", choices=sorted(SOURCES), default="mojang")
-    sub.add_parser("status"); sub.add_parser("sounds"); sub.add_parser("font"); sub.add_parser("mobs")
+    sub.add_parser("status"); sub.add_parser("sounds"); sub.add_parser("font"); sub.add_parser("mobs"); sub.add_parser("equipment")
     sub.add_parser("all", help="fetch + sounds + font")
     a = ap.parse_args(argv)
     if a.cmd == "fetch":
@@ -437,8 +460,10 @@ def main(argv=None):
         return font()
     if a.cmd == "mobs":
         return mobs()
+    if a.cmd == "equipment":
+        return equipment()
     if a.cmd == "all":
-        fetch("mojang"); sounds(); mobs(); return font()
+        fetch("mojang"); sounds(); mobs(); equipment(); return font()
     return status()
 
 

@@ -211,6 +211,22 @@
       "side": "spruce_log",
       "bottom": "log_top"
     },
+    "oak_planks": "planks",
+    "oak_log": {
+      "top": "log_top",
+      "side": "log_side",
+      "bottom": "log_top"
+    },
+    "oak_leaves": {
+      "all": "leaves",
+      "transparent": true
+    },
+    "cobble": "cobble",
+    "grass_block": {
+      "top": "grass_top",
+      "side": "grass_side",
+      "bottom": "dirt"
+    },
     "snow_layer": {
       "all": "snow",
       "shape": "layer",

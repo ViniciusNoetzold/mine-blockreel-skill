@@ -31,7 +31,7 @@ Re-running `compose.py` overwrites it, so prefer fixing the plan.
 | `title`, `size`, `fps`, `seed` | as in `story.json` |
 | `style`, `styleOverride`, `post`, `sky`, `weather`, `lighting`, `textures`, `blocks` | copied into the story (see `docs/STORYBOARD.md`) |
 | `world` | `{ "biome", "radius", "arena": {"center":[x,z], "radius", "y"}, "trees", "water", "amp", "scale", "structures": [...], "extra": [...ops], "arenaFloor": "stone_bricks" }`, or a raw list of world ops |
-| `cast` | `name -> { "skin": "file.png" \| "persona": {...} \| "preset": "herobrine", "name": "Shown name", "holding": "diamond_sword", "offhand", "eyes": "glow", "hidden": true, "nametag": true }`, or a mob: `{ "mob": "zombie\|creeper\|pig\|spider", "hidden": true }` (the game's textures when cached; zombies walk with arms forward) |
+| `cast` | `name -> { "skin": "file.png" \| "persona": {...} \| "preset": "herobrine", "name": "Shown name", "holding": "diamond_sword", "offhand", "eyes": "glow", "hidden": true, "nametag": true }`, or a mob: `{ "mob": "cow", "hidden": true, "parts": ["saddle"] }` (any of ~70 game mobs when cached). Players also take `"armor"`, `"cape"`, `"elytra"`, `"offhand": "shield"` (the game's textures when cached; zombies walk with arms forward) |
 | `marks` | `name -> [x, z]` start positions (defaults: first actor south of the centre, second north) |
 | `beats` | the film, in order (below). Any beat may carry `"title"` (a title card over it), `"lighting"` (a key at its start) and `"music"` (override its mood) |
 | `music` | `{ "key": "D", "bpm": 108, "volume": 0.55 }` or `false` |
@@ -61,6 +61,7 @@ Biomes: `plains forest taiga desert snowy nether wasteland` (top block, trees, p
 | `build` | `who`, `structure: house\|tower\|ruins\|shrine\|pillar\|campfire` (+ `w d h r block`) or `blocks: [[block,[x,y,z]],...]`, `at: [x,z]`, `dur`, `holding` | a build timelapse: the builder works, blocks pop in bottom-up with the right dig sounds, the camera circles the site then looks over the builder's shoulder. The site is kept free of trees automatically |
 | `mine` | `who`, `blocks: [[x,y,z],...]`, `per`, `holding` | mining: cracks, debris and dig sounds block after block |
 | `creeper` | `who` (a creeper in the cast), `target` (actor or `[x,z]`), `radius`, `then` | creeps up, hisses, swells and explodes: crater, blocks of nearby builds blown away, the victim thrown |
+| `ride` | `who`, `mount` (a mob in the cast: horse, donkey, camel, pig, llama, strider, minecart...), `path: [[x,z],...]` or `to`, `run`, `dismount` | the rider walks to the mount, sits in the saddle, the mount walks or gallops along the path; tracking + front shots |
 | `chase` | `runner`, `chaser`, `path: [[x,z],...]`, `speed`, `lag`, `gap` | a run along waypoints with the pursuer half a second behind; tracking then front shots |
 | `silence` | `who`, `at`, `dur` | the held emotional beat after the climax: slow push-in, music silent |
 | `victory` | `who`, `do` | celebrate + level-up sound |

@@ -28,7 +28,7 @@ sys.path.insert(0, str(ROOT / "core"))
 STRIKE = {"slash": (0.6, 0.47), "overhead": (0.7, 0.48), "thrust": (0.55, 0.5), "swing": (0.7, 0.42), "punch": (0.5, 0.4), "lunge": (0.8, 0.5)}
 SECTION = {"establish": "calm", "walk": "calm", "line": "calm", "look": "calm", "act": "calm", "wait": "calm", "title": None,
            "reveal": "build", "faceoff": "build", "teleport": "build", "charge": "battle", "duel": "battle", "power": "battle",
-           "knockdown": "battle", "getup": "build", "finisher": "battle", "explode": "battle", "silence": "silence", "ending": "dawn", "victory": "dawn", "build": "calm", "mine": "calm", "creeper": "build", "chase": "battle"}
+           "knockdown": "battle", "getup": "build", "finisher": "battle", "explode": "battle", "silence": "silence", "ending": "dawn", "victory": "dawn", "build": "calm", "mine": "calm", "creeper": "build", "chase": "battle", "ride": "calm"}
 
 
 def v_add(a, b): return [a[0] + b[0], a[1] + b[1]]
@@ -88,7 +88,7 @@ class Film:
             default_mark = [cx, cz + 3.5] if i == 0 else [cx, cz - 3.5] if i == 1 else [cx + (i - 1) * 2.5, cz + 6]
             m = marks.get(name, default_mark); self.pos[name] = [float(m[0]), float(m[1])]
             a = {"skin": skin, "pos": [m[0], None, m[1]], "face": c.get("face", 180 if i == 0 else 0)}
-            for k in ("holding", "offhand", "model", "scale", "dust"):
+            for k in ("holding", "offhand", "model", "scale", "dust", "armor", "cape", "elytra"):
                 if k in c:
                     a[k] = c[k]
             if c.get("name") and c.get("nametag", self.p.get("nametags", False)):  # cinematic default: no floating name tags
@@ -717,6 +717,24 @@ class Film:
         self.cam(t, total * 0.5, "track", run, None, dir=last_dir, handheld=0.6, samples=samp)
         self.cam(t + total * 0.5, total * 0.5, "front", run, None, dir=last_dir, handheld=0.6, samples=samp)
         return total
+
+    def b_ride(self, b):
+        """Ride a mount (horse, pig, camel, minecart...) along a path: the rider sits in the saddle, the mount walks or gallops."""
+        who, mount = b["who"], b["mount"]; t = self.t; path = b.get("path") or [b["to"]]
+        if v_len(v_sub(self.pos[who], self.pos[mount])) > 0.3:  # mount up: walk to the mount first
+            t += self.walk_to(who, self.pos[mount], t); self.sound(["mob/horse/saddle", "step/wood1"], t, 0.4)
+        start = list(self.pos[mount]); tt = t
+        self.seg(t=tt, actor=who, do="ride", mount=mount, dur=1, hold=True)
+        for wp in path:
+            tt += self.walk_to(mount, wp, tt, run=b.get("run", False), speed=b.get("speed", 6.5 if b.get("run") else 3.2))
+        self.pos[who] = list(self.pos[mount]); total = tt - self.t
+        pts = [start] + [list(w) for w in path]; samp = [v_add(pts[i], v_mul(v_sub(pts[i + 1], pts[i]), f)) for i in range(len(pts) - 1) for f in (0, 0.5, 1)]
+        d = v_norm(v_sub(pts[-1], pts[-2])) if len(pts) > 1 else [0, -1]
+        self.cam(self.t, total * 0.55, "track", mount, None, dir=d, handheld=0.5, samples=samp)
+        self.cam(self.t + total * 0.55, total * 0.45, "front", who, None, dir=d, handheld=0.5, samples=samp)
+        if b.get("dismount", False):
+            self.seg(t=tt, actor=who, do="idle", to=self.p3(v_add(self.pos[mount], [1.2, 0])), dur=0.3); self.pos[who] = v_add(self.pos[mount], [1.2, 0])
+        return total + 0.2
 
     # ----------------------------------------------------------------------------------------------- build ----
     def build(self, music=True):

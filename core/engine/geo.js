@@ -7,7 +7,7 @@ const PX = 1 / 16;
 const S = Math.sin;
 const DEG = Math.PI / 180;
 
-function boxUV(THREE, w, h, d, u, v, TW, TH, grow, mirror) {
+export function boxUV(THREE, w, h, d, u, v, TW, TH, grow, mirror) {
   const g = new THREE.BoxGeometry(Math.max(1e-3, (w + grow * 2) * PX), Math.max(1e-3, (h + grow * 2) * PX), Math.max(1e-3, (d + grow * 2) * PX));
   const f = (x, y) => [x / TW, 1 - y / TH];
   const r = (x, y, ww, hh, flip) => (flip ? [f(x + ww, y), f(x, y), f(x + ww, y + hh), f(x, y + hh)] : [f(x, y), f(x + ww, y), f(x, y + hh), f(x + ww, y + hh)]);

@@ -34,11 +34,17 @@ relative to the story file. All times are in seconds on the **output timeline** 
   "face": 90,                        // heading in degrees; 0 faces +z, 90 faces +x
   "scale": 1, "nametag": "Hero", "holding": "diamond_sword", "offhand": "torch",   // items are extruded 3D sprites; a block name holds a block
   "blink": true,                     // automatic blinking (default true)
-  "dust": false                      // footstep dust puffs while walking/running
+  "dust": false,                     // footstep dust puffs while walking/running
+  "armor": "diamond",                // or { "helmet": "iron", "chestplate": "diamond", "leggings": "iron", "boots": "gold", "color": "#3a6ad0" (leather) }
+                                     // leather chainmail iron gold diamond netherite copper turtle_scute
+  "cape": "red",                     // red | blue | black (CC0) or "path/to/cape.png" (64x32 layout); swings with speed
+  "elytra": true                     // folded on the back; spreads with the "glide" clip (hides the cape, like the game)
 }
 ```
 
-Mobs use `type` + `texture` instead of `skin` (see `docs/MOBS.md`):
+`"offhand": "shield"` holds the game's shield on the outside of the left forearm; it turns to face forward during `guard`/`block`.
+
+Mobs use `type` (+ `texture` for the built-in rigs) instead of `skin` (see `docs/MOBS.md`; ~70 types with the game's geometry):
 `{ "type": "creeper" | "pig" | "spider", "texture": "...", "pos": [...], "face": 0, "scale": 1 }`.
 A zombie is a normal actor with a zombie-layout skin and the `zombie` clip.
 
@@ -79,6 +85,9 @@ Combat and magic (v0.2): `slash` (horizontal cut), `overhead` (two-handed chop),
 `dodge` (side-step lean), `summon` (arms rise), `getup`, `fall` (onto the back; `hold`), `throw` are one-shots;
 `ready` (sword stance), `guard`/`block`, `cast` (arms forward, trembling), `levitate` (float pose: move up with `to`), `kneel`, `bow` (draw),
 `charge` (run with the weapon forward), `celebrate`, `sneak`, `crouch`, `stagger` loop.
+Movement and life (v0.3): `swim` (breaststroke, horizontal), `crawl`, `climb` (move up with `to`), `ride` (with `"mount": "horse1"`:
+the actor sits on that actor's saddle and turns with it; the mount moves itself), `eat`, `drink`, `sleep` (lying, eyes closed), `glide`
+(horizontal, spreads the elytra).
 Mobs: `walk run swell hit die` (`swell` = creeper-style inflate and flash).
 The torso, head and arms lean together from the hips; legs stay planted.
 

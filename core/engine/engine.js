@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { ease, getEase, clamp01, actorState, lookState, aimAngles, worldTime, noise, hurtAt } from './anim.js';
 import { extrudeItem, mountItem } from './items.js';
+import { equip, shieldMesh } from './equip.js';
 import { loadFont, textCanvas, wrapRuns } from './font.js';
 import { buildParticles } from './particles.js';
 import { makeFace, faceStateAt } from './face.js';
@@ -373,7 +374,13 @@ async function makePlayer(name, cfg) {
   const wants = { right: new Set([cfg.holding].filter(Boolean)), left: new Set([cfg.offhand].filter(Boolean)) };
   for (const sg of story.timeline || []) if (sg.actor === name) { if (sg.holding) wants.right.add(sg.holding); if (sg.offhand) wants.left.add(sg.offhand); }
   for (const side of ['right', 'left']) for (const it of wants[side]) {
-    const arm = side === 'right' ? rArm : lArm; const obj = await heldObject(it);
+    const arm = side === 'right' ? rArm : lArm;
+    if (it === 'shield') { // the game's shield, upright along the outside of the forearm; turned to face forward while blocking
+      const sh = await shieldMesh(THREE, pixelTex, exists); if (!sh) continue;
+      const hold = new THREE.Group(); hold.position.set((side === 'left' ? 2.6 : -2.6) * PX, -7 * PX, 1.5 * PX); hold.rotation.y = (side === 'left' ? 1 : -1) * Math.PI / 2;
+      sh.userData.shield = true; hold.add(sh); arm.add(hold); hold.visible = false; hands[side][it] = hold; continue;
+    }
+    const obj = await heldObject(it);
     if (!obj) continue;
     const g = obj.item ? mountItem(THREE, arm, obj.item, { left: side === 'left', tilt: cfg.itemTilt }) : (() => { const h = new THREE.Group(); h.position.set(0, -10.5 * PX, 5 * PX); obj.mesh.position.set(0, 0, 0); h.add(obj.mesh); arm.add(h); return h; })();
     if (side === 'left' && legacy) g.scale.x = -1;
@@ -384,11 +391,20 @@ async function makePlayer(name, cfg) {
   const sc = cfg.scale ?? 1; root.scale.setScalar(sc);
   head.rotation.order = 'YXZ'; upper.rotation.order = 'YXZ';
   scene.add(root);
+  const eq = await equip(THREE, { head, body, rArm, lArm, rLeg, lLeg }, cfg, pixelTex, exists);
   for (const m of [base, over, face.material]) { m.emissiveMap = m.map; m.emissive = new THREE.Color(0, 0, 0); }
-  return { name, cfg, root, inner, upper, head, body, rArm, lArm, rLeg, lLeg, face, hands, mats: [base, over, face.material], headY: 1.9 * sc, eyeY: 1.62 * sc, _pos: [...(cfg.pos || [0, 1, 0])], _heading: 0 };
+  return { name, cfg, root, inner, upper, head, body, rArm, lArm, rLeg, lLeg, face, hands, equip: eq, mats: [base, over, face.material], headY: 1.9 * sc, eyeY: 1.62 * sc, _pos: [...(cfg.pos || [0, 1, 0])], _heading: 0 };
 }
 
 // ----------------------------------------------------- actors (see anim.js) ----
+// mounts are placed before their riders
+let _order = null;
+function actorOrder() {
+  if (_order) return _order;
+  const riders = new Set((story.timeline || []).filter((s) => s.mount).map((s) => s.actor));
+  _order = [...Object.values(actors).filter((a) => !riders.has(a.name)), ...Object.values(actors).filter((a) => riders.has(a.name))];
+  return _order;
+}
 const actorCtx = { posOf: (n, tt, depth) => (actors[n] ? actorState(story, actors[n], tt, actorCtx, depth).pos : [0, 0, 0]) };
 
 function applyActor(a, t) {
@@ -410,9 +426,24 @@ function applyActor(a, t) {
   if (a.hands) for (const side of ['right', 'left']) { // which item is in each hand now
     const key = side === 'right' ? 'holding' : 'offhand'; let cur = side === 'right' ? a.cfg.holding : a.cfg.offhand;
     for (const sg of story.timeline || []) { if (sg.actor !== a.name || sg.t > t) continue; if (key in sg) cur = sg[key]; }
-    for (const [n, g] of Object.entries(a.hands[side])) { g.visible = n === cur; if (side === 'right') g.rotation.x = p.wrist || 0; }
+    for (const [n, g] of Object.entries(a.hands[side])) {
+      g.visible = n === cur; if (side === 'right' && n !== 'shield') g.rotation.x = p.wrist || 0;
+      if (n === 'shield') { const blocking = /guard|block/.test(st.clip); g.rotation.set(blocking ? 1.1 : 0, (side === 'left' ? 1 : -1) * (blocking ? 0.15 : Math.PI / 2), 0); }
+    }
+  }
+  if (a.equip) a.equip.update(st, t);
+  a._clip = st.clip;
+  // riding: { "do": "ride", "mount": "horse1" } puts the actor on the mount's saddle, turning with it (the mount moves itself)
+  const mt = st.seg && st.seg.mount && actors[st.seg.mount];
+  if (mt && st.clip === 'ride') {
+    const seat = st.seg.seat ?? SEATS[mt.cfg.type] ?? Math.max(0.4, (mt.headY || 1.4) * 0.55); const back = st.seg.seatBack ?? SEAT_BACK[mt.cfg.type] ?? 0;
+    const h = mt._heading; const pos = [mt._pos[0] - Math.sin(h) * back, mt._pos[1] + seat - 0.62, mt._pos[2] - Math.cos(h) * back];
+    a.root.position.set(pos[0], pos[1], pos[2]); a.root.rotation.y = h + p.spinY; a._pos = pos; a._heading = h;
   }
 }
+// where a rider sits on each mount (feet height of the seat above the mount's feet, and how far back from its centre)
+const SEATS = { horse: 1.45, donkey: 1.3, skeleton_horse: 1.45, zombie_horse: 1.45, llama: 1.45, camel: 2.1, pig: 0.85, strider: 1.6, minecart: 0.55, boat: 0.4, polar_bear: 1.4, ravager: 2.0, spider: 0.95 };
+const SEAT_BACK = { horse: 0.1, donkey: 0.1, camel: 0.25, pig: 0.0 };
 
 // head follows a look-at target (actor, [x,y,z] or "camera"); camPos is null until the camera is placed
 function targetPoint(tg, camPos) {
@@ -681,8 +712,8 @@ function applyLighting(t, wt, camPos) {
 
 window.renderAt = (t) => {
   const wt = worldTime(story, t); // speed ramps (story.timeRemap) bend world time only; cuts, subtitles, titles use t
-  for (const a of Object.values(actors)) applyActor(a, wt);
-  for (const a of Object.values(actors)) { a.face.update(faceStateAt(story, a, wt)); }
+  for (const a of actorOrder()) applyActor(a, wt);
+  for (const a of Object.values(actors)) { const fs = faceStateAt(story, a, wt); if (a._clip === 'sleep') fs.eyes = 'closed'; a.face.update(fs); }
   updateWorld(wt); particles && particles.update(wt);
   for (const a of Object.values(actors)) applyLook(a, wt, null);
   const camPos = applyCamera(t, wt);
@@ -712,9 +743,10 @@ window.__pathCheck = (step = 0.05) => {
   const close = (key, list, t) => { const o = open[key]; if (o) { list.push({ ...o, t1: +t.toFixed(2) }); delete open[key]; } };
   for (let i = 0; i * step <= dur + 1e-6; i++) {
     const t = i * step, wt = worldTime(story, t);
-    for (const a of Object.values(actors)) applyActor(a, wt);
+    for (const a of actorOrder()) applyActor(a, wt);
     for (const [n, a] of Object.entries(actors)) {
       let hit = null;
+      if (a._clip === 'ride') { if (open[n]) { close(n, out.actors, t); } continue; } // a rider sits inside its mount's box
       if (a.root.visible) {
         const r = 0.22 * (a.cfg.scale ?? 1), ys = [0.15, a.headY * 0.5, a.headY * 0.9];
         outer: for (const y of ys) for (const [dx, dz] of [[0, 0], [r, r], [r, -r], [-r, r], [-r, -r]]) {

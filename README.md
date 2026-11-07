@@ -185,6 +185,11 @@ Each picture below is a real render from the matching `examples/*-lab` storyboar
 </details>
 
 <details>
+<summary><b>Equipment and movement</b>: armour, shield, cape, elytra; ride, swim, crawl, climb, eat, drink, sleep, glide</summary>
+<img src="docs/media/gallery-equipment.jpg" alt="Diamond armour with shield blocking, leather armour with a red cape running, elytra folded, riding a horse, swimming, crawling, eating, drinking, sleeping, gliding">
+</details>
+
+<details>
 <summary><b>Mobs</b>: about 70 mobs with the game's own geometry and texture, animated by bone names (<code>python tools/vanilla.py mobs</code>)</summary>
 <img src="docs/media/gallery-all-mobs.jpg" alt="About 70 mobs walking: cow, pig, sheep, chicken, wolf, cat, fox, horses, llama, villager, witch, illagers, golems, skeletons, zombies, piglins, creeper, spiders, enderman, ghast, bee, parrot, phantom, warden, ender dragon, wither, axolotl, dolphin, turtle, camel, sniffer, strider">
 </details>

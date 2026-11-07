@@ -15,7 +15,7 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 | Zombie / any humanoid mob | done | a normal actor with its texture and the `zombie` clip |
 | Mob-specific animations (a spider's crawl, a horse's gallop, a dragon's flight path) | partial | generic leg/arm/wing/tail rules; exact per-mob animations would need a Molang interpreter |
 | Baby mobs, mob variants | missing | |
-| Armor layers, capes, elytra, shields | missing | |
+| Armour layers (8 materials, leather tinted), shield, cape (swings with speed), elytra (folds / spreads) | done | the game's textures (`tools/vanilla.py equipment`) or CC0 originals |
 | Crowds of hundreds | missing | many actors work, but there is no instancing |
 
 ## Held items and props
@@ -35,9 +35,9 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 | swing hit lunge stance shout point raise zombie (anticipation, overshoot) | done |
 | Clip blending, turning, look-at, speed ramps | done |
 | slash overhead thrust guard dodge knockback (with hop) fall getup kneel cast summon levitate bow charge celebrate sneak crouch stagger | done |
-| swim, crawl, climb, ride a mob or vehicle, eat/drink, sleep, elytra glide | **missing** |
+| swim, crawl, climb, ride (mount system: horse, camel, pig, minecart...), eat, drink, sleep, glide | done |
 | Held-item-aware hand poses (arm follows the tool) | partial: `wrist` turns the blade along the arm in thrusts and slashes |
-| Inverse kinematics, cloth/cape physics | missing |
+| Inverse kinematics, cloth physics | missing | the cape is animated procedurally from speed |
 
 ## World
 
@@ -87,10 +87,8 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 ## Suggested order to close the gaps (highest impact first)
 
 1. **Molang animations** for exact per-mob motion (blaze rods, magma cube, gallop, flight).
-2. **Armor, capes, elytra, shields** layers.
-3. **Player clips**: swim, ride, eat, sleep, climb, crawl.
-4. **Doors/trapdoors/beds/signs as blocks**, villages, caves.
-5. **Motion blur**, crowd instancing, audio-driven lip-sync.
+2. **Doors/trapdoors/beds/signs as blocks**, villages, caves.
+3. **Motion blur**, crowd instancing, audio-driven lip-sync.
 
 ## Polish log
 

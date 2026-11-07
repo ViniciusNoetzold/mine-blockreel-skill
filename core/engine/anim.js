@@ -166,6 +166,16 @@ export const CLIPS = {
   crouch: () => ({ bodyRx: 0.5, rArm: [-0.4, 0, 0], lArm: [-0.4, 0, 0], sink: 0.18, head: [-0.45, 0, 0] }),
   charge: (t, sp = 1) => { const a = S(t * 12 * sp) * 1.2; return { rLeg: [a, 0, 0], lLeg: [-a, 0, 0], rArm: [-1.35 + S(t * 12 * sp) * 0.08, 0, 0.12], lArm: [a * 1.1 - 0.4, 0, 0], bodyRx: 0.32, bob: Math.abs(S(t * 12 * sp)) * 0.08, head: [-0.3, 0, 0] }; },
   stagger: (t) => ({ roll: S(t * 5) * 0.08, bodyRx: 0.2 + S(t * 3) * 0.06, head: [0.25, S(t * 4) * 0.2, 0], rArm: [-0.2, 0, -0.25 + S(t * 6) * 0.1], lArm: [-0.2, 0, 0.25 - S(t * 6) * 0.1] }),
+  // ---- movement and life (v0.3) ----
+  swim: (t) => { const u = (t * 1.1) % 1; const ax = kf(u, [[0, -3.0], [0.45, -1.5], [0.7, -0.2], [1, -3.0]]), az = kf(u, [[0, 0], [0.45, 1.3], [0.7, 0.25], [1, 0]]); const k = S(t * 9) * 0.35;
+    return { pitch: 1.38, rArm: [ax, 0, -az], lArm: [ax, 0, az], rLeg: [k, 0, 0], lLeg: [-k, 0, 0], head: [-1.0, 0, 0], bob: 0.05 * S(t * 2.2) }; }, // breaststroke arms, flutter kick, face forward
+  crawl: (t) => { const a = S(t * 4); return { pitch: 1.45, bob: 0.1, rArm: [-2.9 + a * 0.55, 0, -0.1], lArm: [-2.9 - a * 0.55, 0, 0.1], rLeg: [-a * 0.35, 0, 0], lLeg: [a * 0.35, 0, 0], head: [-1.1, 0, 0] }; },
+  climb: (t) => { const a = S(t * 5); return { rArm: [-2.7 + a * 0.35, 0, 0.1], lArm: [-2.7 - a * 0.35, 0, -0.1], rLeg: [-0.3 - a * 0.45, 0, 0], lLeg: [-0.3 + a * 0.45, 0, 0], head: [-0.25, 0, 0] }; },
+  ride: (t) => ({ rLeg: [-1.41, 0.31, 0.08], lLeg: [-1.41, -0.31, -0.08], rArm: [-0.63 + S(t * 3) * 0.03, 0, 0], lArm: [-0.63 - S(t * 3) * 0.03, 0, 0] }), // the game's riding pose
+  eat: (t) => ({ rArm: [-1.25 + S(t * 16) * 0.12, 0, 0.5], head: [0.12 + S(t * 16) * 0.03, 0, 0] }),
+  drink: (t) => ({ rArm: [-2.05, 0, 0.45], head: [-0.5, 0, 0], bodyRx: -0.05 }),
+  sleep: () => ({ pitch: -1.5708, sink: -0.12, rArm: [0, 0, -0.06], lArm: [0, 0, 0.06], head: [0, 0, 0] }),
+  glide: (t) => ({ pitch: 1.3, rArm: [0.35, 0, -0.35 + S(t * 3) * 0.03], lArm: [0.35, 0, 0.35 - S(t * 3) * 0.03], rLeg: [0.08, 0, 0.04], lLeg: [0.08, 0, -0.04], head: [-0.9, 0, 0] }),
   zombie: (t, sp = 1) => { const a = S(t * 6 * sp) * 0.55; return { rArm: [-1.5 + S(t * 3) * 0.06, 0, 0.05], lArm: [-1.5 - S(t * 3) * 0.06, 0, -0.05], rLeg: [a, 0, 0], lLeg: [-a, 0, 0], head: [0.08, S(t * 2) * 0.12, 0], bob: Math.abs(S(t * 6 * sp)) * 0.02 }; },
 };
 
@@ -261,7 +271,7 @@ export function actorState(story, a, t, ctx = {}, depth = 0) {
   }
   // hide / show flags: { "t": 5, "actor": "x", "hide": true } removes the actor (e.g. a mob that exploded) until a later "show"
   let hidden = false; for (const s of segsOf(story, a)) { if (s.t > t) break; if (s.hide) hidden = true; if (s.show) hidden = false; if (s.do === 'die' && s.vanish && t >= s.t + (s.dur ?? 1)) hidden = true; }
-  return { pos, heading, jumpY, pose, clip: cur.clip, ct: cur.ct, sp: cur.sp, dur: cur.dur, hidden, moving: cur.clip === 'walk' || cur.clip === 'run' };
+  return { pos, heading, jumpY, pose, clip: cur.clip, ct: cur.ct, sp: cur.sp, dur: cur.dur, hidden, seg: cur.seg, moving: cur.clip === 'walk' || cur.clip === 'run' };
 }
 
 // ------------------------------------------------------------- look-at ----

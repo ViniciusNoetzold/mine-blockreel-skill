@@ -231,8 +231,72 @@ EXTRA_INDEX = {
     "quartz": "quartz", "dark_oak_planks": "dark_oak_planks", "spruce_planks": "planks", "birch_planks": "planks",
     "stonebrick_mossy": "stonebrick", "mossy_stone_bricks": "stonebrick", "stonebrick_cracked": "stonebrick",
     "crafting_table": {"top": "planks", "side": "planks", "bottom": "planks"}, "dark_oak_log": {"top": "log_top", "side": "spruce_log", "bottom": "log_top"},
+    "oak_planks": "planks", "oak_log": {"top": "log_top", "side": "log_side", "bottom": "log_top"}, "oak_leaves": {"all": "leaves", "transparent": True},
+    "cobble": "cobble", "grass_block": {"top": "grass_top", "side": "grass_side", "bottom": "dirt"},
     "snow_layer": {"all": "snow", "shape": "layer", "height": 2}, "carpet_red": {"all": "wool_red", "shape": "layer", "height": 1},
 }
+
+
+# ------------------------------------------------------------------------------------------- equipment (v0.3) ----
+def _uvbox(u, v, w, h, d):
+    return {"top": (u + d, v, w, d), "bottom": (u + d + w, v, w, d), "right": (u, v + d, d, h), "front": (u + d, v + d, w, h),
+            "left": (u + d + w, v + d, d, h), "back": (u + 2 * d + w, v + d, w, h)}
+
+
+def _paint(im, rect, color, rows=None, seed=1, var=0.07, edge=True):
+    x0, y0, w, h = rect; rng = random.Random(seed)
+    for y in range(h):
+        if rows is not None and y not in rows:
+            continue
+        for x in range(w):
+            f = 1 + rng.uniform(-var, var) - (0.18 if edge and (y == h - 1 or x == w - 1) else 0) + (0.12 if edge and (y == 0 or x == 0) else 0)
+            im.putpixel((x0 + x, y0 + y), tuple(max(0, min(255, int(c * f))) for c in color) + (255,))
+
+
+def build_equipment():
+    """ORIGINAL armour (64x32 classic layout), cape, elytra and shield textures: fallbacks when the game's are not cached."""
+    out = OUT / "equipment"; (out / "humanoid").mkdir(parents=True, exist_ok=True); (out / "humanoid_leggings").mkdir(parents=True, exist_ok=True); (out / "wings").mkdir(parents=True, exist_ok=True)
+    mats = {"leather": (150, 96, 60), "chainmail": (150, 150, 156), "iron": (205, 205, 210), "gold": (240, 200, 60), "diamond": (90, 215, 210),
+            "netherite": (70, 62, 68), "copper": (205, 120, 80), "turtle_scute": (80, 160, 70)}
+    for i, (m, c) in enumerate(mats.items()):
+        a = Image.new("RGBA", (64, 32), (0, 0, 0, 0)); b = Image.new("RGBA", (64, 32), (0, 0, 0, 0))
+        head = _uvbox(0, 0, 8, 8, 8)
+        _paint(a, head["top"], c, seed=i); _paint(a, head["back"], c, seed=i + 1)
+        for f in ("right", "left"):
+            _paint(a, head[f], c, rows=range(0, 6), seed=i + 2)
+        _paint(a, head["front"], c, rows=range(0, 2), seed=i + 3)
+        for f, r in _uvbox(16, 16, 8, 12, 4).items():
+            _paint(a, r, c, seed=i + 4)
+        for f, r in _uvbox(40, 16, 4, 12, 4).items():
+            _paint(a, r, c, rows=range(0, 5) if f not in ("top", "bottom") else None, seed=i + 5)
+        for f, r in _uvbox(0, 16, 4, 12, 4).items():   # boots on layer 1: the bottom rows of the legs
+            _paint(a, r, c, rows=range(8, 12) if f not in ("top", "bottom") else None, seed=i + 6) if f != "top" else None
+        for f, r in _uvbox(16, 16, 8, 12, 4).items():  # leggings on layer 2: belt + legs
+            _paint(b, r, c, rows=range(8, 12) if f not in ("top", "bottom") else None, seed=i + 7) if f != "top" else None
+        for f, r in _uvbox(0, 16, 4, 12, 4).items():
+            _paint(b, r, c, rows=range(0, 9) if f not in ("top", "bottom") else None, seed=i + 8) if f != "bottom" else None
+        a.save(out / "humanoid" / f"{m}.png"); b.save(out / "humanoid_leggings" / f"{m}.png")
+    for name in ("leather_overlay",):
+        Image.new("RGBA", (64, 32), (0, 0, 0, 0)).save(out / "humanoid" / f"{name}.png"); Image.new("RGBA", (64, 32), (0, 0, 0, 0)).save(out / "humanoid_leggings" / f"{name}.png")
+    el = Image.new("RGBA", (64, 32), (0, 0, 0, 0))
+    for f, r in _uvbox(22, 0, 10, 20, 2).items():
+        _paint(el, r, (120, 120, 140), seed=70)
+    el.save(out / "wings" / "elytra.png")
+    sh = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    for f, r in _uvbox(0, 0, 12, 22, 1).items():
+        _paint(sh, r, (140, 100, 60), seed=71)
+    for f, r in _uvbox(26, 0, 2, 6, 6).items():
+        _paint(sh, r, (90, 70, 50), seed=72)
+    x0, y0, w, h = _uvbox(0, 0, 12, 22, 1)["front"]
+    for y in range(h):
+        for x in (0, w - 1):
+            sh.putpixel((x0 + x, y0 + y), (160, 160, 170, 255))
+    sh.save(out / "shield.png")
+    for name, col in (("red", (180, 30, 40)), ("blue", (40, 70, 170)), ("black", (30, 30, 36))):   # capes (64x32, cape box 10x16x1 at 0,0)
+        cp = Image.new("RGBA", (64, 32), (0, 0, 0, 0))
+        for f, r in _uvbox(0, 0, 10, 16, 1).items():
+            _paint(cp, r, col, seed=73)
+        (out / "capes").mkdir(exist_ok=True); cp.save(out / "capes" / f"{name}.png")
 
 
 def build():
@@ -352,6 +416,7 @@ def build():
                       slim=True, hair_style="long").save(OUT / "skins" / "explorer.png")
     skinlib.make_base("f1c27d", "cfcfcf", "5a3b8c", "6b3fa0", "2c2c3a", "1f1f26").save(OUT / "skins" / "villain.png")
     build_mobs()
+    build_equipment()
     print(f"wrote {len(T)} block textures, 3 skins and 4 sample mob textures to {OUT}")
 
 
