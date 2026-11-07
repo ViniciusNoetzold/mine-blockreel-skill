@@ -13,6 +13,15 @@ Work in the BlockReel folder (`$BLOCKREEL_HOME`, see the `blockreel` skill boots
 Use it exactly as sent: copy it into the film folder, `python core/skin.py validate` it (convert legacy 64x32 into a NEW file),
 and reference it in `story.json`. Never repaint a user's skin unless they ask. Only design a new skin when there is none.
 
+## 0b. The user sent a photo of themself
+
+Make *their* skin: look at the photo, fill a persona (`python core/persona.py example`), sample the real colours from flat regions of the
+photo (`python core/persona.py sample photo.jpg --region skin=x0,y0,x1,y1 --region hair=... --region top=... --region bottom=... --out colors.json`),
+paint (`python core/persona.py paint persona.json skin.png --colors colors.json --preview tt.png`), LOOK at the turntable, adjust once
+(hair style, facial hair, glasses, clothing type) and validate. The painter keeps the face rows BlockReel animates (brows 3, eyes 4,
+mouth 6) and gives hair and hoods volume on the overlay layer. Presets for other characters: `python core/persona.py preset herobrine|knight|ninja|wizard|miner out.png`.
+For a hand-crafted design go on with the steps below (persona output is a good base layer to refine).
+
 ## 1. Briefing (at most one short question)
 
 Settle: the **character** (who, role, mood), the **style** and **model**.

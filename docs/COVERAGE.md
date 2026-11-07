@@ -21,7 +21,7 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 | Need | Status | Notes |
 |---|---|---|
 | A block in the hand | done | `"holding": "planks"` |
-| Tools, swords, bows, torches as items (extruded sprite from an item texture) | **missing** | highest-impact gap for fight, mining and adventure scenes |
+| Tools, swords, bows, torches as items (extruded sprite from an item texture) | done | `holding`/`offhand`, switchable per segment; the blade follows the strike (`wrist`) |
 | Doors, chests | done | `props`; chest lid now 90° / 0.5 s / ease-out like the game. **Open:** the chest uses a block texture, not the entity texture (`entity/chest.png` is fetched but not mapped yet) |
 | Beds, signs, furnaces, minecarts, boats, rails | missing | |
 
@@ -32,8 +32,9 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 | idle walk run wave talk mine punch dance sit look scared jump die spin | done |
 | swing hit lunge stance shout point raise zombie (anticipation, overshoot) | done |
 | Clip blending, turning, look-at, speed ramps | done |
-| sneak, swim, crawl, climb, ride a mob or vehicle, draw a bow, eat/drink, sleep, elytra glide, emotes library | **missing** |
-| Held-item-aware hand poses (arm follows the tool) | missing |
+| slash overhead thrust guard dodge knockback (with hop) fall getup kneel cast summon levitate bow charge celebrate sneak crouch stagger | done |
+| swim, crawl, climb, ride a mob or vehicle, eat/drink, sleep, elytra glide | **missing** |
+| Held-item-aware hand poses (arm follows the tool) | partial: `wrist` turns the blade along the arm in thrusts and slashes |
 | Inverse kinematics, cloth/cape physics | missing |
 
 ## World
@@ -42,10 +43,13 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 |---|---|---|
 | Cube blocks with any texture, tops/sides/bottoms, transparency, emissive, flowing water/lava | done | |
 | Break, place, TNT, explosions, crack stages, debris | done | |
-| **Non-cube blocks**: stairs, slabs, fences, walls, trapdoors, torches, flowers, grass, vines, rails, redstone, pistons | **missing** | needed for believable builds |
-| Terrain generation, biomes, caves, large worlds | missing | worlds are hand-written ops; hundreds of thousands of blocks are not supported |
-| Trees | partial | one oak shape |
-| Sky: sun, moon, stars, moving clouds, lightning | partial | gradient sky, cubes clouds; no sun/moon/stars/lightning |
+| Non-cube blocks: stairs, slabs, fences, walls, torches, plants (cross), snow layers, carpets, fire | done | `core/engine/mesher.js` shapes |
+| Trapdoors, doors as blocks, vines, rails, redstone, pistons, signs, beds | missing | |
+| Face culling, the game's face shading, smooth-lighting AO, sky + block light propagation, mip-maps | done | no z-fighting, no shimmer, torches light the night |
+| Terrain generation, biomes, arena flattening, structures (house, tower, ruins, shrine, pillar, campfire) | done | `terrain` / `structure` ops; building sites are kept free of trees |
+| Caves, overhangs, villages, very large worlds | missing | ~40k blocks build in under a second; hundreds of thousands are not supported |
+| Trees | done | oak, birch, spruce, dead; trees blocking a camera are not planted |
+| Sky: sun, moon, stars, the game's cloud layer, lightning | done | dome with a level horizon, sunset glow |
 | Rain and snow | done | |
 
 ## Effects and look
@@ -55,7 +59,8 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 | Seeded cube particles: break, explosion, smoke, fire, sparks, dust, blood, confetti | done |
 | Bloom, depth of field, grain, grade, chromatic aberration, flash/whip/fade | done |
 | Motion blur | missing |
-| Potion swirls, enchant glyphs, portal particles, totem, fireworks | missing |
+| Crit stars, sweep arc, death poof, portal, aura, enchant dust, torch flame | done |
+| Potion swirls, totem, fireworks | missing |
 | Custom shaders (RTX-style reflections, ambient occlusion) | missing |
 
 ## Production
@@ -63,27 +68,34 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 | Need | Status |
 |---|---|
 | Pre-production flow, research, shot list, QA tool | done |
+| Director compiler: a short beat plan -> full story with coverage, fight choreography, sound and score | done: `tools/compose.py`, `docs/DIRECTOR-PLAN.md` |
+| Skin from a photo of a person (persona painter + colour sampling) | done: `core/persona.py` (the assistant reads the photo; the tool samples exact colours and paints) |
+| The game's font for name tags, chat subtitles, titles (accents included) | done (cached locally) |
 | Skins and textures: skills, turntable, tile checker, pack builder, in-scene preview | done (not tested in the game) |
 | Music, sfx, dialogue mix with ducking | done (you supply the audio) |
 | Original game textures and sound effects | done: `tools/vanilla.py fetch` / `sounds` into a local cache (not shipped) |
 | Background music | done: `tools/score.py` composes an original score from a section list (calm, build, battle, silence, dawn); synthesised, not orchestral |
 | Voices | done (offline): `tools/voice.py` with Piper neural pt-BR voices (CC0 datasets, fetched to `work/voices/`) or Windows OneCore voices with SSML, plus character presets. Piper has no female pt-BR voice; no audio-driven lip-sync |
-| Voice generation, audio-driven lip-sync | missing |
+| Audio-driven lip-sync | missing |
 | GIF / social crops (9:16), subtitles export (SRT) | missing |
 | YouTube-style channel openings | done: `tools/opening.py` (name in blocks, blast, orbit, logo hold, sound) |
 | Parallel rendering, 1080p60, GPU | done / untested GPU |
 
 ## Suggested order to close the gaps (highest impact first)
 
-1. **Held items from item textures** (swords, pickaxes, bows, torches) plus hand poses.
-2. **Non-cube blocks** (stairs, slabs, fences, torches, plants).
-3. **More mobs**: enderman, skeleton, villager, iron golem, cow, sheep, wolf.
-4. **Player clips**: sneak, swim, ride, bow draw, eat, sleep, climb, crawl.
-5. **Armor, capes, elytra** layers.
-6. **Sky**: sun, moon, stars, lightning; **motion blur**.
-7. Verified mob UV tables, crowd instancing.
+1. **More mobs**: enderman, skeleton, villager, iron golem, cow, sheep, wolf (and a verified UV table for each).
+2. **Armor, capes, elytra, shields** layers.
+3. **Player clips**: swim, ride, eat, sleep, climb, crawl.
+4. **Doors/trapdoors/beds/signs as blocks**, villages, caves.
+5. **Motion blur**, crowd instancing, audio-driven lip-sync.
 
 ## Polish log
+
+- **v0.2 fidelity pass (2026-11):** world mesher (culling, the game's face shading, AO, light propagation, mip-maps), sky dome with sun/moon/
+  stars/clouds and lightning, held items, combat clips, red damage tint and death poof, terrain and structures, the game font, the director
+  compiler, persona skins. Found and fixed while reviewing frames: a house generated inside a tree canopy (sites are now reserved), cameras
+  snapped onto tree tops or buried in leaves (cameras ignore canopies; trees blocking a lens are not planted), smoke hiding a face during
+  dialogue, a talking gesture raising the sword across the face, close-ups with the lens inside the other fighter.
 
 - **Walking through blocks (2026-11):** `tools/qa.py` now runs a dense path check (`window.__pathCheck`, every 0.05 s). On its first run it found
   real bugs in two films: in *The Last Torch* the courier ended the film inside the tower wall (fixed in `examples/last-torch`, the README

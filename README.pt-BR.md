@@ -30,6 +30,42 @@ Sem modelo de vídeo: cada quadro é desenhado pelo Three.js num Chrome headless
 
 ## Veja funcionando
 
+### Novo na v0.2: *Eu vs Herobrine* — um prompt, um plano, um filme
+
+<p align="center"><img src="docs/media/herobrine.gif" alt="Trecho de Eu vs Herobrine: aparição no raio, olhos brilhantes, duelo de espadas, golpe final em câmera lenta" width="720"></p>
+
+<p align="center"><a href="docs/media/herobrine.mp4"><b>▶ Assista ao filme de 40 s: <i>Eu vs Herobrine</i></b></a> (mp4, com os efeitos sonoros do jogo e trilha original)</p>
+
+<table>
+  <tr>
+    <td><img src="docs/media/herobrine-1-reveal.jpg" alt="Os olhos brilhantes do Herobrine depois do raio"></td>
+    <td><img src="docs/media/herobrine-2-duel.jpg" alt="Duelo de espadas na arena, partículas de crítico no golpe"></td>
+  </tr>
+  <tr>
+    <td><img src="docs/media/herobrine-3-lightning.jpg" alt="Herobrine invoca um raio sobre o herói"></td>
+    <td><img src="docs/media/herobrine-4-finisher.jpg" alt="Plano sobre o ombro antes do golpe decisivo"></td>
+  </tr>
+</table>
+
+O filme inteiro é o plano de 30 linhas em [`examples/herobrine-duel/plan.json`](examples/herobrine-duel/plan.json), compilado pelo
+`tools/compose.py` ([o diretor](docs/DIRECTOR-PLAN.md)): marcação, coreografia de luta, cobertura com a regra dos 180°, câmera lenta nos golpes
+decisivos, passos, espadas, escudo e trovões com os sons do jogo, e uma trilha que vai de calma → tensão → batalha → silêncio → amanhecer.
+O herói é uma **persona pintada a partir da descrição de uma foto** (`core/persona.py`); o Herobrine é um preset.
+
+O que deixa com cara de jogo (v0.2):
+
+- **O mundo é desenhado como o jogo desenha os chunks**: faces escondidas eliminadas (sem z-fighting, sem textura piscando, sem água
+  mostrando o que tem embaixo), sombreamento por face do jogo, oclusão de ambiente (smooth lighting), **luz do céu e de tochas propagada bloco
+  a bloco** (caverna é escura, tocha ilumina a noite com luz quente), mipmaps que impedem o "cintilar" de blocos distantes.
+- **Escadas, lajes, cercas, muros, tochas, flores, grama alta, fogo**; terreno com biomas, arena, água, árvores (carvalho, bétula, pinheiro) e
+  construções (casa, torre, ruínas, santuário) que **sempre ficam em chão limpo e nivelado** — nada de casa dentro de árvore.
+- **Céu**: sol e lua quadrados, estrelas, a camada de nuvens do jogo, raios que iluminam a cena.
+- **Espadas, ferramentas e arcos na mão**, extrudados dos sprites dos itens; golpes (corte, golpe por cima, estocada, guarda, esquiva, recuo
+  com pulo, queda, levantar, conjurar, invocar, levitar); o flash vermelho de dano e a fumaça branca da morte.
+- **A fonte do próprio jogo** em nametags, legendas no formato do chat (com acentos) e títulos.
+- **Sua foto vira sua skin**: o Claude descreve a pessoa, o `core/persona.py` lê as cores exatas da foto e pinta uma skin 64x64 válida no jogo.
+
+
 <p align="center"><img src="docs/media/demo.gif" alt="Trecho de The Last Torch: impasse, olhos brilhantes, armadilha de TNT e explosão" width="720"></p>
 
 <p align="center"><a href="docs/media/the-last-torch.mp4"><b>▶ Assista ao filme completo de 34 s: <i>The Last Torch</i></b></a> (mp4, 5 MB)</p>

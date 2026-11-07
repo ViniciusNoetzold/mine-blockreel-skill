@@ -59,6 +59,182 @@ def build_mobs():
     skinlib.make_base("7fb06a", "3a5230", "4a8a8a", "3e6f9e", "3b3b98", "2a2a2a").save(OUT / "mobs" / "sample-zombie-layout.png")
 
 
+# ----------------------------------------------------------------------------------------------- extras (v0.2) ----
+def _blank(size=16):
+    return Image.new("RGBA", (size, size), (0, 0, 0, 0))
+
+
+def _plant(stem, accent=None, seed=40, blades=7):
+    """Cross-shaped plant sprite (tall grass, flowers): thin vertical blades on transparency."""
+    rng = random.Random(seed); im = _blank()
+    for i in range(blades):
+        x = 1 + (i * 13 + rng.randrange(3)) % 14; top = rng.randrange(2, 9) if accent is None else rng.randrange(6, 11)
+        for y in range(top, 16):
+            lean = (y - top) // 5 * (1 if x < 8 else -1)
+            f = 0.75 + 0.35 * (y - top) / max(1, 16 - top)
+            im.putpixel((max(0, min(15, x - lean)), y), tuple(int(c * (1.15 - f * 0.4)) for c in stem) + (255,))
+    if accent:
+        for (x, y) in ((7, 3), (8, 3), (6, 4), (7, 4), (8, 4), (9, 4), (7, 5), (8, 5)):
+            im.putpixel((x, y), accent + (255,))
+        im.putpixel((7, 4), tuple(min(255, c + 60) for c in accent) + (255,))
+        for y in range(6, 16):
+            im.putpixel((8 if y % 4 else 7, y), stem + (255,))
+    return im
+
+
+def _torch(flame=((255, 236, 140), (255, 176, 40)), stick=(120, 86, 48)):
+    """Torch sprite: a 2-px stick (cols 7-8, rows 6-15) with a 2x2 flame head, like the block-model torch."""
+    im = _blank()
+    for y in range(8, 16):
+        for x in (7, 8):
+            im.putpixel((x, y), tuple(int(c * (0.85 if x == 8 else 1)) for c in stick) + (255,))
+    for (x, y, c) in ((7, 6, flame[0]), (8, 6, flame[1]), (7, 7, flame[1]), (8, 7, flame[0])):
+        im.putpixel((x, y), c + (255,))
+    return im
+
+
+def _tool(kind, head, dark, handle=(137, 103, 39), handle_dark=(73, 54, 21)):
+    """ORIGINAL 16x16 item sprites drawn on the diagonal like hand-held tools (blade/head up-right, grip down-left)."""
+    im = _blank(); P = lambda x, y, c: im.putpixel((x, y), c + (255,)) if 0 <= x < 16 and 0 <= y < 16 else None
+    light = tuple(min(255, int(c * 1.35) + 20) for c in head)
+    if kind == "sword":
+        for i in range(10):                 # blade: 3-px diagonal band from (14,1) to (5,10)
+            x, y = 14 - i, 1 + i
+            P(x, y, light); P(x - 1, y, head); P(x, y + 1, head); P(x - 1, y + 1, dark) if i < 9 else None
+        P(15, 0, dark); P(14, 0, dark); P(15, 1, dark)
+        for (x, y) in ((2, 9), (3, 10), (4, 11), (6, 13), (7, 14), (5, 12)):   # cross guard
+            P(x, y, dark)
+        for (x, y) in ((3, 9), (4, 10), (6, 12), (7, 13)):
+            P(x, y, head)
+        for i in range(4):                  # grip
+            P(3 - i + 1, 12 + i - 1, handle); P(3 - i, 12 + i - 1, handle_dark)
+        P(0, 15, dark); P(1, 15, dark); P(0, 14, dark)
+    elif kind in ("pickaxe", "axe", "shovel"):
+        for i in range(11):                 # handle along the diagonal
+            P(3 + i, 13 - i, handle); P(2 + i, 13 - i, handle_dark)
+        if kind == "pickaxe":
+            pts = [(4, 1), (5, 1), (6, 1), (7, 1), (8, 1), (9, 1), (10, 2), (11, 2), (12, 3), (13, 4), (13, 5), (14, 6), (14, 7), (14, 8), (14, 9), (14, 10)]
+            for j, (x, y) in enumerate(pts):
+                P(x, y, light if j % 3 else head); P(x, y + 1 if x < 12 else y, dark if j % 4 == 0 else head)
+            for (x, y) in ((3, 2), (15, 11)):
+                P(x, y, dark)
+        elif kind == "axe":
+            for y in range(1, 8):
+                for x in range(9, 15):
+                    if (x - 9) + (7 - y) >= 2 and (x - 9) - (y - 1) <= 4:
+                        P(x, y, light if x > 12 else head)
+            for (x, y) in ((9, 1), (14, 7), (8, 6), (13, 8)):
+                P(x, y, dark)
+        else:
+            for (x, y) in ((11, 1), (12, 1), (13, 1), (14, 2), (14, 3), (14, 4), (11, 2), (12, 2), (13, 2), (12, 3), (13, 3), (13, 4)):
+                P(x, y, light if x > 12 else head)
+    elif kind == "bow":
+        for i in range(12):                 # limb arc
+            x = 3 + i; y = 13 - i; bend = 2 if 3 < i < 8 else (1 if 1 < i < 10 else 0)
+            P(x + bend, y + bend, handle if i % 3 else handle_dark)
+        for i in range(11):                 # string
+            P(2 + i, 13 - i, (220, 220, 220))
+    elif kind == "stick":
+        for i in range(10):
+            P(4 + i, 13 - i, handle); P(3 + i, 13 - i, handle_dark)
+    return im
+
+
+def build_extras(T):
+    """Non-cube blocks, more cube blocks and items added in v0.2 (CC0, procedural)."""
+    T["tall_grass"] = _plant((96, 158, 62), seed=41, blades=9)
+    T["flower_red"] = _plant((60, 130, 44), accent=(214, 40, 40), seed=42, blades=2)
+    T["flower_yellow"] = _plant((60, 130, 44), accent=(246, 214, 52), seed=43, blades=2)
+    T["torch"] = _torch()
+    T["redstone_torch"] = _torch(flame=((255, 90, 70), (200, 20, 20)))
+    T["netherrack"] = speckle(noisy((112, 46, 46), 0.16, 44), (80, 26, 30), 30, 144)
+    sb = noisy((122, 122, 124), 0.05, 45)
+    for y in range(16):
+        for x in range(16):
+            if y in (0, 7, 8, 15) or x in ((0, 15) if y < 8 else (7, 8)):
+                sb.putpixel((x, y), (84, 84, 88, 255))
+    T["stonebrick"] = sb
+    T["mossy_cobble"] = speckle(speckle(T["cobble"].copy(), (70, 110, 50), 30, 146), (90, 130, 60), 14, 147)
+    T["gravel"] = speckle(speckle(noisy((132, 126, 122), 0.16, 48), (90, 86, 84), 30, 148), (170, 160, 156), 20, 149)
+    T["bedrock"] = speckle(noisy((84, 84, 84), 0.35, 50), (30, 30, 30), 40, 150)
+    T["birch_log"] = noisy((216, 214, 204), 0.04, 51)
+    for (x, y) in ((2, 3), (3, 3), (9, 7), (10, 7), (11, 7), (5, 12), (6, 12), (13, 1), (14, 13), (0, 9)):
+        T["birch_log"].putpixel((x, y), (52, 48, 44, 255))
+    T["spruce_log"] = noisy((74, 52, 30), 0.08, 52)
+    T["spruce_leaves"] = speckle(noisy((52, 88, 56), 0.16, 53), (34, 64, 40), 30, 153)
+    T["birch_leaves"] = speckle(noisy((110, 150, 70), 0.16, 54), (80, 120, 50), 30, 154)
+    T["iron_block"] = noisy((220, 220, 222), 0.04, 55)
+    T["redstone_block"] = noisy((170, 24, 14), 0.10, 56)
+    T["sandstone"] = noisy((216, 202, 152), 0.04, 57)
+    T["soul_sand"] = speckle(noisy((84, 64, 50), 0.12, 58), (54, 40, 32), 26, 158)
+    T["ice"] = noisy((150, 186, 246), 0.05, 59, alpha=210)
+    T["blackstone"] = speckle(noisy((44, 38, 46), 0.14, 60), (26, 22, 28), 24, 160)
+    T["crying_obsidian"] = speckle(T["obsidian"].copy(), (150, 60, 230), 18, 161)
+    T["magma"] = speckle(noisy((120, 40, 14), 0.15, 61), (255, 140, 30), 26, 162)
+    T["lantern"] = _torch(flame=((255, 230, 150), (240, 170, 60)), stick=(60, 60, 70))
+    fire = _blank(); rng = random.Random(63)
+    for x in range(16):
+        top = 3 + int(5 * abs(((x * 7) % 11) / 11 - 0.5) * 2) + rng.randrange(3)
+        for y in range(top, 16):
+            k = (y - top) / max(1, 15 - top)
+            fire.putpixel((x, y), (255, int(230 - 150 * k), int(120 - 110 * k), 255) if (x + y) % 5 or k > 0.3 else (255, 250, 200, 255))
+    T["fire"] = fire
+    T["dead_bush"] = _plant((140, 100, 52), seed=64, blades=6)
+    T["quartz"] = noisy((236, 230, 222), 0.025, 65)
+    T["dark_oak_planks"] = noisy((74, 50, 26), 0.05, 66)
+    for y in (3, 7, 11, 15):
+        for x in range(16):
+            T["dark_oak_planks"].putpixel((x, y), (50, 32, 16, 255))
+    I = {}
+    for name, head, dark in (("wooden", (150, 116, 60), (90, 66, 30)), ("stone", (140, 140, 140), (80, 80, 80)),
+                             ("iron", (216, 216, 216), (110, 110, 116)), ("golden", (250, 220, 70), (170, 120, 20)),
+                             ("diamond", (80, 230, 220), (20, 120, 120)), ("netherite", (80, 70, 78), (36, 30, 34))):
+        for kind in ("sword", "pickaxe", "axe", "shovel"):
+            I[f"{name}_{kind}"] = _tool(kind, head, dark)
+    I["bow"] = _tool("bow", (0, 0, 0), (0, 0, 0)); I["stick"] = _tool("stick", (0, 0, 0), (0, 0, 0))
+    I["torch"] = T["torch"]
+    sun = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    for y in range(8, 24):
+        for x in range(8, 24):
+            edge = x in (8, 23) or y in (8, 23)
+            sun.putpixel((x, y), (255, 236, 150, 255) if edge else (255, 250, 210, 255))
+    moon = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    rng = random.Random(62)
+    for y in range(10, 22):
+        for x in range(10, 22):
+            v = 214 + rng.randrange(-20, 20) - (30 if (x - 13) ** 2 + (y - 14) ** 2 < 4 or (x - 18) ** 2 + (y - 18) ** 2 < 3 else 0)
+            moon.putpixel((x, y), (v, v, v + 8, 255))
+    return I, {"sun": sun, "moon": moon}
+
+
+EXTRA_INDEX = {
+    "tall_grass": {"all": "tall_grass", "shape": "cross"}, "flower_red": {"all": "flower_red", "shape": "cross"},
+    "flower_yellow": {"all": "flower_yellow", "shape": "cross"}, "poppy": {"all": "flower_red", "shape": "cross"},
+    "dandelion": {"all": "flower_yellow", "shape": "cross"},
+    "torch": {"all": "torch", "shape": "torch", "light": 14}, "redstone_torch": {"all": "redstone_torch", "shape": "torch", "light": 7, "lightColor": "#ff4030"},
+    "lantern": {"all": "lantern", "shape": "torch", "light": 15},
+    "netherrack": "netherrack", "stonebrick": "stonebrick", "stone_bricks": "stonebrick", "mossy_cobblestone": "mossy_cobble",
+    "gravel": "gravel", "bedrock": "bedrock", "iron_block": "iron_block", "redstone_block": "redstone_block",
+    "sandstone": "sandstone", "soul_sand": "soul_sand", "blackstone": "blackstone", "crying_obsidian": {"all": "crying_obsidian", "light": 10, "lightColor": "#a040ff"},
+    "magma": {"all": "magma", "emissive": True, "light": 3},
+    "ice": {"all": "ice", "transparent": True},
+    "birch_log": {"top": "log_top", "side": "birch_log", "bottom": "log_top"},
+    "spruce_log": {"top": "log_top", "side": "spruce_log", "bottom": "log_top"},
+    "birch_leaves": {"all": "birch_leaves", "transparent": True}, "spruce_leaves": {"all": "spruce_leaves", "transparent": True},
+    "stone_slab": {"all": "stone", "shape": "slab"}, "cobblestone_slab": {"all": "cobble", "shape": "slab"},
+    "planks_slab": {"all": "planks", "shape": "slab"}, "oak_slab": {"all": "planks", "shape": "slab"},
+    "cobblestone_stairs": {"all": "cobble", "shape": "stairs"}, "planks_stairs": {"all": "planks", "shape": "stairs"},
+    "oak_stairs": {"all": "planks", "shape": "stairs"}, "stone_brick_stairs": {"all": "stonebrick", "shape": "stairs"},
+    "oak_fence": {"all": "planks", "shape": "fence"}, "fence": {"all": "planks", "shape": "fence"},
+    "cobblestone_wall": {"all": "cobble", "shape": "wall"},
+    "fire": {"all": "fire", "shape": "cross", "emissive": True, "light": 15}, "dead_bush": {"all": "dead_bush", "shape": "cross"},
+    "quartz": "quartz", "dark_oak_planks": "dark_oak_planks", "spruce_planks": "planks", "birch_planks": "planks",
+    "stonebrick_mossy": "stonebrick", "mossy_stone_bricks": "stonebrick", "stonebrick_cracked": "stonebrick",
+    "crafting_table": {"top": "planks", "side": "planks", "bottom": "planks"}, "dark_oak_log": {"top": "log_top", "side": "spruce_log", "bottom": "log_top"},
+    "snow_layer": {"all": "snow", "shape": "layer", "height": 2}, "carpet_red": {"all": "wool_red", "shape": "layer", "height": 1},
+}
+
+
 def build():
     (OUT / "blocks").mkdir(parents=True, exist_ok=True)
     (OUT / "skins").mkdir(parents=True, exist_ok=True)
@@ -143,8 +319,14 @@ def build():
     for y in range(16):
         ch.putpixel((7, y), (190, 190, 196, 255)); ch.putpixel((8, y), (150, 150, 158, 255))
     T["chest"] = ch
+    items, env = build_extras(T)
     for name, im in T.items():
         im.save(OUT / "blocks" / f"{name}.png")
+    (OUT / "items").mkdir(parents=True, exist_ok=True); (OUT / "env").mkdir(parents=True, exist_ok=True)
+    for name, im in items.items():
+        im.save(OUT / "items" / f"{name}.png")
+    for name, im in env.items():
+        im.save(OUT / "env" / f"{name}.png")
     index = {
         "blocks": {
             "grass": {"top": "grass_top", "side": "grass_side", "bottom": "dirt"},
@@ -158,6 +340,10 @@ def build():
             "tnt": {"top": "tnt_top", "side": "tnt_side", "bottom": "tnt_top"},
             "wool_white": "wool_white", "wool_red": "wool_red", "wool_blue": "wool_blue",
             "gold": "gold", "diamond": "diamond",
+            "glowstone": {"all": "glowstone", "emissive": True, "light": 15},
+            "lava": {"all": "lava", "flow": [0, 0.22], "emissive": True, "light": 15, "liquid": True},
+            "water": {"all": "water", "transparent": True, "flow": [0, 0.12], "liquid": True},
+            **EXTRA_INDEX,
         }
     }
     (OUT / "blocks" / "index.json").write_text(json.dumps(index, indent=2))

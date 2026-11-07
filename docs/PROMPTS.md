@@ -83,3 +83,15 @@ Plan one palette for the whole set, make every tile seamless, run tilecheck and 
 ```text
 Here is a screenshot of my skin (attached). Turn it into a clean 64x64 PNG, tell me if it is slim or classic, and show me a turntable. If rows are missing, say so instead of guessing.
 ```
+
+## Fights, reveals and you in the film (v0.2, the director)
+
+- *"Me faça no Minecraft e crie uma batalha minha contra o Herobrine."* (attach a photo of yourself or your skin)
+  → persona skin from the photo, `preset: herobrine`, night, shrine, lightning reveal, duel, teleport, lightning power, finisher,
+  silence, ending card. Start: `python tools/compose.py --example`.
+- *"Uma luta de espadas entre meu personagem e um cavaleiro numa arena de pedra ao pôr do sol, câmera lenta no golpe final."*
+  → `golden-hour`, `world.arenaFloor: "stone_bricks"`, `preset: knight`, `faceoff` + `duel` + `finisher`.
+- *"Herobrine aparece atrás de mim numa caverna escura com tochas."* → hand-built cave (`hollow` + torches), `reveal` with `fx: portal`,
+  `teleport` to `behind:me`, `line` with `emotion: scared`.
+- *"Um vídeo calmo: eu e meu cachorro vendo o pôr do sol numa colina, sem ação."* → `walk`, `act` (`sit`, hold), `wait`, `ending`; music
+  `calm`/`dawn` only.

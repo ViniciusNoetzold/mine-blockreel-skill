@@ -76,10 +76,10 @@ export function makeFace(THREE, img, head, PX, pixelFilters) {
   const grad = g2.createLinearGradient(0, 0, 128, 0); grad.addColorStop(0, 'rgba(255,255,255,0)'); grad.addColorStop(0.5, 'rgba(255,255,255,1)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
   g2.fillStyle = grad; g2.fillRect(0, 5, 128, 6); const g3 = g2.createLinearGradient(0, 0, 0, 16); g3.addColorStop(0, 'rgba(255,255,255,0)'); g3.addColorStop(0.5, 'rgba(255,255,255,.7)'); g3.addColorStop(1, 'rgba(255,255,255,0)');
   g2.globalCompositeOperation = 'destination-in'; g2.fillStyle = g3; g2.fillRect(0, 0, 128, 16);
-  const streakMat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c2), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, opacity: 0.8 });
+  const streakMat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c2), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, opacity: 0.5 });
   const glow = new THREE.Group(); glow.visible = false;
   for (const x of [-2, 2]) { const m = new THREE.Mesh(new THREE.PlaneGeometry(2 * PX, 2 * PX), eyeMat); m.position.set(x * PX, 4 * PX, 4.62 * PX); glow.add(m); }
-  const streak = new THREE.Mesh(new THREE.PlaneGeometry(26 * PX, 3 * PX), streakMat); streak.position.set(0, 4 * PX, 4.7 * PX); glow.add(streak);
+  const streak = new THREE.Mesh(new THREE.PlaneGeometry(17 * PX, 2 * PX), streakMat); streak.position.set(0, 4 * PX, 4.7 * PX); glow.add(streak);
   head.add(glow);
 
   let key = '';

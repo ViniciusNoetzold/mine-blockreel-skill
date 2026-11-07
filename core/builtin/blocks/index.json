@@ -23,7 +23,8 @@
     "obsidian": "obsidian",
     "glowstone": {
       "all": "glowstone",
-      "emissive": true
+      "emissive": true,
+      "light": 15
     },
     "snow": "snow",
     "water": {
@@ -32,7 +33,8 @@
       "flow": [
         0,
         0.12
-      ]
+      ],
+      "liquid": true
     },
     "lava": {
       "all": "lava",
@@ -40,7 +42,9 @@
         0,
         0.22
       ],
-      "emissive": true
+      "emissive": true,
+      "light": 15,
+      "liquid": true
     },
     "chest": "chest",
     "glass": {
@@ -56,6 +60,166 @@
     "wool_red": "wool_red",
     "wool_blue": "wool_blue",
     "gold": "gold",
-    "diamond": "diamond"
+    "diamond": "diamond",
+    "tall_grass": {
+      "all": "tall_grass",
+      "shape": "cross"
+    },
+    "flower_red": {
+      "all": "flower_red",
+      "shape": "cross"
+    },
+    "flower_yellow": {
+      "all": "flower_yellow",
+      "shape": "cross"
+    },
+    "poppy": {
+      "all": "flower_red",
+      "shape": "cross"
+    },
+    "dandelion": {
+      "all": "flower_yellow",
+      "shape": "cross"
+    },
+    "torch": {
+      "all": "torch",
+      "shape": "torch",
+      "light": 14
+    },
+    "redstone_torch": {
+      "all": "redstone_torch",
+      "shape": "torch",
+      "light": 7,
+      "lightColor": "#ff4030"
+    },
+    "lantern": {
+      "all": "lantern",
+      "shape": "torch",
+      "light": 15
+    },
+    "netherrack": "netherrack",
+    "stonebrick": "stonebrick",
+    "stone_bricks": "stonebrick",
+    "mossy_cobblestone": "mossy_cobble",
+    "gravel": "gravel",
+    "bedrock": "bedrock",
+    "iron_block": "iron_block",
+    "redstone_block": "redstone_block",
+    "sandstone": "sandstone",
+    "soul_sand": "soul_sand",
+    "blackstone": "blackstone",
+    "crying_obsidian": {
+      "all": "crying_obsidian",
+      "light": 10,
+      "lightColor": "#a040ff"
+    },
+    "magma": {
+      "all": "magma",
+      "emissive": true,
+      "light": 3
+    },
+    "ice": {
+      "all": "ice",
+      "transparent": true
+    },
+    "birch_log": {
+      "top": "log_top",
+      "side": "birch_log",
+      "bottom": "log_top"
+    },
+    "spruce_log": {
+      "top": "log_top",
+      "side": "spruce_log",
+      "bottom": "log_top"
+    },
+    "birch_leaves": {
+      "all": "birch_leaves",
+      "transparent": true
+    },
+    "spruce_leaves": {
+      "all": "spruce_leaves",
+      "transparent": true
+    },
+    "stone_slab": {
+      "all": "stone",
+      "shape": "slab"
+    },
+    "cobblestone_slab": {
+      "all": "cobble",
+      "shape": "slab"
+    },
+    "planks_slab": {
+      "all": "planks",
+      "shape": "slab"
+    },
+    "oak_slab": {
+      "all": "planks",
+      "shape": "slab"
+    },
+    "cobblestone_stairs": {
+      "all": "cobble",
+      "shape": "stairs"
+    },
+    "planks_stairs": {
+      "all": "planks",
+      "shape": "stairs"
+    },
+    "oak_stairs": {
+      "all": "planks",
+      "shape": "stairs"
+    },
+    "stone_brick_stairs": {
+      "all": "stonebrick",
+      "shape": "stairs"
+    },
+    "oak_fence": {
+      "all": "planks",
+      "shape": "fence"
+    },
+    "fence": {
+      "all": "planks",
+      "shape": "fence"
+    },
+    "cobblestone_wall": {
+      "all": "cobble",
+      "shape": "wall"
+    },
+    "fire": {
+      "all": "fire",
+      "shape": "cross",
+      "emissive": true,
+      "light": 15
+    },
+    "dead_bush": {
+      "all": "dead_bush",
+      "shape": "cross"
+    },
+    "quartz": "quartz",
+    "dark_oak_planks": "dark_oak_planks",
+    "spruce_planks": "planks",
+    "birch_planks": "planks",
+    "stonebrick_mossy": "stonebrick",
+    "mossy_stone_bricks": "stonebrick",
+    "stonebrick_cracked": "stonebrick",
+    "crafting_table": {
+      "top": "planks",
+      "side": "planks",
+      "bottom": "planks"
+    },
+    "dark_oak_log": {
+      "top": "log_top",
+      "side": "spruce_log",
+      "bottom": "log_top"
+    },
+    "snow_layer": {
+      "all": "snow",
+      "shape": "layer",
+      "height": 2
+    },
+    "carpet_red": {
+      "all": "wool_red",
+      "shape": "layer",
+      "height": 1
+    }
   }
 }

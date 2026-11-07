@@ -37,6 +37,41 @@ code that follows the film's energy (`tools/score.py`: calm → build → battle
 
 ## See it
 
+### New in v0.2: *Eu vs Herobrine* — one prompt, one plan, one film
+
+<p align="center"><img src="docs/media/herobrine.gif" alt="Excerpt of Eu vs Herobrine: lightning reveal, glowing eyes, sword duel, slow-motion finisher" width="720"></p>
+
+<p align="center"><a href="docs/media/herobrine.mp4"><b>▶ Watch the 40 s film: <i>Eu vs Herobrine</i></b></a> (mp4, with the game's sound effects and an original score)</p>
+
+<table>
+  <tr>
+    <td><img src="docs/media/herobrine-1-reveal.jpg" alt="Herobrine's glowing eyes after the lightning strike"></td>
+    <td><img src="docs/media/herobrine-2-duel.jpg" alt="Sword duel on the arena, crit stars on the hit"></td>
+  </tr>
+  <tr>
+    <td><img src="docs/media/herobrine-3-lightning.jpg" alt="Herobrine calls lightning down on the hero"></td>
+    <td><img src="docs/media/herobrine-4-finisher.jpg" alt="Over-the-shoulder before the decisive blow"></td>
+  </tr>
+</table>
+
+The whole film is the 30-line plan in [`examples/herobrine-duel/plan.json`](examples/herobrine-duel/plan.json), compiled by
+`tools/compose.py` ([the director](docs/DIRECTOR-PLAN.md)): blocking, fight choreography, 180°-rule coverage, slow motion on the
+decisive hits, footsteps, sword, shield and thunder sounds from the game, and a score that goes calm → build → battle → silence → dawn.
+The hero is a **persona painted from a description of a photo** (`core/persona.py`); Herobrine is a preset.
+
+What makes it look like the game (v0.2):
+
+- **The world is drawn like the game draws chunks**: hidden faces culled (no z-fighting, no flicker, no see-through water), the game's
+  per-face shading, smooth-lighting ambient occlusion, **sky light and torch light propagated block by block** (caves are dark, torches
+  light the night warmly), alpha-aware mip-maps so distant blocks never shimmer.
+- **Stairs, slabs, fences, walls, torches, flowers, tall grass, fire**; terrain with biomes, an arena, water, oak/birch/spruce trees and
+  buildings (house, tower, ruins, shrine) that **always stand on clear, levelled ground** — no house inside a tree.
+- **Sky**: square sun and moon, stars, the game's cloud layer, lightning that lights the scene.
+- **Held swords, tools and bows** extruded from the item sprites; combat clips (slash, overhead, thrust, guard, dodge, knock-back with a
+  hop, fall, get up, cast, summon, levitate); the red damage flash and the white death poof.
+- **The game's own font** for name tags, chat subtitles (accents included) and titles.
+
+
 <p align="center"><img src="docs/media/farol-negro.gif" alt="Excerpt of Farol Negro: a creeper charges, a slow-motion punch, the TNT trap and the blast" width="720"></p>
 
 <p align="center">

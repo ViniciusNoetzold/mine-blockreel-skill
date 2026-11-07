@@ -77,7 +77,7 @@ def open_page(pw, port, story_path, story, scale, gpu, allow_missing=False):
     browser = pw.chromium.launch(**kw)
     W, H = story.get("size", [1280, 720])
     page = browser.new_page(viewport={"width": int(W * scale) // 2 * 2, "height": int(H * scale) // 2 * 2})
-    page.on("console", lambda m: print("[page]", m.text) if m.type in ("error", "warning") and "willReadFrequently" not in m.text else None)
+    page.on("console", lambda m: print("[page]", m.text) if m.type in ("error", "warning") and "willReadFrequently" not in m.text and "status of 404" not in m.text else None)
     page.goto(f"http://127.0.0.1:{port}/core/engine/index.html?project=/project/{story_path.name}&res={scale}")
     page.wait_for_function("window.__ready === true || window.__error", timeout=120000)
     err = page.evaluate("window.__error || null")
