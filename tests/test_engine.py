@@ -127,3 +127,25 @@ def test_qa_path_check_catches_walking_through_blocks(render, tmp_path):
     assert any(f.startswith("intree is inside log") for f in fails), fails
     assert any(f.startswith("ghost is inside stone at [0,") for f in fails), fails
     assert not any(f.startswith(("polite", "after")) for f in fails), fails
+
+
+def test_qa_reels_reviews_native_portrait_and_keeps_source(render, tmp_path):
+    import json
+    import qa
+
+    story = {
+        "size": [320, 180], "duration": 1, "textures": "builtin", "styleOverride": {"letterbox": 2.05},
+        "world": [{"fill": ["grass", [-4, 0, -4], [4, 0, 4]]}],
+        "camera": [{"t": 0, "dur": 1, "pos": [2, 3, 6], "look": [0, 1, 0]}],
+    }
+    source = tmp_path / "story.json"
+    original = json.dumps(story)
+    source.write_text(original, encoding="utf-8")
+    assert qa.main([str(source), "--preset", "reels", "--scale", "0.2", "--min-frames", "2"]) == 0
+    frames = tmp_path / "qa" / "frames"
+    with Image.open(next(frames.glob("*.png"))) as first:
+        assert first.size == (216, 384)
+        assert max(first.convert("RGB").getpixel((108, 10))) > 20
+    assert (tmp_path / "qa.md").exists()
+    assert source.read_text(encoding="utf-8") == original
+    assert not list(tmp_path.glob("*.render.json"))

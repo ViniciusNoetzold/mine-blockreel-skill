@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#first-night"><b>▶ Assista a Primeira Noite no navegador, com som (60 segundos)</b></a><br>
+  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#first-night"><b>▶ Assista a Primeira Noite com som (60 segundos)</b></a> · <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#first-night-reel"><b>Assista ao Reel vertical 9:16</b></a><br>
   Um jogador corre contra o pôr do sol, se tranca dentro de uma encosta e descobre o que a luz da tocha escondia.<br>
   <a href="examples/first-night/">Arquivos de produção</a> · <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#aurora-express">▶ Assista a Aurora Express (30 segundos)</a>
 </p>
@@ -163,7 +163,7 @@ Também dá para fazer aberturas de canal, timelapses de construção, história
 | HUD opcional | Chat de eventos, barra rápida, inventário e receitas encenadas. [Guia de HUD](docs/HUD.md) |
 | Câmera e efeitos | Órbita, câmera na mão, primeira pessoa, mudança de foco, rampas de velocidade, partículas e tratamento de cor |
 | Som | Trilha original, efeitos sincronizados, vozes offline opcionais e redução da música durante as falas |
-| Entrega | MP4, GIF, render vertical 9:16, legendas SRT e miniatura |
+| Entrega | MP4, GIF, [Reels em 9:16](docs/REELS.md), legendas SRT e miniatura |
 
 <details>
 <summary><b>Veja quadros renderizados no motor</b></summary>

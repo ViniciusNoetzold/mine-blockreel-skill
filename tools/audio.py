@@ -98,12 +98,12 @@ def build(story, base_dir, start=0.0, end=None):
     return inputs, ";".join(chains), "[aout]"
 
 
-def render_audio(story, base_dir, out, start=0.0, end=None):
+def render_audio(story, base_dir, out, start=0.0, end=None, *, sample_rate=44100):
     g = build(story, base_dir, start, end)
     if g is None:
         return False
     inputs, fc, label = g
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", *inputs, "-filter_complex", fc, "-map", label, "-ar", "44100", "-ac", "2", str(out)], check=True)
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", *inputs, "-filter_complex", fc, "-map", label, "-ar", str(sample_rate), "-ac", "2", str(out)], check=True)
     return True
 
 

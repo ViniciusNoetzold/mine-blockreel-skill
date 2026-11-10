@@ -76,6 +76,12 @@
       background: #080b0a;
       border: 1px solid var(--line);
     }
+    video.portrait {
+      width: min(100%, 23rem);
+      width: min(100%, 23rem, 43svh);
+      aspect-ratio: 9 / 16;
+      margin-inline: auto;
+    }
     .links { display: flex; flex-wrap: wrap; gap: .5rem 1rem; }
     footer { color: var(--muted); border-bottom: 0; font-size: .9rem; }
 
@@ -107,6 +113,7 @@
       <a class="brand" href="./" aria-label="BlockReel Films home">BlockReel</a>
       <nav aria-label="Films">
         <a href="#first-night">Primeira Noite</a>
+        <a href="#first-night-reel">9:16 Reel</a>
         <a href="#aurora-express">Aurora Express</a>
         <a href="#archive">Archive</a>
         <a href="https://github.com/ViniciusNoetzold/mine-blockreel-skill-">GitHub ↗</a>
@@ -130,7 +137,24 @@
       </video>
       <div class="links">
         <a href="https://github.com/ViniciusNoetzold/mine-blockreel-skill-/tree/main/examples/first-night">Production files</a>
+        <a href="#first-night-reel">Watch the vertical Reel</a>
         <a href="media/first-night/showcase.mp4" download="Primeira-Noite.mp4">Download MP4</a>
+      </div>
+    </article>
+
+    <article id="first-night-reel" aria-labelledby="first-night-reel-title">
+      <div class="film-head">
+        <h2 id="first-night-reel-title">Primeira Noite · Reel</h2>
+        <span class="meta">01:00 · 9:16 · Stereo</span>
+      </div>
+      <p>The full short reframed for vertical viewing.</p>
+      <video class="portrait" aria-labelledby="first-night-reel-title" controls playsinline preload="none" poster="media/first-night/reel-poster.jpg">
+        <source src="media/first-night/reel.mp4" type="video/mp4">
+        <a href="media/first-night/reel.mp4">Open Primeira Noite · Reel (MP4)</a>
+      </video>
+      <div class="links">
+        <a href="#first-night">Watch in landscape</a>
+        <a href="media/first-night/reel.mp4" download="Primeira-Noite-Reel.mp4">Download vertical MP4</a>
       </div>
     </article>
 

@@ -12,6 +12,8 @@ on:
       - 'examples/aurora-express/poster.jpg'
       - 'examples/first-night/showcase.mp4'
       - 'examples/first-night/poster.jpg'
+      - 'examples/first-night/reel.mp4'
+      - 'examples/first-night/reel-poster.jpg'
   workflow_dispatch:
 
 permissions:
@@ -41,6 +43,7 @@ jobs:
             mkdir -p "_site/media/$film"
             cp "examples/$film/showcase.mp4" "examples/$film/poster.jpg" "_site/media/$film/"
           done
+          cp examples/first-night/reel.mp4 examples/first-night/reel-poster.jpg _site/media/first-night/
           mkdir -p _site/media/archive
           cp \
             docs/media/vila-viva.mp4 docs/media/vila-1-village.jpg \

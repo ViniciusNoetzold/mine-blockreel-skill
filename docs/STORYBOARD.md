@@ -122,6 +122,8 @@ drift of position, aim and roll for every action shot; `dutch` = tilt in degrees
 `focus`/`focusTo` (actor name or distance in blocks) rack-focus when `post.dof` is on. `pos`/`look` accept
 `[x,y,z]`, `"actorName"`, or `{ "actor": "name", "offset": [dx,dy,dz] }` (world-space offset).
 
+For portrait delivery, use `reels.camera` to override selected shots by their exact `t`. The preset applies `reels.safeArea` to titles, subtitles and HUD. See [Reels](REELS.md).
+
 ## Transitions (on the output timeline)
 
 ```jsonc

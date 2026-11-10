@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Quality review helper (step E of the BlockReel flow).
 
-  python tools/qa.py films/my-film/story.json --out films/my-film/qa [--tone dialogue|action|calm] [--min-frames 8]
+  python tools/qa.py films/my-film/story.json --out films/my-film/qa [--preset reels] [--tone dialogue|action|calm] [--min-frames 8]
 
 It (1) picks at least N frames spread over the film: the opening, every shot change, every close-up, the ending;
 (2) renders them and builds a contact sheet; (3) runs automatic checks through the engine (camera inside a block,
@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from render import find_chrome, serve  # noqa: E402
+from render import prepare_story, render_page  # noqa: E402
 
 LIMITS = {"calm": 6.0, "dialogue": 4.5, "action": 2.5}  # longest allowed shot (s) when the camera is static; +1.5 s if it moves
 
@@ -132,35 +132,39 @@ def shot_subject(story, t):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("story"); ap.add_argument("--out", default=None)
+    ap.add_argument("--preset", choices=("reels",), help="review the native 1080x1920 Reels framing")
     ap.add_argument("--tone", default="dialogue", choices=sorted(LIMITS), help="default pacing tone; a camera shot can override it with \"tone\"")
     ap.add_argument("--min-frames", type=int, default=8)
     ap.add_argument("--scale", type=float, default=0.75)
     ap.add_argument("--no-md", action="store_true", help="do not create qa.md")
     a = ap.parse_args(argv)
 
-    story_path = Path(a.story).resolve()
-    story = json.loads(story_path.read_text(encoding="utf-8"))
-    out = Path(a.out) if a.out else story_path.parent / "qa"
+    source = Path(a.story).resolve()
+    story = json.loads(source.read_text(encoding="utf-8"))
+    story_path = source
+    out = Path(a.out) if a.out else source.parent / "qa"
+    try:
+        if a.preset == "reels":
+            try:
+                story_path, story = prepare_story(source, story, reels=True)
+            except ValueError as exc:
+                ap.error(str(exc))
+        return review(a, source, story_path, story, out)
+    except RuntimeError as exc:
+        print(exc, file=sys.stderr)
+        return 2
+    finally:
+        if story_path != source:
+            story_path.unlink(missing_ok=True)
+
+
+def review(a, source, story_path, story, out):
     (out / "frames").mkdir(parents=True, exist_ok=True)
     times = pick_times(story, a.min_frames)
     issues = static_checks(story, a.tone)
 
-    from playwright.sync_api import sync_playwright
-    srv, port = serve(story_path.parent)
-    W, H = story.get("size", [1280, 720])
     frames = []
-    with sync_playwright() as pw:
-        kw = {"args": ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist", "--hide-scrollbars"]}
-        if find_chrome():
-            kw["executable_path"] = find_chrome()
-        browser = pw.chromium.launch(**kw)
-        page = browser.new_page(viewport={"width": int(W * a.scale), "height": int(H * a.scale)})
-        page.goto(f"http://127.0.0.1:{port}/core/engine/index.html?project=/project/{story_path.name}")
-        page.wait_for_function("window.__ready === true || window.__error", timeout=60000)
-        err = page.evaluate("window.__error || null")
-        if err:
-            print("engine error:", err, file=sys.stderr)
-            return 2
+    with render_page(story_path, story, a.scale, False, allow_missing=True) as page:
         missing = page.evaluate("window.__missing || []")
         if missing:
             issues.append(("FAIL", None, "missing block textures (they render as magenta/black): " + ", ".join(sorted(set(missing)))))
@@ -171,11 +175,12 @@ def main(argv=None):
                                             "(spawns in or walks through a block/tree/wall: move it or route the walk around it)"))
         for h in pc["camera"]:
             issues.append(("FAIL", h["t0"], f"camera passes through {h['block']} at {h['pos']} from {h['t0']:.2f} s to {h['t1']:.2f} s"))
-        page.add_style_tag(content=f"#stage{{transform:scale({a.scale});transform-origin:0 0}}")
         for t in times:
             q = page.evaluate(f"window.__qa({t})")
             f = out / "frames" / f"{len(frames) + 1:02d}_t{t:06.2f}.png"
-            page.screenshot(path=str(f))
+            png = page.screenshot(type="png")
+            page.evaluate("window.__assertRenderHealthy()")
+            f.write_bytes(png)
             frames.append((t, f, q))
             subj = shot_subject(story, t)
             fp = first_person_actor(story, t)  # the camera IS this actor: never "out of frame"
@@ -199,7 +204,6 @@ def main(argv=None):
                     issues.append(("WARN", t, f"t={t}: camera is only {info['distance']:.1f} blocks from {name} (near-plane clipping risk)"))
             if q["subtitle"] and q["subtitle"]["clipped"]:
                 issues.append(("WARN", t, f"t={t}: subtitle is clipped by the frame"))
-        browser.close()
 
     # contact sheet
     from PIL import Image, ImageDraw
@@ -222,9 +226,9 @@ def main(argv=None):
     nfail = sum(1 for s, *_ in issues if s == "FAIL"); nwarn = sum(1 for s, *_ in issues if s == "WARN")
     print(f"automatic checks: {nfail} FAIL, {nwarn} WARN. Now LOOK at every frame image and fill in qa.md.")
 
-    md = story_path.parent / "qa.md"
+    md = source.parent / "qa.md"
     if not a.no_md and not md.exists():
-        lines = [f"# QA: {story.get('title', story_path.parent.name)}", "", "## Automatic checks (tools/qa.py)", ""]
+        lines = [f"# QA: {story.get('title', source.parent.name)}", "", "## Automatic checks (tools/qa.py)", ""]
         lines += [f"- [{s}] {m}" for s, _, m in issues] or ["- none"]
         lines += ["", "## Frames reviewed by eye", "", "| # | t | what I looked at | verdict | action taken |", "|---|---|---|---|---|"]
         lines += [f"| {i + 1} | {t} | TODO | TODO | TODO |" for i, (t, _, _) in enumerate(frames)]

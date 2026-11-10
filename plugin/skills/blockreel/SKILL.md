@@ -1,6 +1,6 @@
 ---
 name: blockreel
-description: Direct and render Minecraft-style animated films, cinematic shorts, intros, and episodes from a prompt or references. Build block worlds, cast skins, stage shots, mix original music and effects, and deliver a reviewed MP4 using BlockReel. For standalone skins or resource packs, use the dedicated skills.
+description: Direct and render Minecraft-style animated films, cinematic shorts, vertical Reels, intros, and episodes from a prompt or references. Build block worlds, cast skins, stage shots, mix original music and effects, and deliver a reviewed MP4 using BlockReel. For standalone skins or resource packs, use the dedicated skills.
 ---
 
 # BlockReel
@@ -24,6 +24,8 @@ python -m playwright install chromium
 
 Use Node 20+, Python 3.11+, FFmpeg and FFprobe. With a compatible installed Chrome, set `CHROME_PATH` to its executable instead of downloading Chromium. Run commands from the checkout root and put film sources in `films/<name>/` or a project folder requested by the user.
 
+For a Reel, check that `python tools/export.py reels --help` works in the runtime checkout. If the command is missing, use a current checkout with the dependencies installed.
+
 Use the bundled originals for a self-contained public example. For local game fidelity, fetch the optional cache with `python tools/vanilla.py fetch`, `sounds`, and `font`. See `docs/LEGAL.md` before distributing a render or project. Keep all fetched game assets in the ignored `work/` cache. To reproduce a public example, use a clean cache and explicit original assets. The `"textures": "builtin"` setting controls textures. Sound, skins, and fonts have their own lookup paths.
 
 ## 1. Guides (read when you reach that step)
@@ -37,6 +39,7 @@ Use the bundled originals for a self-contained public example. For local game fi
 | `docs/STORYBOARD.md` | the exact `story.json` schema (the only source of truth for fields) |
 | `docs/QA.md` | step E: the checklist and `tools/qa.py` |
 | `docs/CINEMATIC-WORKFLOW.md` | exact timing, multi-scene continuity, shot review, audio and final media checks |
+| `docs/REELS.md` | portrait direction, platform insets, native 9:16 QA, and Reels export |
 | `styles/<style>/STYLE.md` | the look of the chosen style |
 | `docs/SKINS.md`, `docs/BLOCK-ATLAS.md`, `docs/RESOURCE-PACKS.md`, `docs/MOBS.md` | asset work and mob-specific acting |
 | `docs/EQUIPMENT.md` | capes, costume changes, and authorized mod item sprites |
@@ -175,10 +178,14 @@ energy shape (quiet → loud → quiet), shot lengths per the tone, every line s
    Economy: compose → preview → QA on stills → only then the final render; never re-render the whole film to check one shot
    (`--frame t` or `--start/--end`).
 
+## Reels and portrait films
+
+When the user asks for a Reel or vertical 9:16, use `tools/export.py reels story.json --out reel.mp4`. Read `docs/REELS.md`. Plan each shot for portrait, use `reels.camera` overrides for a landscape storyboard, and check the first-person hands, action near the edges, subtitles and crafting with `tools/qa.py --preset reels`. Preserve the requested runtime and audio. For both formats, deliver separate reviewed MP4s from the shared storyboard.
+
 ## Deliverables (after QA)
 
 `python tools/export.py thumbnail story.json --t <best moment> --title "TITLE" --out thumb.jpg`, `export.py srt` for subtitles,
-`export.py gif film.mp4 --start .. --dur 6` for a teaser, `export.py vertical story.json --out vertical.mp4` for Shorts/Reels/TikTok
+`export.py gif film.mp4 --start .. --dur 6` for a teaser, `export.py reels story.json --out reel.mp4` for Reels
 (re-rendered at 1080x1920). Add `--motion-blur 3` to the final render for fast action if the user can wait 3x longer.
 
 ## E. Quality review (MANDATORY before delivery)

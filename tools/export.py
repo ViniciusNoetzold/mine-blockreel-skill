@@ -3,10 +3,11 @@
 
   python tools/export.py srt       story.json --out film.srt                    # subtitles in SubRip (chat lines as "Name: text")
   python tools/export.py gif       film.mp4 --start 7.4 --dur 6 --out clip.gif  # palette-optimised GIF (width 560, 10 fps by default)
-  python tools/export.py vertical  story.json --out vertical.mp4 [--preset preview] [--workers 4]   # re-rendered at 1080x1920
+  python tools/export.py reels     story.json --out reel.mp4 [--start 0 --end 60] [--workers 2]
+  python tools/export.py vertical  story.json --out vertical.mp4 [--preset preview] [--workers 4]
   python tools/export.py thumbnail story.json --t 8.6 --out thumb.jpg [--title "EU vs HEROBRINE"]   # a 1280x720 still
 
-`vertical` RE-RENDERS the film at 9:16 (cameras follow the actors, so the framing holds) instead of cropping a 16:9 picture.
+`reels` renders at 1080x1920 and 30 fps with portrait camera overrides, safe overlays, and 48 kHz audio.
 """
 import argparse
 import json
@@ -37,6 +38,9 @@ def main(argv=None):
     p = sub.add_parser("srt"); p.add_argument("story"); p.add_argument("--out", required=True)
     p = sub.add_parser("gif"); p.add_argument("video"); p.add_argument("--out", required=True); p.add_argument("--start", type=float, default=0)
     p.add_argument("--dur", type=float, default=6); p.add_argument("--width", type=int, default=560); p.add_argument("--fps", type=float, default=10)
+    p = sub.add_parser("reels"); p.add_argument("story"); p.add_argument("--out", required=True)
+    p.add_argument("--start", type=float, default=0); p.add_argument("--end", type=float)
+    p.add_argument("--workers", type=int, default=1)
     p = sub.add_parser("vertical"); p.add_argument("story"); p.add_argument("--out", required=True); p.add_argument("--size", default="1080x1920")
     p.add_argument("--preset"); p.add_argument("--workers", type=int, default=1)
     p = sub.add_parser("thumbnail"); p.add_argument("story"); p.add_argument("--out", required=True); p.add_argument("--t", type=float, required=True)
@@ -49,6 +53,12 @@ def main(argv=None):
         vf = f"fps={a.fps},scale={a.width}:-1:flags=lanczos,split[x][y];[x]palettegen=max_colors=96:stats_mode=diff[p];[y][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle"
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-ss", str(a.start), "-t", str(a.dur), "-i", a.video, "-vf", vf, a.out], check=True)
         print("wrote", a.out, f"({Path(a.out).stat().st_size // 1024} KB)"); return 0
+    if a.cmd == "reels":
+        cmd = [sys.executable, str(HERE / "render.py"), a.story, "--preset", "reels", "--out", a.out,
+               "--workers", str(a.workers), "--start", str(a.start)]
+        if a.end is not None:
+            cmd += ["--end", str(a.end)]
+        return subprocess.run(cmd).returncode
     if a.cmd == "vertical":
         cmd = [sys.executable, str(HERE / "render.py"), a.story, "--size", a.size, "--out", a.out, "--workers", str(a.workers)] + (["--preset", a.preset] if a.preset else [])
         return subprocess.run(cmd).returncode

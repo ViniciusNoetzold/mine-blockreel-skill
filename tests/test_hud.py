@@ -55,7 +55,8 @@ def test_qa_samples_both_sides_of_collection():
     assert any(1.2 < t < 1.4 for t in times)
 
 
-def test_render_crafting_and_chat_seek(tmp_path):
+@pytest.mark.parametrize("portrait", [False, True], ids=["landscape", "reels"])
+def test_render_crafting_and_chat_seek(tmp_path, portrait):
     playwright = pytest.importorskip("playwright.sync_api")
     from render import open_page, serve
 
@@ -81,6 +82,17 @@ def test_render_crafting_and_chat_seek(tmp_path):
             ],
         },
     }
+    if portrait:
+        story.update({
+            "size": [360, 640],
+            "styleOverride": {"letterbox": False},
+            "reelsLayout": {"left": 0.08, "right": 0.16, "top": 0.12, "bottom": 0.25},
+            "titles": [{"t": 4.1, "dur": 0.65, "text": "UM TÍTULO EXTENSO DENTRO DA ÁREA SEGURA"}],
+            "subtitles": [{"t": 4.8, "dur": 1.2, "who": "Lia",
+                           "text": "Uma legenda longa com supercalifragilisticexpialidocious."}],
+        })
+        story["hud"]["chat"]["messages"].append({"t": 4.7, "text": "A noite caiu.", "dur": 1.2})
+
     file = tmp_path / "story.json"
     file.write_text(json.dumps(story), encoding="utf-8")
     server, port = serve(tmp_path)
@@ -93,6 +105,17 @@ def test_render_crafting_and_chat_seek(tmp_path):
                     pytest.skip("Chromium browser unavailable")
                 raise
             try:
+                def inside_safe_area(selector):
+                    boxes = [locator.bounding_box() for locator in page.locator(selector).all()]
+                    assert boxes
+                    for box in boxes:
+                        assert box is not None
+                        assert box["x"] >= 360 * 0.08 - 1
+                        assert box["x"] + box["width"] <= 360 * (1 - 0.16) + 1
+                        assert box["y"] >= 640 * 0.12 - 1
+                        assert box["y"] + box["height"] <= 640 * (1 - 0.25) + 1
+                    return boxes[0]
+
                 panel = page.locator(".br-hud-panel")
                 grid = panel.locator(".br-hud-craft .br-hud-grid").first
                 page.evaluate("window.renderAt(0.15)")
@@ -110,6 +133,8 @@ def test_render_crafting_and_chat_seek(tmp_path):
                 assert preview.evaluate("(img) => img.complete && img.naturalWidth === 16")
                 assert page.locator(".br-hud-hotbar").is_hidden()
                 assert page.locator(".br-hud-line").text_content() == "Lia foi explodida por um Creeper"
+                if portrait:
+                    inside_safe_area(".br-hud-panel")
                 before = page.screenshot()
 
                 page.evaluate("window.renderAt(3.5)")
@@ -120,7 +145,18 @@ def test_render_crafting_and_chat_seek(tmp_path):
                 bar = page.locator(".br-hud-hotbar")
                 assert panel.is_hidden() and bar.is_visible()
                 assert bar.locator("img[alt='demo:pickaxe']").count() == 1
-                assert page.locator(".br-hud-line").count() == 0
+                if portrait:
+                    bar_box = inside_safe_area(".br-hud-hotbar")
+                    sub_box = inside_safe_area("#sub span")
+                    inside_safe_area("#sub canvas")
+                    chat_box = inside_safe_area(".br-hud-chat")
+                    assert chat_box["y"] + chat_box["height"] <= sub_box["y"]
+                    assert sub_box["y"] + sub_box["height"] <= bar_box["y"]
+                    assert not page.evaluate("window.__qa(5).subtitle.clipped")
+                    page.evaluate("window.renderAt(4.4)")
+                    inside_safe_area("#title canvas")
+                else:
+                    assert page.locator(".br-hud-line").count() == 0
 
                 page.evaluate("window.renderAt(2)")
                 assert page.screenshot() == before

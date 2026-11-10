@@ -30,7 +30,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-PRESETS = {"preview": {"fps": 12, "scale": 0.5}, "1080p60": {"fps": 60, "size": 1920}, "720p30": {"fps": 30, "scale": 1.0}}
+PRESETS = {
+    "preview": {"fps": 12, "scale": 0.5},
+    "1080p60": {"fps": 60, "size": 1920},
+    "720p30": {"fps": 30, "scale": 1.0},
+    "reels": {"fps": 30},
+}
+REELS_SIZE = (1080, 1920)
+REELS_SAFE_AREA = {"left": 0.08, "right": 0.16, "top": 0.12, "bottom": 0.25}
 
 
 def speech_envelopes(story, base):
@@ -54,9 +61,47 @@ def speech_envelopes(story, base):
     return out
 
 
-def prepare_story(story_path, story, size=None):
-    """A render copy of the story when something must be added for the page (size override, speech envelopes). Returns its path."""
-    extra = {}
+def reels_overrides(story):
+    """Materialize the portrait framing and overlay layout for one render."""
+    profile = story.get("reels", {})
+    if not isinstance(profile, dict):
+        raise ValueError("reels must be an object")
+    custom = profile.get("safeArea", {})
+    if not isinstance(custom, dict) or not custom.keys() <= REELS_SAFE_AREA.keys():
+        raise ValueError("reels.safeArea accepts left, right, top, and bottom")
+    layout = {**REELS_SAFE_AREA, **custom}
+    if any(type(n) not in (int, float) or not 0 <= n <= 0.4 for n in layout.values()):
+        raise ValueError("Reels safe area insets must be fractions from 0 to 0.4")
+    if layout["left"] + layout["right"] > 0.6 or layout["top"] + layout["bottom"] > 0.6:
+        raise ValueError("Leave at least 40% of each Reels axis inside the safe area")
+
+    overrides = {
+        "size": list(REELS_SIZE),
+        "fps": PRESETS["reels"]["fps"],
+        "styleOverride": {**story.get("styleOverride", {}), "letterbox": False},
+        "reelsLayout": layout,
+    }
+    patches = profile.get("camera", [])
+    if not isinstance(patches, list):
+        raise ValueError("reels.camera must be a list of shot overrides")
+    if patches:
+        camera = story.get("camera", [])
+        starts = {shot["t"] for shot in camera}
+        by_time = {}
+        for patch in patches:
+            t = patch.get("t") if isinstance(patch, dict) else None
+            if type(t) not in (int, float) or t not in starts or t in by_time:
+                raise ValueError(f"reels.camera needs a unique existing shot start (got {t!r})")
+            by_time[t] = patch
+        overrides["camera"] = [{**shot, **by_time.get(shot["t"], {})} for shot in camera]
+    return overrides
+
+
+def prepare_story(story_path, story, size=None, *, reels=False):
+    """Stage profile, dimensions and lip sync beside the source so relative assets still resolve."""
+    if reels and size:
+        raise ValueError("the Reels preset uses 1080x1920; use --scale for a smaller render")
+    extra = reels_overrides(story) if reels else {}
     if size:
         extra["size"] = list(size)
     env = speech_envelopes(story, story_path.parent)
@@ -64,8 +109,11 @@ def prepare_story(story_path, story, size=None):
         extra["lipsyncAudio"] = env
     if not extra:
         return story_path, story
-    s2 = {**story, **extra}; p2 = story_path.parent / f".{story_path.stem}.render.json"
-    p2.write_text(json.dumps(s2)); return p2, s2
+    prepared = {**story, **extra}
+    serialized = json.dumps(prepared)
+    with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=story_path.parent, prefix=".br-", suffix=".render.json", delete=False) as tmp:
+        tmp.write(serialized)
+    return Path(tmp.name), prepared
 
 
 def find_chrome():
@@ -216,8 +264,17 @@ def main(argv=None):
     story_path = Path(a.story).resolve()
     story = json.loads(story_path.read_text(encoding="utf-8"))
     audio_story_path = story_path
+    reels = a.preset == "reels"
+    if reels and a.frame is None:
+        end = min(a.end if a.end is not None else story.get("duration", 10), story.get("duration", 10))
+        if not 0 <= a.start < end:
+            ap.error("the Reels time range must satisfy 0 <= start < end")
     if not a.frames:  # workers receive the prepared copy directly
-        story_path, story = prepare_story(story_path, story, tuple(int(v) for v in a.size.lower().split("x")) if a.size else None)
+        try:
+            size = tuple(int(v) for v in a.size.lower().split("x")) if a.size else None
+            story_path, story = prepare_story(story_path, story, size, reels=reels)
+        except ValueError as exc:
+            ap.error(str(exc))
     W0, H0 = story.get("size", [1280, 720])
     pre = PRESETS.get(a.preset, {})
     fps = a.fps or pre.get("fps") or story.get("fps", 30)
@@ -275,7 +332,8 @@ def main(argv=None):
         if not a.no_audio:
             import audio
             wav = tmp / "mix.wav"
-            if audio.render_audio(story, story_path.parent, wav, a.start, end):
+            audio_opts = {"sample_rate": 48000} if reels else {}
+            if audio.render_audio(story, story_path.parent, wav, a.start, end, **audio_opts):
                 subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(silent), "-i", str(wav), "-c:v", "copy", "-c:a", "aac",
                                 "-b:a", "192k", "-shortest", "-movflags", "+faststart", str(a.out)], check=True)
                 mixed = True

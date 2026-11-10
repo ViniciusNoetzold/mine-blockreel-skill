@@ -167,7 +167,7 @@ const element = (tag, cls, text) => {
   return el;
 };
 
-export async function createHud(config, stage, width, height, barPct, itemIconUrl) {
+export async function createHud(config, stage, width, height, barPct, itemIconUrl, reelsArea = null) {
   const model = compileHud(config);
   const icons = new Map(await Promise.all([...model.itemIds].map(async (id) => {
     const url = await itemIconUrl(id);
@@ -177,8 +177,10 @@ export async function createHud(config, stage, width, height, barPct, itemIconUr
     await image.decode();
     return [id, image];
   })));
-  const u = Math.max(1, Math.min(width / 420, height / 360, height * (1 - barPct * 0.02) / 270));
-  const margin = height * barPct / 100 + 7 * u;
+  const u = reelsArea ? Math.min(reelsArea.width / 240, reelsArea.height / 360)
+    : Math.max(1, Math.min(width / 420, height / 360, height * (1 - barPct * 0.02) / 270));
+  const safeBottom = reelsArea?.bottom ?? 0;
+  const margin = Math.max(0, height * barPct / 100 - safeBottom) + 7 * u;
   const hud = element('div', 'ov');
   hud.id = 'br-hud';
   hud.style.setProperty('--u', `${u}px`);
@@ -187,6 +189,11 @@ export async function createHud(config, stage, width, height, barPct, itemIconUr
   const panel = element('div', 'br-hud-panel');
   const hotbar = element('div', 'br-hud-hotbar');
   panel.hidden = hotbar.hidden = true;
+  if (reelsArea) {
+    hud.style.inset = `${reelsArea.top}px ${reelsArea.right}px ${safeBottom}px ${reelsArea.left}px`;
+    panel.style.overflowWrap = 'anywhere';
+    Object.assign(chat.style, { alignContent: 'end', overflow: 'hidden' });
+  }
   hotbar.style.bottom = `${margin}px`;
   hud.append(css, chat, panel, hotbar);
   stage.insertBefore(hud, stage.querySelector('#fade'));
@@ -245,7 +252,10 @@ export async function createHud(config, stage, width, height, barPct, itemIconUr
     }
     const sub = stage.querySelector('#sub');
     const bottom = margin + (!hotbar.hidden ? 21 * u : 0);
-    chat.style.bottom = `${sub?.childElementCount ? Math.max(bottom, height - sub.offsetTop + 3 * u) : bottom}px`;
+    if (reelsArea) sub.style.bottom = `${safeBottom + (!hotbar.hidden ? bottom + 3 * u : 0)}px`;
+    const chatBottom = sub?.childElementCount ? Math.max(bottom, height - safeBottom - sub.offsetTop + 3 * u) : bottom;
+    chat.style.bottom = `${chatBottom}px`;
+    if (reelsArea) chat.style.maxHeight = `${Math.max(0, reelsArea.height - chatBottom - 7 * u)}px`;
     for (const [i, msg] of messages.entries()) {
       const now = msg.clock === 'world' ? wt : t;
       chat.children[i].style.opacity = Math.min(1, (msg.t + msg.dur - now) / Math.min(msg.dur, 0.35));

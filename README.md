@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#first-night"><b>▶ Watch Primeira Noite with sound (First Night, 60 seconds)</b></a><br>
+  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#first-night"><b>▶ Watch Primeira Noite with sound (First Night, 60 seconds)</b></a> · <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#first-night-reel"><b>Watch the vertical 9:16 Reel</b></a><br>
   A player races the sunset, seals himself inside a hillside, and discovers what the torchlight was hiding.<br>
   <a href="examples/first-night/">Production files</a> · <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#aurora-express">▶ Watch Aurora Express (30 seconds)</a>
 </p>
@@ -163,7 +163,7 @@ More formats include channel openings, building timelapses, quiet slice-of-life 
 | Optional HUD | Event chat, hotbar, inventory, and staged recipes. [HUD guide](docs/HUD.md) |
 | Camera and effects | Orbit, handheld, first person, rack focus, speed ramps, particles, and color grading |
 | Sound | Original score, timed effects, optional offline voices, and dialogue ducking |
-| Delivery | MP4, GIF, re-rendered vertical 9:16, SRT subtitles, and a thumbnail |
+| Delivery | MP4, GIF, [Reels in 9:16](docs/REELS.md), SRT subtitles, and a thumbnail |
 
 <details>
 <summary><b>See frames from the engine</b></summary>

@@ -2,7 +2,9 @@
 
 Um jogador corre contra o pôr do sol, se fecha numa encosta e descobre o que a luz da tocha estava escondendo. Curta de 60 segundos em 1280 × 720 a 24 fps, com trilha e efeitos sonoros originais.
 
-[Assista com som no navegador](https://viniciusnoetzold.github.io/mine-blockreel-skill-/#first-night) · [Storyboard editável](story.json) · [Registro de revisão](qa.md)
+[Assista à versão horizontal](https://viniciusnoetzold.github.io/mine-blockreel-skill-/#first-night) · [Assista ao Reel 9:16](https://viniciusnoetzold.github.io/mine-blockreel-skill-/#first-night-reel) · [Storyboard editável](story.json) · [Registro de revisão](qa.md)
+
+A versão vertical de 720 × 1280 tem os mesmos 60 segundos com som. Câmeras e interface foram ajustadas para o quadro 9:16. [Guia de Reels](../../docs/REELS.md)
 
 | Tempo | Direção |
 | --- | --- |
@@ -26,3 +28,12 @@ python tools/check_media.py work/first-night.mp4 --duration 60 --size 1280x720 -
 ```
 
 O gerador grava a mixagem em `generated/mix.wav`. A revisão de áudio tem uma pausa de 56,25 a 57,25 s, seguida pelo estopim. A explosão coincide com a entrada do quadro preto em 59,25 s.
+
+### Reproduza o Reel em 1080 × 1920
+
+Com a mixagem gerada, exporte o mesmo storyboard pelo preset vertical.
+
+```sh
+python tools/export.py reels examples/first-night/story.json --out work/first-night/reel.mp4
+python tools/check_media.py work/first-night/reel.mp4 --duration 60 --size 1080x1920 --fps 30 --require-audio
+```

@@ -621,20 +621,28 @@ function applyCamera(t, wt) {
 // ------------------------------------------------------------ overlays ----
 // subtitles in the chat format (<Name> line) and titles, drawn with the game font; canvases are cached per string
 const ovCache = new Map(); let lastSub = null, lastTitle = null;
-let updateHud = null;
+let updateHud = null, reelsArea = null;
 function applyOverlays(t) {
   const sub = document.getElementById('sub'); const title = document.getElementById('title');
   const W = story.size?.[0] ?? 1280, H = story.size?.[1] ?? 720;
+  const textScale = reelsArea ? Math.min(W / 1080, H / 1920) * 1.6 : H / 720;
   const s = (story.subtitles || []).find((x) => t >= x.t && t < x.t + (x.dur ?? 2));
   const sk = s ? `${s.who}|${s.text}|${s.color}` : null;
   if (sk !== lastSub) {
     lastSub = sk; sub.innerHTML = '';
     if (s) {
-      const scale = Math.max(2, Math.round((H / 720) * (story.subtitleScale ?? 3)));
+      const scale = Math.max(2, Math.round(textScale * (story.subtitleScale ?? 3)));
       const runs = [...(s.who ? [[`<${s.who}> `, s.color || '#ffd84a']] : []), [s.text, '#ffffff']];
-      if (!ovCache.has(sk)) ovCache.set(sk, wrapRuns(runs, Math.floor((W * 0.74) / scale)).map((ln) => textCanvas(ln, scale)));
+      const wrapWidth = reelsArea ? Math.max(1, reelsArea.width * 0.9 - 28) : W * 0.74;
+      if (!ovCache.has(sk)) ovCache.set(sk, wrapRuns(runs, Math.floor(wrapWidth / scale)).map((ln) => textCanvas(ln, scale)));
       const span = document.createElement('span'); span.style.cssText = 'display:inline-block;padding:.3em .55em .2em;line-height:0';
-      for (const im of ovCache.get(sk)) { const d = document.createElement('div'); const c2 = document.createElement('canvas'); c2.width = im.width; c2.height = im.height; c2.getContext('2d').drawImage(im, 0, 0); c2.style.imageRendering = 'pixelated'; d.appendChild(c2); span.appendChild(d); }
+      if (reelsArea) Object.assign(span.style, { maxWidth: '96%', boxSizing: 'border-box' });
+      for (const im of ovCache.get(sk)) {
+        const d = document.createElement('div'), c2 = document.createElement('canvas');
+        c2.width = im.width; c2.height = im.height; c2.getContext('2d').drawImage(im, 0, 0); c2.style.imageRendering = 'pixelated';
+        if (reelsArea) Object.assign(c2.style, { maxWidth: '100%', height: 'auto' });
+        d.appendChild(c2); span.appendChild(d);
+      }
       sub.appendChild(span);
     }
   }
@@ -644,8 +652,13 @@ function applyOverlays(t) {
     const tk = `${ti.text}|${ti.color}|${ti.size}`;
     if (tk !== lastTitle) {
       lastTitle = tk; title.innerHTML = '';
-      const scale = Math.max(2, Math.round(((ti.size || 64) / 8) * (H / 720)));
-      for (const ln of String(ti.text).split('\n')) { const c = textCanvas([[ln, ti.color || '#ffffff']], scale); c.style.display = 'block'; c.style.margin = '0 auto'; title.appendChild(c); }
+      const scale = Math.max(2, Math.round(((ti.size || 64) / 8) * textScale));
+      for (const ln of String(ti.text).split('\n')) {
+        const c = textCanvas([[ln, ti.color || '#ffffff']], scale);
+        c.style.display = 'block'; c.style.margin = '0 auto';
+        if (reelsArea) Object.assign(c.style, { maxWidth: '96%', height: 'auto' });
+        title.appendChild(c);
+      }
       title.style.flexDirection = 'column';
     }
   } else if (lastTitle !== null) { lastTitle = null; title.innerHTML = ''; }
@@ -702,6 +715,14 @@ async function init() {
   const W = story.size?.[0] ?? 1280, H = story.size?.[1] ?? 720;
   const stage = document.getElementById('stage'); stage.style.width = W + 'px'; stage.style.height = H + 'px';
   stage.style.background = `linear-gradient(${style.sky.top}, ${style.sky.bottom})`;
+  if (story.reelsLayout) {
+    const { left = 0, right = 0, top = 0, bottom = 0 } = story.reelsLayout;
+    reelsArea = { left: W * left, right: W * right, top: H * top, bottom: H * bottom,
+      width: W * (1 - left - right), height: H * (1 - top - bottom) };
+    const sides = { left: `${reelsArea.left}px`, right: `${reelsArea.right}px`, bottom: `${reelsArea.bottom}px` };
+    Object.assign(stage.querySelector('#sub').style, sides);
+    Object.assign(stage.querySelector('#title').style, { ...sides, top: `${reelsArea.top}px` });
+  }
   const lb = style.letterbox; // true = 11% bars; a number = target aspect ratio (e.g. 2.37)
   const barPct = typeof lb === 'number' ? Math.max(0, (1 - (W / lb) / H) / 2 * 100) : 11;
   document.querySelectorAll('#bars .bar').forEach((b) => { b.style.height = barPct + '%'; });
@@ -737,7 +758,7 @@ async function init() {
   if (vanillaDir) Object.assign(blockDefs, (await getJSON(`${vanillaDir}/index.json`)).blocks);
   window.__textures = vanillaDir ? 'vanilla' : 'builtin';
   if (projBlocksDir && await exists(`${BASE}${projBlocksDir}/index.json`)) Object.assign(blockDefs, (await getJSON(`${BASE}${projBlocksDir}/index.json`)).blocks);
-  if (story.hud) updateHud = await createHud(story.hud, stage, W, H, lb ? barPct : 0, itemIconUrl);
+  if (story.hud) updateHud = await createHud(story.hud, stage, W, H, lb ? barPct : 0, itemIconUrl, reelsArea);
   await buildWorld();
   for (const [n, cfg] of Object.entries(story.actors || {})) actors[n] = cfg.type && cfg.type !== 'player' ? await makeMob(n, cfg) : await makePlayer(n, cfg);
   particles = await buildParticles(THREE, scene, { ...story, fx: [...(story.fx || []), ...worldFx] }, particleCtx);
@@ -780,7 +801,13 @@ function collectQA(t, camPos) {
     out.actors[n] = { visiblePoints: vis, ndc: [chest.x, chest.y], behindCamera: chest.z >= 1, facingCamera: fwd.dot(toCam), visible: a.root.visible, distance: Math.hypot(camPos.x - a._pos[0], camPos.y - a._pos[1], camPos.z - a._pos[2]), insideBlock: solid(new THREE.Vector3(a._pos[0], a._pos[1] + a.headY * 0.5, a._pos[2])) };
   }
   const sp = document.querySelector('#sub span');
-  if (sp) { const r = sp.getBoundingClientRect(), st = document.getElementById('stage').getBoundingClientRect(); out.subtitle = { clipped: r.left < st.left - 1 || r.right > st.right + 1 || r.top < st.top || r.bottom > st.bottom, width: r.width, height: r.height }; }
+  if (sp) {
+    const r = sp.getBoundingClientRect(), st = document.getElementById('stage').getBoundingClientRect();
+    const bounds = reelsArea ? { left: st.left + reelsArea.left * st.width / W, right: st.right - reelsArea.right * st.width / W,
+      top: st.top + reelsArea.top * st.height / H, bottom: st.bottom - reelsArea.bottom * st.height / H } : st;
+    out.subtitle = { clipped: r.left < bounds.left - 1 || r.right > bounds.right + 1 || r.top < bounds.top || r.bottom > bounds.bottom,
+      width: r.width, height: r.height };
+  }
   return out;
 }
 
