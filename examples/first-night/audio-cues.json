@@ -1,0 +1,438 @@
+[
+  {
+    "t": 1.6666666666666667,
+    "kind": "cloth",
+    "vol": 0.24
+  },
+  {
+    "t": 2.75,
+    "kind": "cloth",
+    "vol": 0.26
+  },
+  {
+    "t": 3.6666666666666665,
+    "kind": "cloth",
+    "vol": 0.24
+  },
+  {
+    "t": 9.375,
+    "kind": "footstep",
+    "vol": 0.38
+  },
+  {
+    "t": 9.625,
+    "kind": "footstep",
+    "vol": 0.38
+  },
+  {
+    "t": 9.875,
+    "kind": "footstep",
+    "vol": 0.38
+  },
+  {
+    "t": 10.166666666666666,
+    "kind": "footstep",
+    "vol": 0.38
+  },
+  {
+    "t": 10.583333333333334,
+    "kind": "wood_hit",
+    "vol": 0.64
+  },
+  {
+    "t": 10.916666666666666,
+    "kind": "wood_hit",
+    "vol": 0.64
+  },
+  {
+    "t": 11.125,
+    "kind": "wood_break",
+    "vol": 0.82
+  },
+  {
+    "t": 11.375,
+    "kind": "wood_hit",
+    "vol": 0.64
+  },
+  {
+    "t": 11.708333333333334,
+    "kind": "wood_break",
+    "vol": 0.82
+  },
+  {
+    "t": 11.833333333333334,
+    "kind": "wood_hit",
+    "vol": 0.64
+  },
+  {
+    "t": 12.041666666666666,
+    "kind": "wood_break",
+    "vol": 0.82
+  },
+  {
+    "t": 12.25,
+    "kind": "footstep",
+    "vol": 0.38
+  },
+  {
+    "t": 12.25,
+    "kind": "pickup",
+    "vol": 0.58
+  },
+  {
+    "t": 12.541666666666666,
+    "kind": "footstep",
+    "vol": 0.38
+  },
+  {
+    "t": 12.833333333333334,
+    "kind": "footstep",
+    "vol": 0.38
+  },
+  {
+    "t": 13.875,
+    "kind": "craft",
+    "vol": 0.52
+  },
+  {
+    "t": 14.958333333333334,
+    "kind": "craft",
+    "vol": 0.59
+  },
+  {
+    "t": 15.583333333333334,
+    "kind": "table_place",
+    "vol": 0.92
+  },
+  {
+    "t": 17.208333333333332,
+    "kind": "craft",
+    "vol": 0.48
+  },
+  {
+    "t": 18.791666666666668,
+    "kind": "craft",
+    "vol": 0.75
+  },
+  {
+    "t": 19,
+    "kind": "tool_equip",
+    "vol": 0.37
+  },
+  {
+    "t": 19.375,
+    "kind": "footstep",
+    "vol": 0.38
+  },
+  {
+    "t": 19.666666666666668,
+    "kind": "footstep",
+    "vol": 0.38
+  },
+  {
+    "t": 19.958333333333332,
+    "kind": "footstep",
+    "vol": 0.38
+  },
+  {
+    "t": 20.25,
+    "kind": "footstep",
+    "vol": 0.38
+  },
+  {
+    "t": 20.541666666666668,
+    "kind": "footstep",
+    "vol": 0.38
+  },
+  {
+    "t": 20.833333333333332,
+    "kind": "footstep",
+    "vol": 0.38
+  },
+  {
+    "t": 21.125,
+    "kind": "footstep",
+    "vol": 0.38
+  },
+  {
+    "t": 21.583333333333332,
+    "kind": "stone_hit",
+    "vol": 0.63
+  },
+  {
+    "t": 21.791666666666668,
+    "kind": "stone_hit",
+    "vol": 0.63
+  },
+  {
+    "t": 22,
+    "kind": "stone_break",
+    "vol": 0.84
+  },
+  {
+    "t": 22.25,
+    "kind": "stone_hit",
+    "vol": 0.63
+  },
+  {
+    "t": 22.625,
+    "kind": "stone_hit",
+    "vol": 0.63
+  },
+  {
+    "t": 22.791666666666668,
+    "kind": "stone_break",
+    "vol": 0.84
+  },
+  {
+    "t": 23.083333333333332,
+    "kind": "stone_hit",
+    "vol": 0.63
+  },
+  {
+    "t": 23.375,
+    "kind": "stone_hit",
+    "vol": 0.63
+  },
+  {
+    "t": 23.583333333333332,
+    "kind": "stone_break",
+    "vol": 0.84
+  },
+  {
+    "t": 23.791666666666668,
+    "kind": "pickup",
+    "vol": 0.64
+  },
+  {
+    "t": 24,
+    "kind": "footstep",
+    "vol": 0.38
+  },
+  {
+    "t": 24.333333333333332,
+    "kind": "footstep",
+    "vol": 0.38
+  },
+  {
+    "t": 27.77,
+    "kind": "spider",
+    "vol": 0.57
+  },
+  {
+    "t": 29.86,
+    "kind": "zombie",
+    "vol": 0.48
+  },
+  {
+    "t": 31.1,
+    "kind": "footstep",
+    "vol": 0.32
+  },
+  {
+    "t": 31.11,
+    "kind": "skeleton",
+    "vol": 0.42
+  },
+  {
+    "t": 31.39,
+    "kind": "footstep",
+    "vol": 0.44
+  },
+  {
+    "t": 31.63,
+    "kind": "footstep",
+    "vol": 0.32
+  },
+  {
+    "t": 31.87,
+    "kind": "footstep",
+    "vol": 0.44
+  },
+  {
+    "t": 32.09,
+    "kind": "footstep",
+    "vol": 0.32
+  },
+  {
+    "t": 32.32,
+    "kind": "footstep",
+    "vol": 0.44
+  },
+  {
+    "t": 32.56,
+    "kind": "footstep",
+    "vol": 0.32
+  },
+  {
+    "t": 32.78,
+    "kind": "footstep",
+    "vol": 0.44
+  },
+  {
+    "t": 33.04,
+    "kind": "footstep",
+    "vol": 0.32
+  },
+  {
+    "t": 33.58,
+    "kind": "dig",
+    "vol": 0.51
+  },
+  {
+    "t": 34.02,
+    "kind": "dig",
+    "vol": 0.51
+  },
+  {
+    "t": 34.43,
+    "kind": "dig",
+    "vol": 0.51
+  },
+  {
+    "t": 34.83,
+    "kind": "soil_break",
+    "vol": 0.52
+  },
+  {
+    "t": 35.18,
+    "kind": "dig",
+    "vol": 0.51
+  },
+  {
+    "t": 35.5,
+    "kind": "dig",
+    "vol": 0.51
+  },
+  {
+    "t": 35.67,
+    "kind": "soil_break",
+    "vol": 0.52
+  },
+  {
+    "t": 36.03,
+    "kind": "dig",
+    "vol": 0.51
+  },
+  {
+    "t": 36.38,
+    "kind": "dig",
+    "vol": 0.51
+  },
+  {
+    "t": 36.74,
+    "kind": "soil_break",
+    "vol": 0.52
+  },
+  {
+    "t": 36.98,
+    "kind": "step_stone",
+    "vol": 0.41
+  },
+  {
+    "t": 37.24,
+    "kind": "step_stone",
+    "vol": 0.34
+  },
+  {
+    "t": 37.53,
+    "kind": "step_stone",
+    "vol": 0.32
+  },
+  {
+    "t": 39.45,
+    "kind": "seal",
+    "vol": 0.51
+  },
+  {
+    "t": 39.83,
+    "kind": "seal",
+    "vol": 0.88
+  },
+  {
+    "t": 40.4,
+    "kind": "step_stone",
+    "vol": 0.23
+  },
+  {
+    "t": 41.06,
+    "kind": "step_stone",
+    "vol": 0.17
+  },
+  {
+    "t": 41.53,
+    "kind": "pick_tap",
+    "vol": 0.58
+  },
+  {
+    "t": 42.72,
+    "kind": "pick_tap",
+    "vol": 0.38
+  },
+  {
+    "t": 43.9,
+    "kind": "pick_tap",
+    "vol": 0.63
+  },
+  {
+    "t": 44.5,
+    "kind": "ore_break",
+    "vol": 0.69
+  },
+  {
+    "t": 44.75,
+    "kind": "pickup",
+    "vol": 0.34
+  },
+  {
+    "t": 46.25,
+    "kind": "craft_open",
+    "vol": 0.28
+  },
+  {
+    "t": 46.58,
+    "kind": "craft_place",
+    "vol": 0.22
+  },
+  {
+    "t": 49.25,
+    "kind": "craft_take",
+    "vol": 0.39
+  },
+  {
+    "t": 50.25,
+    "kind": "craft_close",
+    "vol": 0.21
+  },
+  {
+    "t": 52,
+    "kind": "torch_ignite",
+    "vol": 0.6
+  },
+  {
+    "t": 52.42,
+    "kind": "breath_relief",
+    "vol": 0.39
+  },
+  {
+    "t": 54.8,
+    "kind": "creeper_step",
+    "vol": 0.13
+  },
+  {
+    "t": 57.25,
+    "kind": "creeper_hiss",
+    "vol": 0.78,
+    "dur": 2
+  },
+  {
+    "t": 59.25,
+    "kind": "blast",
+    "vol": 1
+  },
+  {
+    "t": 59.43,
+    "kind": "debris",
+    "vol": 0.25
+  }
+]

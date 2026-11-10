@@ -37,6 +37,14 @@ export function buildMob(THREE, type, tex, cfg) {
   } else if (type === 'spider') {
     part(inner, 6, 6, 6, 0, 0, [0, 9, 0]);
     head = part(inner, 8, 8, 8, 32, 4, [0, 9, 7]);
+    if (cfg.glowEyes) {
+      const red = new THREE.MeshBasicMaterial({ color: '#ff2128' });
+      for (const x of [-2, 2]) {
+        const eye = new THREE.Mesh(new THREE.PlaneGeometry(1.45 * PX, 0.82 * PX), red);
+        eye.position.set(x * PX, 0.55 * PX, 4.02 * PX);
+        head.add(eye);
+      }
+    }
     part(inner, 10, 8, 12, 0, 12, [0, 9, -9]);
     spiderLegs = [];
     const zs = [3, 1, -1, -3], fan = [0.7, 0.3, -0.3, -0.7];

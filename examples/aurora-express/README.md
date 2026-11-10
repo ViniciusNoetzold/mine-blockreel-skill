@@ -2,7 +2,7 @@
 
 A courier carries a glowstone across a frozen rail bridge. Lightning tears out part of the walkway, and the last signal goes live just before dawn.
 
-[Watch the 30-second film](showcase.mp4) · [Shot list](shotlist.md) · [Quality review](qa.md)
+[Watch in your browser](https://viniciusnoetzold.github.io/mine-blockreel-skill-/#aurora-express) · [Download MP4](showcase.mp4?raw=true) · [Shot list](shotlist.md) · [Quality review](qa.md)
 
 The goal was a story that reads without dialogue. The glowstone connects the opening, the crossing and the payoff. Cold light and snowfall establish the canyon, a quiet reaction separates the run from the signal, and warm dawn reveals the full crossing in the last shot.
 

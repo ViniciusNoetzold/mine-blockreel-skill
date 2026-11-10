@@ -71,9 +71,14 @@ def test_render_crafting_and_chat_seek(tmp_path):
         "hud": {
             "labels": {"crafting": "Criação"},
             "hotbar": {"slots": ["stick"]},
+            "inventory": ["oak_log"],
             "chat": {"messages": [{"t": 0.5, "text": "Lia foi explodida por um Creeper", "dur": 4}]},
-            "events": [{"type": "craft", "t": 1, "dur": 3, "grid": ["stick"],
-                        "result": "demo:pickaxe", "takeAt": 3, "toSlot": 1}],
+            "events": [
+                {"type": "craft", "t": 0, "dur": 0.5, "gridSize": 2, "grid": ["oak_log"],
+                 "result": {"item": "planks", "count": 4}, "takeAt": 0.25, "toSlot": 2},
+                {"type": "craft", "t": 1, "dur": 3, "grid": ["stick"],
+                 "result": "demo:pickaxe", "takeAt": 3, "toSlot": 1},
+            ],
         },
     }
     file = tmp_path / "story.json"
@@ -88,8 +93,18 @@ def test_render_crafting_and_chat_seek(tmp_path):
                     pytest.skip("Chromium browser unavailable")
                 raise
             try:
-                page.evaluate("window.renderAt(2)")
                 panel = page.locator(".br-hud-panel")
+                grid = panel.locator(".br-hud-craft .br-hud-grid").first
+                page.evaluate("window.renderAt(0.15)")
+                assert grid.locator(".br-hud-slot").count() == 4
+                assert grid.locator("img[alt='oak_log']").count() == 1
+                page.evaluate("window.renderAt(0.3)")
+                assert grid.locator(".br-hud-slot").count() == 4
+                assert not grid.locator("img").count()
+                assert panel.locator("img[alt='planks']").count() == 1
+
+                page.evaluate("window.renderAt(2)")
+                assert grid.locator(".br-hud-slot").count() == 9
                 assert panel.is_visible() and "Criação" in panel.text_content()
                 preview = panel.locator("img[alt='demo:pickaxe']")
                 assert preview.evaluate("(img) => img.complete && img.naturalWidth === 16")

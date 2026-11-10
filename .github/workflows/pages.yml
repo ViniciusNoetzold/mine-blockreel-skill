@@ -1,0 +1,57 @@
+name: Film gallery
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/pages.yml'
+      - 'docs/gallery/**'
+      - 'docs/media/*.mp4'
+      - 'docs/media/*.jpg'
+      - 'examples/aurora-express/showcase.mp4'
+      - 'examples/aurora-express/poster.jpg'
+      - 'examples/first-night/showcase.mp4'
+      - 'examples/first-night/poster.jpg'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/configure-pages@v5
+      - name: Stage the gallery and its films
+        run: |
+          mkdir -p _site
+          cp docs/gallery/index.html _site/
+          for film in first-night aurora-express; do
+            mkdir -p "_site/media/$film"
+            cp "examples/$film/showcase.mp4" "examples/$film/poster.jpg" "_site/media/$film/"
+          done
+          mkdir -p _site/media/archive
+          cp \
+            docs/media/vila-viva.mp4 docs/media/vila-1-village.jpg \
+            docs/media/herobrine.mp4 docs/media/herobrine-2-duel.jpg \
+            docs/media/creeper-surprise.mp4 docs/media/casa-1-build.jpg \
+            docs/media/zombie-night.mp4 docs/media/noite-1-chase.jpg \
+            docs/media/farol-negro.mp4 docs/media/farol-2-horde.jpg \
+            docs/media/the-last-torch.mp4 docs/media/torch-2-warden.jpg \
+            _site/media/archive/
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

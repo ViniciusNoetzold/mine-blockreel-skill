@@ -1,6 +1,6 @@
 {
   "name": "blockreel",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Make Minecraft-style animations from a prompt: your skin, your blocks, rendered in code.",
   "license": "MIT",
   "private": true,

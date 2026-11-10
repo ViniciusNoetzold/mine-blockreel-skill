@@ -183,12 +183,13 @@ this off; `foliageClearance` sets the lens radius, default 1.3).
 "props": {
   "door1":  { "type": "door",  "pos": [-1,1,1], "axis": "x", "hinge": "min", "block": "planks", "events": [ { "t": 7.5, "do": "open" }, { "t": 10, "do": "close" } ] },
   "chest1": { "type": "chest", "pos": [4,1,1], "face": 180, "events": [ { "t": 8, "do": "open" } ] },
+  "torch1": { "type": "torch", "pos": [2.05,1.35,3.5], "t": 8, "face": 90, "tilt": 25, "intensity": 12 },
   "sign1":  { "type": "sign", "pos": [2,1,3], "face": 20, "text": "BEM-VINDO\nà vila", "wall": false }   // up to 4 lines, the game font
 }
 ```
 Explosions remove blocks within `radius` (irregular edge, delayed by distance), spawn fireball, debris and smoke, and spare
 `obsidian`, `water`, `lava` (override with `"blastResistant": [...]`). A crater shows what is *below*: build extra dirt layers.
-Use `place` on an empty position or after a `break`. `water` and `lava` flow automatically (texture scroll).
+Use `place` on an empty position or after a `break`. A `torch` prop uses a precise world-space attachment point, appears at `t`, and casts warm local light. `face` and `tilt` are degrees. `water` and `lava` flow automatically (texture scroll).
 
 ## Blocks
 

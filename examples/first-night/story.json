@@ -1,0 +1,2978 @@
+{
+  "title": "Primeira Noite",
+  "duration": 60,
+  "size": [
+    1280,
+    720
+  ],
+  "fps": 24,
+  "seed": 813,
+  "style": "golden-hour",
+  "textures": "builtin",
+  "font": "css",
+  "blocks": "blocks",
+  "styleOverride": {
+    "letterbox": 2.05,
+    "shadowRange": 22,
+    "fog": [
+      13,
+      54
+    ],
+    "vignette": true
+  },
+  "sky": {
+    "clouds": true,
+    "stars": 1,
+    "celestial": true,
+    "cloudHeight": 28,
+    "cloudSpeed": 0.35,
+    "sunsetGlow": true
+  },
+  "post": {
+    "bloom": {
+      "strength": 0.43,
+      "radius": 0.38,
+      "threshold": 0.81
+    },
+    "dof": {
+      "focus": 4.5,
+      "range": 3.2,
+      "maxblur": 0.0026
+    },
+    "grade": {
+      "exposure": 1.11,
+      "contrast": 1.06,
+      "saturation": 0.96
+    },
+    "grain": 0.012
+  },
+  "actors": {
+    "player": {
+      "skin": "/core/builtin/skins/explorer.png",
+      "pos": [
+        0.5,
+        1,
+        5.5
+      ],
+      "face": 180,
+      "blink": false
+    },
+    "spider": {
+      "type": "spider",
+      "texture": "/core/builtin/mobs/sample-spider-layout.png",
+      "pos": [
+        -5.5,
+        1,
+        1.6
+      ],
+      "face": 90,
+      "glowEyes": true
+    },
+    "creeper": {
+      "type": "creeper",
+      "texture": "/core/builtin/mobs/sample-creeper-layout.png",
+      "pos": [
+        5.5,
+        1,
+        -10.85
+      ],
+      "face": 0
+    }
+  },
+  "world": [
+    {
+      "terrain": {
+        "radius": 30,
+        "center": [
+          0,
+          0
+        ],
+        "biome": "forest",
+        "base": 0,
+        "amp": 2.1,
+        "scale": 12,
+        "trees": 0.03,
+        "plants": 0.027,
+        "flowers": 0.012,
+        "water": -8,
+        "flat": {
+          "center": [
+            1,
+            -2
+          ],
+          "radius": 15,
+          "y": 0
+        },
+        "clear": [
+          [
+            0,
+            3,
+            10
+          ],
+          [
+            5,
+            -8,
+            9
+          ],
+          [
+            12,
+            0,
+            7
+          ]
+        ],
+        "arenaPlants": false,
+        "seed": 813
+      }
+    },
+    {
+      "fill": [
+        "stone",
+        [
+          -14,
+          -5,
+          -17
+        ],
+        [
+          18,
+          -1,
+          15
+        ]
+      ]
+    },
+    {
+      "fill": [
+        "grass",
+        [
+          -13,
+          0,
+          -16
+        ],
+        [
+          18,
+          0,
+          15
+        ]
+      ]
+    },
+    {
+      "fill": [
+        "air",
+        [
+          11,
+          -4,
+          -1
+        ],
+        [
+          18,
+          1,
+          4
+        ]
+      ]
+    },
+    {
+      "fill": [
+        "stone",
+        [
+          13,
+          -4,
+          -1
+        ],
+        [
+          18,
+          -4,
+          4
+        ]
+      ]
+    },
+    {
+      "fill": [
+        "air",
+        [
+          14,
+          -5,
+          -2
+        ],
+        [
+          18,
+          -2,
+          3
+        ]
+      ]
+    },
+    {
+      "fill": [
+        "stone",
+        [
+          -2,
+          1,
+          -5
+        ],
+        [
+          3,
+          2,
+          -4
+        ]
+      ]
+    },
+    {
+      "fill": [
+        "stone",
+        [
+          0,
+          3,
+          -5
+        ],
+        [
+          2,
+          3,
+          -5
+        ]
+      ]
+    },
+    {
+      "set": [
+        "cobblestone",
+        [
+          -2,
+          1,
+          -4
+        ]
+      ]
+    },
+    {
+      "fill": [
+        "stone",
+        [
+          -1,
+          1,
+          -15
+        ],
+        [
+          12,
+          3,
+          -6
+        ]
+      ]
+    },
+    {
+      "fill": [
+        "stone",
+        [
+          0,
+          4,
+          -16
+        ],
+        [
+          12,
+          5,
+          -9
+        ]
+      ]
+    },
+    {
+      "fill": [
+        "stone",
+        [
+          2,
+          6,
+          -17
+        ],
+        [
+          10,
+          7,
+          -12
+        ]
+      ]
+    },
+    {
+      "fill": [
+        "grass",
+        [
+          0,
+          4,
+          -8
+        ],
+        [
+          12,
+          4,
+          -7
+        ]
+      ]
+    },
+    {
+      "fill": [
+        "grass",
+        [
+          0,
+          6,
+          -12
+        ],
+        [
+          12,
+          6,
+          -10
+        ]
+      ]
+    },
+    {
+      "fill": [
+        "grass",
+        [
+          2,
+          8,
+          -16
+        ],
+        [
+          10,
+          8,
+          -14
+        ]
+      ]
+    },
+    {
+      "fill": [
+        "air",
+        [
+          4,
+          1,
+          -11
+        ],
+        [
+          6,
+          2,
+          -7
+        ]
+      ]
+    },
+    {
+      "fill": [
+        "air",
+        [
+          5,
+          1,
+          -14
+        ],
+        [
+          6,
+          2,
+          -11
+        ]
+      ]
+    },
+    {
+      "set": [
+        "coal_ore",
+        [
+          3,
+          1,
+          -9
+        ]
+      ]
+    },
+    {
+      "set": [
+        "coal_ore",
+        [
+          3,
+          2,
+          -10
+        ]
+      ]
+    },
+    {
+      "set": [
+        "cobblestone",
+        [
+          7,
+          1,
+          -10
+        ]
+      ]
+    },
+    {
+      "set": [
+        "dirt",
+        [
+          5,
+          1,
+          -6
+        ]
+      ]
+    },
+    {
+      "set": [
+        "dirt",
+        [
+          5,
+          2,
+          -6
+        ]
+      ]
+    },
+    {
+      "set": [
+        "dirt",
+        [
+          5,
+          1,
+          -7
+        ]
+      ]
+    },
+    {
+      "set": [
+        "stone_slab:top",
+        [
+          6,
+          2,
+          -6
+        ]
+      ]
+    },
+    {
+      "set": [
+        "cobblestone",
+        [
+          10,
+          2,
+          -6
+        ]
+      ]
+    },
+    {
+      "set": [
+        "cobblestone",
+        [
+          9,
+          1,
+          -6
+        ]
+      ]
+    },
+    {
+      "set": [
+        "cobblestone",
+        [
+          11,
+          3,
+          -6
+        ]
+      ]
+    },
+    {
+      "set": [
+        "dirt",
+        [
+          7,
+          2,
+          -6
+        ]
+      ]
+    },
+    {
+      "set": [
+        "dirt",
+        [
+          6,
+          1,
+          -6
+        ]
+      ]
+    },
+    {
+      "set": [
+        "dirt",
+        [
+          4,
+          2,
+          -6
+        ]
+      ]
+    },
+    {
+      "tree": [
+        -3,
+        1,
+        2
+      ],
+      "kind": "oak",
+      "height": 5
+    },
+    {
+      "tree": [
+        -6,
+        1,
+        -1
+      ],
+      "kind": "oak",
+      "height": 4
+    },
+    {
+      "tree": [
+        -7,
+        1,
+        4
+      ],
+      "kind": "oak",
+      "height": 5
+    },
+    {
+      "tree": [
+        -8,
+        1,
+        8
+      ],
+      "kind": "oak",
+      "height": 6
+    },
+    {
+      "tree": [
+        -4,
+        1,
+        10
+      ],
+      "kind": "oak",
+      "height": 4
+    },
+    {
+      "tree": [
+        5,
+        1,
+        8
+      ],
+      "kind": "oak",
+      "height": 5
+    },
+    {
+      "tree": [
+        7,
+        1,
+        3
+      ],
+      "kind": "oak",
+      "height": 6
+    },
+    {
+      "tree": [
+        8,
+        1,
+        -2
+      ],
+      "kind": "oak",
+      "height": 4
+    },
+    {
+      "tree": [
+        10,
+        1,
+        6
+      ],
+      "kind": "oak",
+      "height": 5
+    },
+    {
+      "tree": [
+        -6,
+        1,
+        -7
+      ],
+      "kind": "oak",
+      "height": 6
+    },
+    {
+      "tree": [
+        -10,
+        1,
+        -5
+      ],
+      "kind": "oak",
+      "height": 4
+    },
+    {
+      "tree": [
+        -12,
+        1,
+        0
+      ],
+      "kind": "oak",
+      "height": 5
+    },
+    {
+      "tree": [
+        10,
+        5,
+        -8
+      ],
+      "kind": "oak",
+      "height": 6
+    },
+    {
+      "tree": [
+        9,
+        7,
+        -11
+      ],
+      "kind": "oak",
+      "height": 4
+    },
+    {
+      "tree": [
+        -1,
+        5,
+        -8
+      ],
+      "kind": "oak",
+      "height": 5
+    },
+    {
+      "tree": [
+        -10,
+        1,
+        13
+      ],
+      "kind": "oak",
+      "height": 6
+    },
+    {
+      "tree": [
+        5,
+        1,
+        13
+      ],
+      "kind": "oak",
+      "height": 4
+    },
+    {
+      "tree": [
+        -13,
+        1,
+        7
+      ],
+      "kind": "birch",
+      "height": 5
+    },
+    {
+      "tree": [
+        -14,
+        1,
+        -3
+      ],
+      "kind": "birch",
+      "height": 6
+    },
+    {
+      "tree": [
+        -9,
+        1,
+        -12
+      ],
+      "kind": "birch",
+      "height": 7
+    },
+    {
+      "tree": [
+        9,
+        1,
+        12
+      ],
+      "kind": "birch",
+      "height": 5
+    },
+    {
+      "tree": [
+        12,
+        1,
+        9
+      ],
+      "kind": "birch",
+      "height": 6
+    },
+    {
+      "tree": [
+        5,
+        9,
+        -14
+      ],
+      "kind": "birch",
+      "height": 7
+    },
+    {
+      "tree": [
+        -5,
+        1,
+        -11
+      ],
+      "kind": "birch",
+      "height": 5
+    },
+    {
+      "scatter": [
+        "tall_grass",
+        [
+          -11,
+          -3
+        ],
+        [
+          10,
+          13
+        ]
+      ],
+      "density": 0.105,
+      "on": [
+        "grass"
+      ]
+    },
+    {
+      "scatter": [
+        "flower_yellow",
+        [
+          -9,
+          -2
+        ],
+        [
+          9,
+          12
+        ]
+      ],
+      "density": 0.044,
+      "on": [
+        "grass"
+      ]
+    },
+    {
+      "set": [
+        "flower_yellow",
+        [
+          -1,
+          1,
+          6
+        ]
+      ]
+    },
+    {
+      "set": [
+        "flower_yellow",
+        [
+          2,
+          1,
+          5
+        ]
+      ]
+    },
+    {
+      "set": [
+        "tall_grass",
+        [
+          3,
+          1,
+          7
+        ]
+      ]
+    },
+    {
+      "set": [
+        "air",
+        [
+          3,
+          1,
+          -4
+        ]
+      ]
+    },
+    {
+      "fill": [
+        "stone",
+        [
+          4,
+          0,
+          -14
+        ],
+        [
+          6,
+          0,
+          -7
+        ]
+      ]
+    },
+    {
+      "set": [
+        "air",
+        [
+          3,
+          2,
+          -4
+        ]
+      ]
+    }
+  ],
+  "props": {
+    "torch": {
+      "type": "torch",
+      "pos": [
+        4.08,
+        2.08,
+        -8.55
+      ],
+      "t": 52,
+      "face": 90,
+      "tilt": 25,
+      "intensity": 10,
+      "distance": 4
+    }
+  },
+  "lighting": [
+    {
+      "t": 0,
+      "sky": {
+        "top": "#5080ba",
+        "bottom": "#dce5ca"
+      },
+      "ambient": {
+        "color": "#d9e9ff",
+        "intensity": 0.94
+      },
+      "sun": {
+        "color": "#ffe4a1",
+        "intensity": 2.1,
+        "dir": [
+          -0.62,
+          0.52,
+          0.35
+        ]
+      },
+      "daylight": 0.94
+    },
+    {
+      "t": 10,
+      "sky": {
+        "top": "#537fae",
+        "bottom": "#ecdda6"
+      },
+      "ambient": {
+        "color": "#e2e7ef",
+        "intensity": 0.95
+      },
+      "sun": {
+        "color": "#ffe0a0",
+        "intensity": 2.05,
+        "dir": [
+          -0.64,
+          0.44,
+          0.37
+        ]
+      },
+      "daylight": 0.91
+    },
+    {
+      "t": 17,
+      "sky": {
+        "top": "#535e9d",
+        "bottom": "#f1bd83"
+      },
+      "ambient": {
+        "color": "#e0d6e8",
+        "intensity": 0.89
+      },
+      "sun": {
+        "color": "#ffc07a",
+        "intensity": 1.75,
+        "dir": [
+          -0.73,
+          0.32,
+          0.38
+        ]
+      },
+      "daylight": 0.8
+    },
+    {
+      "t": 25,
+      "sky": {
+        "top": "#51447d",
+        "bottom": "#f0986a"
+      },
+      "ambient": {
+        "color": "#c7b3d1",
+        "intensity": 0.78
+      },
+      "sun": {
+        "color": "#ff965d",
+        "intensity": 1.55,
+        "dir": [
+          -0.86,
+          0.18,
+          0.43
+        ]
+      },
+      "daylight": 0.69
+    },
+    {
+      "t": 27.5,
+      "sky": {
+        "top": "#111b3f",
+        "bottom": "#9f546e"
+      },
+      "ambient": {
+        "color": "#a2accd",
+        "intensity": 0.7
+      },
+      "sun": {
+        "color": "#ffb988",
+        "intensity": 0.55,
+        "dir": [
+          -0.9,
+          0.04,
+          0.45
+        ]
+      },
+      "daylight": 0.29
+    },
+    {
+      "t": 30,
+      "sky": {
+        "top": "#091229",
+        "bottom": "#334566"
+      },
+      "ambient": {
+        "color": "#809bc8",
+        "intensity": 0.56
+      },
+      "sun": {
+        "color": "#a6c2ff",
+        "intensity": 0.3,
+        "dir": [
+          0.36,
+          0.42,
+          0.82
+        ]
+      },
+      "daylight": 0.08
+    },
+    {
+      "t": 39.8,
+      "sky": {
+        "top": "#061023",
+        "bottom": "#243651"
+      },
+      "ambient": {
+        "color": "#839fcc",
+        "intensity": 0.55
+      },
+      "sun": {
+        "color": "#adc5ff",
+        "intensity": 0.24,
+        "dir": [
+          0.36,
+          0.42,
+          0.82
+        ]
+      },
+      "daylight": 0.035
+    },
+    {
+      "t": 40,
+      "daylight": 0.025,
+      "ambient": {
+        "color": "#899fcd",
+        "intensity": 0.57
+      },
+      "sun": {
+        "color": "#c3dcff",
+        "intensity": 0.31,
+        "dir": [
+          0.36,
+          0.42,
+          0.82
+        ]
+      },
+      "sky": {
+        "top": "#061023",
+        "bottom": "#243651"
+      }
+    },
+    {
+      "t": 51.95,
+      "daylight": 0.025,
+      "ambient": {
+        "color": "#899fcd",
+        "intensity": 0.57
+      },
+      "sun": {
+        "color": "#c3dcff",
+        "intensity": 0.31,
+        "dir": [
+          0.36,
+          0.42,
+          0.82
+        ]
+      },
+      "sky": {
+        "top": "#061023",
+        "bottom": "#243651"
+      }
+    },
+    {
+      "t": 52.17,
+      "daylight": 0.025,
+      "ambient": {
+        "color": "#d5b68e",
+        "intensity": 0.65
+      },
+      "sun": {
+        "color": "#d6e4ff",
+        "intensity": 0.3,
+        "dir": [
+          0.36,
+          0.42,
+          0.82
+        ]
+      },
+      "sky": {
+        "top": "#061023",
+        "bottom": "#243651"
+      }
+    }
+  ],
+  "fx": [
+    {
+      "t": 3.7,
+      "kind": "aura",
+      "pos": [
+        -1.8,
+        1.5,
+        4.3
+      ],
+      "dur": 5.5,
+      "scale": 0.22,
+      "density": 0.17,
+      "seed": 41
+    },
+    {
+      "t": 4,
+      "kind": "aura",
+      "pos": [
+        1.5,
+        1.7,
+        6.1
+      ],
+      "dur": 5.4,
+      "scale": 0.18,
+      "density": 0.2,
+      "seed": 85
+    },
+    {
+      "t": 15.583333333333334,
+      "kind": "dust",
+      "pos": [
+        -0.5,
+        1.05,
+        3.5
+      ],
+      "scale": 0.67,
+      "density": 0.65,
+      "seed": 44
+    },
+    {
+      "t": 18.875,
+      "kind": "sparks",
+      "pos": [
+        -0.5,
+        1.89,
+        3.55
+      ],
+      "scale": 0.28,
+      "density": 0.33,
+      "seed": 54
+    },
+    {
+      "t": 30.97,
+      "kind": "dust",
+      "pos": [
+        1.3,
+        1,
+        -1.25
+      ],
+      "scale": 0.37
+    },
+    {
+      "t": 39.82,
+      "kind": "dust",
+      "pos": [
+        5.5,
+        2.2,
+        -6.68
+      ],
+      "scale": 0.26
+    },
+    {
+      "t": 44.75,
+      "kind": "crit",
+      "pos": [
+        4.47,
+        1.43,
+        -8.56
+      ],
+      "scale": 0.35,
+      "density": 0.35,
+      "seed": 56
+    },
+    {
+      "t": 52,
+      "kind": "sparks",
+      "pos": [
+        4.35,
+        2.65,
+        -8.55
+      ],
+      "scale": 0.38,
+      "density": 0.5,
+      "seed": 57
+    },
+    {
+      "t": 52,
+      "kind": "smoke",
+      "pos": [
+        4.35,
+        2.64,
+        -8.55
+      ],
+      "scale": 0.14,
+      "density": 0.35,
+      "dur": 7.25,
+      "seed": 68
+    }
+  ],
+  "timeline": [
+    {
+      "t": 0,
+      "actor": "spider",
+      "hide": true
+    },
+    {
+      "t": 0,
+      "actor": "creeper",
+      "hide": true
+    },
+    {
+      "t": 0,
+      "actor": "player",
+      "do": "idle",
+      "dur": 2.4166666666666665,
+      "face": 180
+    },
+    {
+      "t": 2.4166666666666665,
+      "actor": "player",
+      "do": "inspect",
+      "dur": 1,
+      "lookAt": [
+        0.85,
+        2.34,
+        4.52
+      ],
+      "blend": 0.28
+    },
+    {
+      "t": 3.4166666666666665,
+      "actor": "player",
+      "do": "bow",
+      "dur": 0.8333333333333334,
+      "lookAt": [
+        0.18,
+        2.08,
+        4.62
+      ],
+      "blend": 0.32
+    },
+    {
+      "t": 4.25,
+      "actor": "player",
+      "do": "look",
+      "dur": 4.916666666666667,
+      "lookAt": null,
+      "blend": 0.35
+    },
+    {
+      "t": 9.166666666666666,
+      "actor": "player",
+      "do": "run",
+      "dur": 1.125,
+      "to": [
+        -2.5,
+        1,
+        4.05
+      ],
+      "ease": "smooth",
+      "turn": 0.24,
+      "blend": 0.2
+    },
+    {
+      "t": 10.083333333333334,
+      "actor": "player",
+      "lookAt": [
+        -2.5,
+        2.5,
+        2.68
+      ],
+      "blend": 0.24
+    },
+    {
+      "t": 10.291666666666666,
+      "actor": "player",
+      "do": "punch",
+      "face": 180,
+      "turn": 0.19,
+      "dur": 0.8333333333333334,
+      "blend": 0.09
+    },
+    {
+      "t": 11.125,
+      "actor": "player",
+      "do": "punch",
+      "dur": 0.9166666666666666,
+      "lookAt": [
+        -2.5,
+        1.78,
+        2.75
+      ],
+      "blend": 0.12
+    },
+    {
+      "t": 12.041666666666666,
+      "actor": "player",
+      "do": "walk",
+      "dur": 0.9583333333333334,
+      "to": [
+        -0.5,
+        1,
+        4.28
+      ],
+      "lookAt": [
+        -0.5,
+        1.48,
+        3.5
+      ],
+      "ease": "smooth",
+      "turn": 0.16,
+      "blend": 0.11
+    },
+    {
+      "t": 12.208333333333334,
+      "actor": "player",
+      "holding": "oak_log"
+    },
+    {
+      "t": 13,
+      "actor": "player",
+      "do": "inspect",
+      "face": 180,
+      "turn": 0.2,
+      "dur": 2.1666666666666665,
+      "lookAt": [
+        -0.49,
+        1.8,
+        3.51
+      ],
+      "holding": null,
+      "blend": 0.16
+    },
+    {
+      "t": 14.958333333333334,
+      "actor": "player",
+      "holding": "crafting_table"
+    },
+    {
+      "t": 15.208333333333334,
+      "actor": "player",
+      "do": "swing",
+      "dur": 0.9166666666666666,
+      "face": 180,
+      "lookAt": [
+        -0.5,
+        1.45,
+        3.5
+      ],
+      "blend": 0.1
+    },
+    {
+      "t": 15.583333333333334,
+      "actor": "player",
+      "holding": null
+    },
+    {
+      "t": 16.208333333333332,
+      "actor": "player",
+      "do": "inspect",
+      "dur": 1.25,
+      "lookAt": [
+        -0.5,
+        1.86,
+        3.49
+      ],
+      "blend": 0.19
+    },
+    {
+      "t": 17.458333333333332,
+      "actor": "player",
+      "do": "inspect",
+      "dur": 1.7083333333333333,
+      "lookAt": [
+        -0.5,
+        1.84,
+        3.5
+      ],
+      "blend": 0.15
+    },
+    {
+      "t": 18.791666666666668,
+      "actor": "player",
+      "holding": "wooden_pickaxe"
+    },
+    {
+      "t": 19.166666666666668,
+      "actor": "player",
+      "do": "run",
+      "dur": 0.625,
+      "to": [
+        0.68,
+        1,
+        4.28
+      ],
+      "lookAt": [
+        1.5,
+        1.77,
+        -3.25
+      ],
+      "ease": "smooth",
+      "turn": 0.16,
+      "blend": 0.16
+    },
+    {
+      "t": 19.791666666666668,
+      "actor": "player",
+      "do": "run",
+      "dur": 1.5,
+      "to": [
+        1.3,
+        1,
+        -1.91
+      ],
+      "ease": "smooth",
+      "turn": 0.18,
+      "blend": 0.14
+    },
+    {
+      "t": 21.291666666666668,
+      "actor": "player",
+      "do": "mine",
+      "dur": 0.7083333333333334,
+      "face": [
+        1.5,
+        1.52,
+        -3.5
+      ],
+      "lookAt": [
+        1.5,
+        1.5,
+        -3.35
+      ],
+      "turn": 0.1,
+      "blend": 0.1
+    },
+    {
+      "t": 22,
+      "actor": "player",
+      "do": "mine",
+      "dur": 0.7916666666666666,
+      "face": [
+        0.5,
+        1.52,
+        -3.5
+      ],
+      "lookAt": [
+        0.5,
+        1.5,
+        -3.38
+      ],
+      "turn": 0.16,
+      "blend": 0.11
+    },
+    {
+      "t": 22.791666666666668,
+      "actor": "player",
+      "do": "mine",
+      "dur": 1,
+      "face": [
+        2.5,
+        1.53,
+        -3.5
+      ],
+      "lookAt": [
+        2.45,
+        1.5,
+        -3.39
+      ],
+      "turn": 0.2,
+      "blend": 0.12
+    },
+    {
+      "t": 23.791666666666668,
+      "actor": "player",
+      "do": "walk",
+      "dur": 0.7916666666666666,
+      "to": [
+        1.3,
+        1,
+        -1.25
+      ],
+      "face": 180,
+      "lookAt": [
+        1.5,
+        1.68,
+        -4.33
+      ],
+      "ease": "smooth",
+      "turn": 0.19,
+      "blend": 0.12
+    },
+    {
+      "t": 24.583333333333332,
+      "actor": "player",
+      "do": "idle",
+      "dur": 0.4166666666666667,
+      "face": 180,
+      "lookAt": null,
+      "turn": 0.12
+    },
+    {
+      "t": 25,
+      "actor": "player",
+      "do": "look",
+      "dur": 2.5,
+      "face": [
+        -5,
+        1.5,
+        1.5
+      ],
+      "turn": 1.25,
+      "lookAt": [
+        -5,
+        1.5,
+        1.5
+      ]
+    },
+    {
+      "t": 27.15,
+      "actor": "spider",
+      "show": true
+    },
+    {
+      "t": 27.15,
+      "actor": "spider",
+      "do": "walk",
+      "dur": 2.45,
+      "to": [
+        -4.45,
+        1,
+        1.05
+      ],
+      "face": "player",
+      "speed": 0.6,
+      "ease": "smooth"
+    },
+    {
+      "t": 29.625,
+      "actor": "player",
+      "do": "flinch",
+      "dur": 0.92,
+      "lookAt": "spider",
+      "blend": 0.11
+    },
+    {
+      "t": 30.5,
+      "actor": "player",
+      "do": "scared",
+      "dur": 0.5,
+      "face": [
+        4.2,
+        1,
+        -3
+      ],
+      "turn": 0.35,
+      "lookAt": [
+        4.2,
+        1.84,
+        -3
+      ]
+    },
+    {
+      "t": 31,
+      "actor": "player",
+      "do": "run",
+      "dur": 1.12,
+      "to": [
+        3.78,
+        1,
+        -2.71
+      ],
+      "turn": 0.14,
+      "lookAt": [
+        5.44,
+        1.8,
+        -5.5
+      ],
+      "speed": 1.2
+    },
+    {
+      "t": 32.12,
+      "actor": "player",
+      "do": "run",
+      "dur": 1.13,
+      "to": [
+        5.5,
+        1,
+        -4.58
+      ],
+      "turn": 0.18,
+      "lookAt": [
+        5.5,
+        1.77,
+        -5.9
+      ],
+      "speed": 1.18
+    },
+    {
+      "t": 33.25,
+      "actor": "player",
+      "do": "mine",
+      "dur": 2,
+      "face": 180,
+      "lookAt": [
+        5.5,
+        2.37,
+        -5.99
+      ]
+    },
+    {
+      "t": 35.25,
+      "actor": "player",
+      "do": "mine",
+      "dur": 1.625,
+      "face": 180,
+      "lookAt": [
+        5.5,
+        1.41,
+        -6.45
+      ]
+    },
+    {
+      "t": 36.875,
+      "actor": "player",
+      "do": "run",
+      "dur": 1.625,
+      "to": [
+        5.5,
+        1,
+        -8.75
+      ],
+      "turn": 0.12,
+      "lookAt": [
+        5.5,
+        1.9,
+        -8.75
+      ],
+      "speed": 0.92
+    },
+    {
+      "t": 38.5,
+      "actor": "player",
+      "do": "point",
+      "dur": 1.33,
+      "face": 0,
+      "lookAt": [
+        5.5,
+        1.74,
+        -6.42
+      ],
+      "holding": "dirt",
+      "turn": 0.27
+    },
+    {
+      "t": 39.83,
+      "actor": "player",
+      "do": "flinch",
+      "dur": 0.17,
+      "to": [
+        5.5,
+        1,
+        -9.1
+      ],
+      "face": 180,
+      "holding": "wooden_pickaxe",
+      "lookAt": null,
+      "turn": 0.1
+    },
+    {
+      "t": 40,
+      "actor": "player",
+      "do": "walk",
+      "to": [
+        4.94,
+        1,
+        -8.22
+      ],
+      "dur": 1.375,
+      "ease": "smooth",
+      "face": [
+        3.53,
+        1.62,
+        -8.5
+      ],
+      "holding": "wooden_pickaxe",
+      "lookAt": [
+        3.99,
+        1.59,
+        -8.52
+      ],
+      "blend": 0.23
+    },
+    {
+      "t": 41.375,
+      "actor": "player",
+      "do": "mine",
+      "dur": 3.125,
+      "blend": 0.2
+    },
+    {
+      "t": 44.5,
+      "actor": "player",
+      "do": "inspect",
+      "dur": 1.5,
+      "face": 8,
+      "lookAt": null,
+      "holding": null,
+      "blend": 0.2
+    },
+    {
+      "t": 44.75,
+      "actor": "player",
+      "holding": "coal"
+    },
+    {
+      "t": 46.25,
+      "actor": "player",
+      "do": "crouch",
+      "dur": 4,
+      "face": -25,
+      "lookAt": [
+        4.94,
+        1.25,
+        -7.65
+      ],
+      "holding": null,
+      "blend": 0.32
+    },
+    {
+      "t": 49.25,
+      "actor": "player",
+      "holding": "torch"
+    },
+    {
+      "t": 50.25,
+      "actor": "player",
+      "do": "inspect",
+      "dur": 0.95,
+      "face": -18,
+      "lookAt": null,
+      "blend": 0.25
+    },
+    {
+      "t": 51.2,
+      "actor": "player",
+      "do": "point",
+      "dur": 0.8,
+      "face": [
+        4.08,
+        2.35,
+        -8.55
+      ],
+      "lookAt": [
+        4.08,
+        2.35,
+        -8.55
+      ],
+      "turn": 0.26,
+      "blend": 0.22
+    },
+    {
+      "t": 52,
+      "actor": "player",
+      "holding": null
+    },
+    {
+      "t": 52.25,
+      "actor": "player",
+      "do": "relief",
+      "dur": 1.65,
+      "face": [
+        4.42,
+        2.23,
+        -7.25
+      ],
+      "lookAt": null,
+      "turn": 0.26,
+      "blend": 0.26
+    },
+    {
+      "t": 53.75,
+      "actor": "creeper",
+      "do": "walk",
+      "dur": 1.6,
+      "to": [
+        5.78,
+        1,
+        -10.26
+      ],
+      "face": "player",
+      "ease": "smooth",
+      "speed": 0.65
+    },
+    {
+      "t": 54.5,
+      "actor": "player",
+      "do": "idle",
+      "dur": 2.75,
+      "face": 15,
+      "lookAt": [
+        5.24,
+        2,
+        -7.16
+      ],
+      "blend": 0.35
+    },
+    {
+      "t": 54.5,
+      "actor": "creeper",
+      "show": true
+    },
+    {
+      "t": 55.35,
+      "actor": "creeper",
+      "do": "idle",
+      "dur": 1.9,
+      "face": "player",
+      "lookAt": "player"
+    },
+    {
+      "t": 57.25,
+      "actor": "creeper",
+      "do": "swell",
+      "dur": 2,
+      "face": "player",
+      "lookAt": "player"
+    },
+    {
+      "t": 57.25,
+      "actor": "player",
+      "do": "flinch",
+      "dur": 0.82,
+      "face": 58,
+      "lookAt": "creeper",
+      "turn": 0.24,
+      "blend": 0.12
+    },
+    {
+      "t": 58.07,
+      "actor": "player",
+      "do": "scared",
+      "dur": 1.18,
+      "face": 75,
+      "lookAt": "creeper",
+      "turn": 0.2,
+      "blend": 0.22
+    },
+    {
+      "t": 59.25,
+      "actor": "player",
+      "hide": true
+    },
+    {
+      "t": 59.25,
+      "actor": "creeper",
+      "hide": true
+    }
+  ],
+  "camera": [
+    {
+      "t": 0,
+      "dur": 2.4166666666666665,
+      "pos": [
+        0.51,
+        2.64,
+        3.73
+      ],
+      "to": [
+        0.66,
+        2.64,
+        4.12
+      ],
+      "look": [
+        0.51,
+        2.61,
+        5.31
+      ],
+      "fov": 33,
+      "fovTo": 34,
+      "ease": "smooth",
+      "tone": "calm"
+    },
+    {
+      "t": 2.4166666666666665,
+      "dur": 1.8333333333333333,
+      "first": "player",
+      "fov": 91,
+      "handheld": 0.16,
+      "tone": "calm"
+    },
+    {
+      "t": 4.25,
+      "dur": 5.75,
+      "orbit": {
+        "center": {
+          "actor": "player",
+          "offset": [
+            0,
+            1.03,
+            0
+          ]
+        },
+        "radius": 3.2,
+        "height": 1.62,
+        "from": 135,
+        "to": 495
+      },
+      "fov": 58,
+      "ease": "smooth",
+      "tone": "calm"
+    },
+    {
+      "t": 10,
+      "dur": 1.125,
+      "first": "player",
+      "fov": 83,
+      "handheld": 0.22,
+      "shake": 0.013,
+      "tone": "action"
+    },
+    {
+      "t": 11.125,
+      "dur": 0.9166666666666666,
+      "pos": [
+        0.1,
+        2.04,
+        3.46
+      ],
+      "to": [
+        -0.52,
+        2.05,
+        3.52
+      ],
+      "look": [
+        -2.47,
+        1.92,
+        3.33
+      ],
+      "fov": 49,
+      "fovTo": 45,
+      "handheld": 0.38,
+      "shake": 0.025,
+      "tone": "action"
+    },
+    {
+      "t": 12.041666666666666,
+      "dur": 0.9583333333333334,
+      "pos": {
+        "actor": "player",
+        "offset": [
+          1.03,
+          0.75,
+          1.98
+        ]
+      },
+      "to": {
+        "actor": "player",
+        "offset": [
+          0.93,
+          1.04,
+          2.26
+        ]
+      },
+      "look": {
+        "actor": "player",
+        "offset": [
+          0,
+          0.81,
+          -0.15
+        ]
+      },
+      "fov": 52,
+      "handheld": 0.38,
+      "tone": "action"
+    },
+    {
+      "t": 13,
+      "dur": 2.1666666666666665,
+      "pos": [
+        1.96,
+        3.61,
+        5.08
+      ],
+      "to": [
+        1.5,
+        3.89,
+        4.87
+      ],
+      "look": [
+        -0.5,
+        1.67,
+        3.86
+      ],
+      "fov": 50,
+      "tone": "calm"
+    },
+    {
+      "t": 15.166666666666666,
+      "dur": 1.0416666666666667,
+      "pos": [
+        1.65,
+        1.52,
+        2.77
+      ],
+      "to": [
+        1.36,
+        1.55,
+        2.75
+      ],
+      "look": [
+        -0.5,
+        1.56,
+        3.82
+      ],
+      "fov": 46,
+      "shake": 0.028,
+      "handheld": 0.22,
+      "tone": "action"
+    },
+    {
+      "t": 16.208333333333332,
+      "dur": 2.9583333333333335,
+      "pos": [
+        1.73,
+        3.38,
+        4.94
+      ],
+      "to": [
+        1.46,
+        3.67,
+        4.71
+      ],
+      "look": [
+        -0.47,
+        1.74,
+        3.87
+      ],
+      "fov": 51,
+      "tone": "calm"
+    },
+    {
+      "t": 19.166666666666668,
+      "dur": 1.1666666666666667,
+      "pos": {
+        "actor": "player",
+        "offset": [
+          -1.92,
+          0.98,
+          1.4
+        ]
+      },
+      "to": {
+        "actor": "player",
+        "offset": [
+          -1.8,
+          1.29,
+          1.04
+        ]
+      },
+      "look": {
+        "actor": "player",
+        "offset": [
+          0,
+          0.99,
+          -0.22
+        ]
+      },
+      "fov": 56,
+      "dutch": -4,
+      "dutchTo": -1,
+      "handheld": 0.55,
+      "tone": "action"
+    },
+    {
+      "t": 20.333333333333332,
+      "dur": 0.9583333333333334,
+      "pos": {
+        "actor": "player",
+        "offset": [
+          2.18,
+          0.53,
+          -1.2
+        ]
+      },
+      "to": {
+        "actor": "player",
+        "offset": [
+          2.03,
+          0.6,
+          -0.75
+        ]
+      },
+      "look": {
+        "actor": "player",
+        "offset": [
+          0,
+          0.96,
+          -0.12
+        ]
+      },
+      "fov": 54,
+      "handheld": 0.5,
+      "tone": "action"
+    },
+    {
+      "t": 21.291666666666668,
+      "dur": 1.7083333333333333,
+      "first": "player",
+      "fov": 80,
+      "shake": 0.025,
+      "handheld": 0.3,
+      "tone": "action"
+    },
+    {
+      "t": 23,
+      "dur": 1.3333333333333333,
+      "pos": [
+        3.72,
+        1.96,
+        -2.55
+      ],
+      "to": [
+        3.42,
+        2.15,
+        -2.4
+      ],
+      "look": [
+        1.34,
+        1.72,
+        -2.5
+      ],
+      "fov": 45,
+      "shake": 0.018,
+      "handheld": 0.3,
+      "tone": "action"
+    },
+    {
+      "t": 24.333333333333332,
+      "dur": 0.6666666666666666,
+      "pos": {
+        "actor": "player",
+        "offset": [
+          -0.97,
+          1.15,
+          1.86
+        ]
+      },
+      "to": {
+        "actor": "player",
+        "offset": [
+          -0.85,
+          1.17,
+          1.76
+        ]
+      },
+      "look": [
+        1.42,
+        1.68,
+        -3.45
+      ],
+      "fov": 50,
+      "handheld": 0.22,
+      "tone": "calm"
+    },
+    {
+      "t": 25,
+      "dur": 1.25,
+      "pos": [
+        1.5,
+        3.3,
+        3.1
+      ],
+      "to": [
+        1.18,
+        3.2,
+        3.45
+      ],
+      "look": [
+        -11,
+        4.65,
+        9.4
+      ],
+      "lookTo": [
+        -11,
+        4.33,
+        9.4
+      ],
+      "fov": 43,
+      "ease": "smooth",
+      "tone": "calm"
+    },
+    {
+      "t": 26.25,
+      "dur": 1.25,
+      "pos": [
+        3.8,
+        2.95,
+        0.65
+      ],
+      "to": [
+        3.2,
+        2.64,
+        0.15
+      ],
+      "look": [
+        1.2,
+        2.09,
+        -2.4
+      ],
+      "lookTo": [
+        1.2,
+        2.02,
+        -1.7
+      ],
+      "ease": "smooth",
+      "fov": 46,
+      "tone": "calm"
+    },
+    {
+      "t": 27.5,
+      "dur": 2.125,
+      "pos": [
+        0.55,
+        1.22,
+        0.45
+      ],
+      "to": [
+        0.12,
+        1.15,
+        0.35
+      ],
+      "look": [
+        -4.7,
+        1.57,
+        1.1
+      ],
+      "fov": 37,
+      "handheld": 0.28,
+      "focus": "spider",
+      "tone": "action"
+    },
+    {
+      "t": 29.625,
+      "dur": 1.375,
+      "pos": [
+        2.7,
+        2.48,
+        0.15
+      ],
+      "to": [
+        2.86,
+        2.45,
+        -0.05
+      ],
+      "look": {
+        "actor": "player",
+        "offset": [
+          0,
+          1.57,
+          0
+        ]
+      },
+      "fov": 37,
+      "focus": "player",
+      "tone": "action"
+    },
+    {
+      "t": 31,
+      "dur": 2.25,
+      "first": "player",
+      "fov": 74,
+      "shake": 0.014,
+      "handheld": 0.76,
+      "tone": "action"
+    },
+    {
+      "t": 33.25,
+      "dur": 2,
+      "pos": [
+        6.8,
+        2.2,
+        -2.8
+      ],
+      "to": [
+        6.55,
+        2.05,
+        -3
+      ],
+      "look": [
+        5.3,
+        1.88,
+        -5.4
+      ],
+      "fov": 49,
+      "handheld": 0.5,
+      "tone": "action"
+    },
+    {
+      "t": 35.25,
+      "dur": 1.625,
+      "first": "player",
+      "fov": 67,
+      "handheld": 0.45,
+      "tone": "action"
+    },
+    {
+      "t": 36.875,
+      "dur": 1.625,
+      "pos": [
+        4.31,
+        2.45,
+        -8.95
+      ],
+      "to": [
+        4.3,
+        2.42,
+        -9.05
+      ],
+      "look": [
+        5.45,
+        1.88,
+        -6.25
+      ],
+      "fov": 52,
+      "handheld": 0.32,
+      "tone": "action"
+    },
+    {
+      "t": 38.5,
+      "dur": 1.5,
+      "pos": [
+        5.96,
+        2.5,
+        -9.45
+      ],
+      "to": [
+        6.01,
+        2.4,
+        -9.35
+      ],
+      "look": [
+        5.5,
+        2.07,
+        -6.05
+      ],
+      "fov": 50,
+      "handheld": 0.22,
+      "tone": "action"
+    },
+    {
+      "t": 40,
+      "dur": 1.375,
+      "pos": [
+        6.44,
+        2.55,
+        -7.32
+      ],
+      "to": [
+        6.3,
+        2.47,
+        -7.58
+      ],
+      "look": [
+        4.93,
+        1.92,
+        -8.83
+      ],
+      "lookTo": [
+        4.7,
+        1.93,
+        -8.43
+      ],
+      "fov": 57,
+      "tone": "calm"
+    },
+    {
+      "t": 41.375,
+      "dur": 3.125,
+      "first": "player",
+      "fov": 66,
+      "handheld": 0.12,
+      "tone": "action"
+    },
+    {
+      "t": 44.5,
+      "dur": 1.75,
+      "pos": [
+        4.35,
+        2.2,
+        -7.27
+      ],
+      "to": [
+        4.44,
+        2.21,
+        -7.35
+      ],
+      "look": [
+        4.94,
+        2.04,
+        -8.25
+      ],
+      "fov": 57,
+      "tone": "calm"
+    },
+    {
+      "t": 46.25,
+      "dur": 4,
+      "pos": [
+        6.32,
+        2.38,
+        -7.3
+      ],
+      "to": [
+        6.25,
+        2.35,
+        -7.4
+      ],
+      "look": [
+        4.83,
+        1.88,
+        -8.35
+      ],
+      "fov": 58,
+      "tone": "calm"
+    },
+    {
+      "t": 50.25,
+      "dur": 0.9583333333333334,
+      "pos": [
+        4.47,
+        2.37,
+        -7.18
+      ],
+      "to": [
+        4.52,
+        2.41,
+        -7.28
+      ],
+      "look": [
+        4.57,
+        2.28,
+        -8.52
+      ],
+      "fov": 59,
+      "tone": "calm"
+    },
+    {
+      "t": 51.208333333333336,
+      "dur": 1.0416666666666667,
+      "first": "player",
+      "fov": 64,
+      "handheld": 0.1,
+      "tone": "calm"
+    },
+    {
+      "t": 52.25,
+      "dur": 2.25,
+      "pos": [
+        4.42,
+        2.35,
+        -7.25
+      ],
+      "to": [
+        4.44,
+        2.36,
+        -7.37
+      ],
+      "look": [
+        4.99,
+        2.23,
+        -8.25
+      ],
+      "fov": 54,
+      "tone": "calm"
+    },
+    {
+      "t": 54.5,
+      "dur": 2.75,
+      "pos": [
+        6.4,
+        2.52,
+        -7.26
+      ],
+      "to": [
+        6.31,
+        2.43,
+        -7.45
+      ],
+      "look": [
+        5.24,
+        2.02,
+        -9.24
+      ],
+      "fov": 56,
+      "tone": "calm"
+    },
+    {
+      "t": 57.25,
+      "dur": 1,
+      "pos": [
+        6.3,
+        2.36,
+        -8.66
+      ],
+      "to": [
+        6.19,
+        2.33,
+        -8.84
+      ],
+      "look": [
+        5.78,
+        2.1,
+        -10.25
+      ],
+      "fov": 53,
+      "handheld": 0.27,
+      "tone": "action"
+    },
+    {
+      "t": 58.25,
+      "dur": 1.75,
+      "pos": [
+        6.4,
+        2.45,
+        -8.98
+      ],
+      "to": [
+        6.33,
+        2.45,
+        -8.93
+      ],
+      "look": [
+        4.96,
+        2.33,
+        -8.26
+      ],
+      "fov": 50,
+      "fovTo": 46,
+      "handheld": 0.31,
+      "tone": "action"
+    }
+  ],
+  "faces": [
+    {
+      "t": 0,
+      "actor": "player",
+      "eyes": "closed",
+      "dur": 1.5416666666666667
+    },
+    {
+      "t": 1.5416666666666667,
+      "actor": "player",
+      "eyes": "half",
+      "dur": 0.375
+    },
+    {
+      "t": 1.9166666666666667,
+      "actor": "player",
+      "eyes": "wide",
+      "dur": 0.5416666666666666
+    },
+    {
+      "t": 4.25,
+      "actor": "player",
+      "eyes": "wide",
+      "mouth": "half",
+      "dur": 1.125
+    },
+    {
+      "t": 10.333333333333334,
+      "actor": "player",
+      "eyes": "half",
+      "dur": 1.7083333333333333
+    },
+    {
+      "t": 18.916666666666668,
+      "actor": "player",
+      "mouth": "smile",
+      "dur": 1.875
+    },
+    {
+      "t": 21.333333333333332,
+      "actor": "player",
+      "eyes": "half",
+      "dur": 2.375
+    },
+    {
+      "t": 29.53,
+      "actor": "player",
+      "eyes": "wide",
+      "mouth": "shout",
+      "dur": 3.85
+    },
+    {
+      "t": 37.35,
+      "actor": "player",
+      "eyes": "wide",
+      "mouth": "open",
+      "dur": 2.65
+    },
+    {
+      "t": 40,
+      "actor": "player",
+      "eyes": "half",
+      "mouth": "closed",
+      "dur": 1.375
+    },
+    {
+      "t": 41.375,
+      "actor": "player",
+      "eyes": "angry",
+      "mouth": "half",
+      "dur": 3.125
+    },
+    {
+      "t": 44.5,
+      "actor": "player",
+      "eyes": "open",
+      "mouth": "half",
+      "dur": 1.5
+    },
+    {
+      "t": 46.25,
+      "actor": "player",
+      "eyes": "half",
+      "mouth": "closed",
+      "dur": 4
+    },
+    {
+      "t": 52.25,
+      "actor": "player",
+      "eyes": "closed",
+      "mouth": "half",
+      "dur": 0.47
+    },
+    {
+      "t": 52.72,
+      "actor": "player",
+      "eyes": "open",
+      "mouth": "smile",
+      "dur": 4.53
+    },
+    {
+      "t": 57.25,
+      "actor": "player",
+      "eyes": "wide",
+      "mouth": "half",
+      "dur": 0.8
+    },
+    {
+      "t": 58.05,
+      "actor": "player",
+      "eyes": "wide",
+      "mouth": "shout",
+      "dur": 1.2
+    }
+  ],
+  "changes": [
+    {
+      "t": 11.125,
+      "break": [
+        -3,
+        2,
+        2
+      ],
+      "crack": 0.5833333333333334
+    },
+    {
+      "t": 11.708333333333334,
+      "break": [
+        -3,
+        3,
+        2
+      ],
+      "crack": 0.4583333333333333
+    },
+    {
+      "t": 12.041666666666666,
+      "break": [
+        -3,
+        1,
+        2
+      ],
+      "crack": 0.4166666666666667
+    },
+    {
+      "t": 15.583333333333334,
+      "place": [
+        -1,
+        1,
+        3
+      ],
+      "block": "crafting_table"
+    },
+    {
+      "t": 22,
+      "break": [
+        1,
+        1,
+        -4
+      ],
+      "crack": 0.5
+    },
+    {
+      "t": 22.791666666666668,
+      "break": [
+        0,
+        1,
+        -4
+      ],
+      "crack": 0.5833333333333334
+    },
+    {
+      "t": 23.583333333333332,
+      "break": [
+        2,
+        1,
+        -4
+      ],
+      "crack": 0.625
+    },
+    {
+      "t": 34.83,
+      "break": [
+        5,
+        2,
+        -6
+      ],
+      "crack": 0.72
+    },
+    {
+      "t": 35.67,
+      "break": [
+        5,
+        1,
+        -6
+      ],
+      "crack": 0.7
+    },
+    {
+      "t": 36.74,
+      "break": [
+        5,
+        1,
+        -7
+      ],
+      "crack": 0.72
+    },
+    {
+      "t": 39.45,
+      "place": [
+        5,
+        1,
+        -6
+      ],
+      "block": "dirt"
+    },
+    {
+      "t": 39.83,
+      "place": [
+        5,
+        2,
+        -6
+      ],
+      "block": "dirt"
+    },
+    {
+      "t": 44.5,
+      "break": [
+        3,
+        1,
+        -9
+      ],
+      "crack": 3
+    },
+    {
+      "t": 59.25,
+      "explode": [
+        5,
+        1,
+        -11
+      ],
+      "radius": 2.1,
+      "smoke": 0.7
+    }
+  ],
+  "transitions": [
+    {
+      "t": 0,
+      "type": "fade",
+      "dur": 0.4166666666666667,
+      "dir": "in",
+      "color": "#161710"
+    },
+    {
+      "t": 39.83,
+      "type": "flash",
+      "color": "#05060b",
+      "peak": 0.95,
+      "dur": 0.26
+    },
+    {
+      "t": 59.249,
+      "type": "fade",
+      "dur": 0.0005,
+      "dir": "out",
+      "color": "#000"
+    }
+  ],
+  "hud": {
+    "events": [
+      {
+        "t": 0,
+        "type": "hotbar",
+        "visible": false
+      },
+      {
+        "t": 11.125,
+        "type": "set",
+        "area": "inventory",
+        "slot": 0,
+        "stack": {
+          "item": "oak_log",
+          "count": 1
+        }
+      },
+      {
+        "t": 11.708333333333334,
+        "type": "set",
+        "area": "inventory",
+        "slot": 0,
+        "stack": {
+          "item": "oak_log",
+          "count": 2
+        }
+      },
+      {
+        "t": 12.041666666666666,
+        "type": "set",
+        "area": "inventory",
+        "slot": 0,
+        "stack": {
+          "item": "oak_log",
+          "count": 3
+        }
+      },
+      {
+        "t": 13,
+        "type": "craft",
+        "dur": 1.0416666666666667,
+        "gridSize": 2,
+        "grid": [
+          {
+            "item": "oak_log",
+            "count": 3
+          },
+          null,
+          null,
+          null
+        ],
+        "result": {
+          "item": "planks",
+          "count": 12
+        },
+        "takeAt": 13.875,
+        "toSlot": 0
+      },
+      {
+        "t": 14.083333333333334,
+        "type": "craft",
+        "dur": 1.0416666666666667,
+        "gridSize": 2,
+        "grid": [
+          "planks",
+          "planks",
+          "planks",
+          "planks"
+        ],
+        "result": "crafting_table",
+        "takeAt": 14.958333333333334,
+        "toSlot": 1
+      },
+      {
+        "t": 15.583333333333334,
+        "type": "set",
+        "slot": 1,
+        "stack": null
+      },
+      {
+        "t": 16.208333333333332,
+        "type": "craft",
+        "dur": 1.2083333333333333,
+        "grid": [
+          "planks",
+          null,
+          null,
+          "planks",
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "result": {
+          "item": "stick",
+          "count": 4
+        },
+        "takeAt": 17.208333333333332,
+        "toSlot": 1
+      },
+      {
+        "t": 17.458333333333332,
+        "type": "craft",
+        "dur": 1.6666666666666667,
+        "grid": [
+          "planks",
+          "planks",
+          "planks",
+          null,
+          "stick",
+          null,
+          null,
+          "stick",
+          null
+        ],
+        "result": "wooden_pickaxe",
+        "takeAt": 18.791666666666668,
+        "toSlot": 2
+      },
+      {
+        "t": 18.791666666666668,
+        "type": "select",
+        "slot": 2
+      },
+      {
+        "t": 22,
+        "type": "set",
+        "slot": 3,
+        "stack": {
+          "item": "cobblestone",
+          "count": 1
+        }
+      },
+      {
+        "t": 22.791666666666668,
+        "type": "set",
+        "slot": 3,
+        "stack": {
+          "item": "cobblestone",
+          "count": 2
+        }
+      },
+      {
+        "t": 23.583333333333332,
+        "type": "set",
+        "slot": 3,
+        "stack": {
+          "item": "cobblestone",
+          "count": 3
+        }
+      },
+      {
+        "t": 23.625,
+        "type": "hotbar",
+        "visible": true
+      },
+      {
+        "t": 24.791666666666668,
+        "type": "hotbar",
+        "visible": false
+      },
+      {
+        "type": "hotbar",
+        "t": 44.75,
+        "visible": true
+      },
+      {
+        "type": "set",
+        "t": 44.75,
+        "area": "inventory",
+        "slot": 26,
+        "stack": "coal"
+      },
+      {
+        "type": "craft",
+        "t": 46.25,
+        "dur": 4,
+        "grid": [
+          "coal",
+          null,
+          "stick",
+          null
+        ],
+        "result": {
+          "item": "torch",
+          "count": 4
+        },
+        "takeAt": 49.25,
+        "toSlot": 7,
+        "gridSize": 2
+      },
+      {
+        "type": "select",
+        "t": 49.25,
+        "slot": 7
+      },
+      {
+        "type": "set",
+        "t": 52,
+        "slot": 7,
+        "stack": {
+          "item": "torch",
+          "count": 3
+        }
+      },
+      {
+        "type": "hotbar",
+        "t": 51.2,
+        "visible": false
+      }
+    ],
+    "labels": {
+      "crafting": "Criação",
+      "inventory": "Inventário"
+    }
+  },
+  "audio": {
+    "music": {
+      "file": "generated/mix.wav",
+      "volume": 1
+    }
+  }
+}

@@ -11,6 +11,13 @@ const defs = { stone: 'stone', glass: { all: 'glass', transparent: true }, leave
 const defOf = (n) => resolveDef(defs, n);
 const quads = (r) => [...r.groups.values()].reduce((a, g) => a + g.builder.n / 4, 0);
 
+// Terrain amplitude can be fractional, but the mesher consumes integer block coordinates.
+{
+  const grid = expandWorld([{ terrain: { radius: 5, base: 0, amp: 2.1, trees: 0 } }], 31);
+  ok([...grid.keys()].every((key) => key.split(',').every((part) => Number.isInteger(Number(part)))), 'fractional terrain amplitude stays on the voxel grid');
+  ok(quads(meshWorld(grid, defOf)) > 0, 'fractional amplitude terrain produces visible faces');
+}
+
 // --- mesher: hidden faces are never emitted
 {
   const g = new Map(); for (let x = 0; x < 3; x++) for (let y = 0; y < 3; y++) for (let z = 0; z < 3; z++) g.set(`${x},${y},${z}`, 'stone');

@@ -218,7 +218,7 @@ export function expandWorld(ops, seed0 = 1) {
     else if (op.terrain) {
       const T = op.terrain; const B = { ...BIOMES[T.biome || 'plains'], ...T }; const s = T.seed ?? seed0;
       const [cx, cz] = T.center || [0, 0]; const R = T.radius ?? 40; const base = T.base ?? 4, amp = T.amp ?? 3, sc = T.scale ?? 16; const wl = T.water ?? null;
-      const flat = T.flat; const depth = T.depth ?? 3; const bottom = T.bottom ?? Math.min(base - amp - depth - 1, (flat?.y ?? base) - depth - 2);
+      const flat = T.flat; const depth = T.depth ?? 3; const bottom = Math.floor(T.bottom ?? Math.min(base - amp - depth - 1, (flat?.y ?? base) - depth - 2));
       const H = new Map();
       for (let x = cx - R; x <= cx + R; x++) for (let z = cz - R; z <= cz + R; z++) {
         if (T.round !== false && Math.hypot(x - cx, z - cz) > R + 0.5) continue;

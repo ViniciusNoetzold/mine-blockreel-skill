@@ -23,7 +23,7 @@ For exact delivery, calculate the frame budget before writing the storyboard. Fo
 
 ## 4. Iterate before the master
 
-Run the [visual QA](QA.md) and inspect the contact sheet and the individual frames at cuts and close-ups. Use a moving preview for acting, camera speed, transitions, and continuity. Review the most expensive effects in a short test at delivery resolution.
+Run the [visual QA](QA.md) and inspect the contact sheet and the individual frames at cuts and close-ups. Use a moving preview for acting, camera speed, transitions, and continuity. Probe the densest scene and a lighting or material change at delivery resolution using the intended backend and worker count. Compare the probe with software output if hardware rendering changes the look or reports a WebGL failure.
 
 ```sh
 python tools/render.py films/example/story.json --preset preview --out films/example/preview.mp4
@@ -39,4 +39,8 @@ python tools/render.py films/example/story.json --fps 30 --size 1280x720 --worke
 python tools/check_media.py films/example/film.mp4 --duration 30 --size 1280x720 --fps 30 --require-audio
 ```
 
-If a parallel render misses the exact frame rate, rerender with `--workers 1` to avoid rounding at segment joins. Review the encoded opening, a key cut or audio cue, and the ending. The media check confirms the picture's frame count and format and, when requested, the presence and timeline coverage of the audio stream. Playback is still needed for the mix and picture quality. Save the QA decisions and deliver the master with a poster and source or reproduction commands when publishing a showcase.
+If a parallel render misses the exact frame rate, rerender with `--workers 1` to avoid rounding at segment joins. A WebGL shader or context failure stops the render. Run a software probe of the affected scene, then rerender it with the default backend. For a partial repair, cut on the frame grid, rejoin the picture and the original audio, and run the media check again.
+
+Check that the full encoded file decodes and inspect frames from the opening, the most demanding set, transitions in lighting or geometry, any repaired interval, and the ending. Compare those frames against the approved QA stills. Metadata confirms timing and format. Picture review catches missing scenery and playback with audio verifies the cues.
+
+For a browser-playable showcase, publish a poster and a page with native video controls. Make the README's primary link open that player. After deployment, load the public page, start playback with sound, seek into the film and verify the advertised duration. Save the QA decisions alongside the project sources and reproduction commands.

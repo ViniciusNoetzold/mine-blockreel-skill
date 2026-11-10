@@ -100,6 +100,7 @@ export function crackTextures(THREE) {
 // ----------------------------------------------------------------- props ----
 export async function buildProps(THREE, scene, props, getMaterials, opts = {}) {
   const items = [];
+  const torchLights = [];
   for (const [name, p] of Object.entries(props || {})) {
     const evs = (p.events || []).slice().sort((a, b) => a.t - b.t);
     const angleAt = (t, open, dur) => { // eased, overshooting open/close driven by events
@@ -136,6 +137,31 @@ export async function buildProps(THREE, scene, props, getMaterials, opts = {}) {
         plane.position.set(0, by, bz + 1.05 * PX); root.add(plane);
       }
       scene.add(root); items.push({ update: () => {} });
+    } else if (p.type === 'torch') {
+      const root = new THREE.Group();
+      root.position.set(...p.pos);
+      const face = (p.face ?? 0) * Math.PI / 180;
+      const tilt = (p.tilt ?? 0) * Math.PI / 180;
+      const axis = new THREE.Vector3(Math.sin(face) * Math.sin(tilt), Math.cos(tilt), Math.cos(face) * Math.sin(tilt));
+      const shaft = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.6, 0.1), await getMaterials('log'));
+      shaft.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), axis);
+      shaft.position.copy(axis).multiplyScalar(0.3);
+      root.add(shaft);
+      const flame = new THREE.Mesh(new THREE.BoxGeometry(0.105, 0.14, 0.105), new THREE.MeshBasicMaterial({ color: '#ffca72' }));
+      flame.quaternion.copy(shaft.quaternion);
+      flame.position.copy(axis).multiplyScalar(0.64);
+      root.add(flame);
+      const light = new THREE.PointLight(p.color ?? '#ffad59', 0, p.distance ?? 5);
+      light.position.copy(axis).multiplyScalar(0.77);
+      root.add(light);
+      scene.add(root);
+      torchLights.push(light);
+      items.push({ update(t) {
+        const since = t - (p.t ?? 0);
+        root.visible = since >= 0;
+        const flicker = 0.93 + 0.04 * Math.sin(t * 15) + 0.03 * Math.sin(t * 31);
+        light.intensity = (p.intensity ?? 12) * flicker * ease.smooth(clamp01(since / 0.16));
+      } });
     } else if (p.type === 'chest') {
       const mats = await getMaterials(p.block || 'chest'); const [x, y, z] = p.pos; const PX = 1 / 16;
       const root = new THREE.Group(); root.position.set(x + 0.5, y, z + 0.5); root.rotation.y = (p.face ?? 0) * Math.PI / 180;
@@ -149,5 +175,8 @@ export async function buildProps(THREE, scene, props, getMaterials, opts = {}) {
       items.push({ update: (t) => { hinge.rotation.x = -lidAt(t); } });
     }
   }
-  return { update: (t) => items.forEach((i) => i.update(t)) };
+  return {
+    update: (t) => items.forEach((i) => i.update(t)),
+    litTorch: () => torchLights.some((light) => light.intensity > 0),
+  };
 }

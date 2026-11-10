@@ -171,7 +171,7 @@ energy shape (quiet → loud → quiet), shot lengths per the tone, every line s
    with a character preset (`hero`, `villain`, `monster`, `child`, `narrator`, `radio`). Fit each line inside its shot: measure it, then
    adjust `--rate` or the shot length. See `films/`-style `make_audio.py` in `docs/GENRES.md`.
    `python tools/audio.py story.json --out mix.wav`, listen, then render with audio (or mux the mix into the silent render).
-6. **Final render.** `python tools/render.py story.json --workers 4 --out film.mp4`. Benchmark a short segment at target resolution before estimating time or choosing a worker count. Each worker loads the world in a separate browser.
+6. **Final render.** `python tools/render.py story.json --workers 2 --out film.mp4`. Benchmark a short segment at the delivery resolution with the intended renderer and worker count. Include the scene with the most geometry and a lighting or material change. Each worker loads the world in a separate browser. Try `--gpu` after a successful full-size probe. If WebGL reports a failed shader or lost context, rerender the affected interval using the default software renderer.
    Economy: compose → preview → QA on stills → only then the final render; never re-render the whole film to check one shot
    (`--frame t` or `--start/--end`).
 
@@ -190,9 +190,9 @@ It renders at least 8 spread frames (opening, every shot change, close-ups, endi
 automatic checks (camera inside a block, actor out of frame, face pointing away from camera, subtitle clipped, shot
 longer than the limit for its tone). Then **open every frame image and look at it** and judge what the script cannot:
 skin holes, odd shadows, awkward pose, unclear story, pacing. Fix, re-render, repeat until clean.
-After the final render, play the encoded file with sound. Check the opening, key sync points, and ending. Use `tools/check_media.py` with the target duration, size, fps, and `--require-audio` when sound is requested.
+After the final render, play the encoded file with sound. Inspect decoded frames from the opening, both sides of major lighting or set changes, each recovered interval, and the ending. Check terrain, walls, particles and practical lights against the approved preview. Use `tools/check_media.py` with the target duration, size, fps, and `--require-audio` when sound is requested.
 
-Record the visual and media checks in `films/<name>/qa.md` (see `docs/QA.md`). Resolve each FAIL and record a decision for every WARN. Deliver the MP4 plus its reproducible project sources.
+Record the visual and media checks in `films/<name>/qa.md` (see `docs/QA.md`). Resolve each FAIL and record a decision for every WARN. Deliver the MP4 plus its reproducible project sources. For a browser-playable publication, link the README to the deployed player and verify sound, seeking and full duration at the public URL.
 
 ## Rules
 

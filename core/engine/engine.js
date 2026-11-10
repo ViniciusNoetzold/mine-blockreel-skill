@@ -46,6 +46,7 @@ function pixelTex(url) {
 }
 
 let story, style, renderer, scene, camera, sun;
+let renderError;
 const actors = {};
 const clouds = [];
 let blockDefs = {}; let projBlocksDir = null;
@@ -71,16 +72,16 @@ async function blockTexture(name) {
 }
 
 // ---- world materials: mipmapped pixel textures + the game's light model (sky light, warm block light, AO) ----
-const LIGHT_U = { uDay: { value: 1 }, uCave: { value: 0.07 }, uBlockColor: { value: new THREE.Color('#ffc58a') } };
+const LIGHT_U = { uDay: { value: 1 }, uCave: { value: 0.07 }, uTorchLit: { value: 0 }, uBlockColor: { value: new THREE.Color('#ffc58a') } };
 function mcLit(mat) {
   mat.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, LIGHT_U);
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec2 mcLight; varying vec2 vMcLight;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvMcLight = mcLight;');
-    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec2 vMcLight; uniform float uDay, uCave; uniform vec3 uBlockColor;\nfloat mcCurve(float x){ x = clamp(x, 0.0, 1.0); return x / (4.0 - 3.0 * x); }')
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec2 vMcLight; uniform float uDay, uCave, uTorchLit; uniform vec3 uBlockColor;\nfloat mcCurve(float x){ x = clamp(x, 0.0, 1.0); return x / (4.0 - 3.0 * x); }')
       .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
         float mcSky = mcCurve(vMcLight.x), mcBlk = mcCurve(vMcLight.y);
-        reflectedLight.directDiffuse *= mcSky * mcSky;
+        reflectedLight.directDiffuse *= mix(mcSky * mcSky, 1.0, uTorchLit);
         reflectedLight.indirectDiffuse *= mix(uCave, 1.0, mcSky);
         totalEmissiveRadiance += diffuseColor.rgb * uBlockColor * mcBlk * 1.15 * (1.0 - uDay * mcSky);`);
   };
@@ -274,7 +275,8 @@ function updateWorld(t) {
   }
   for (const m of touched) { m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; }
   for (const c of cracks) { const on = t >= c.c.t0 && t < c.c.t1; c.mesh.visible = on; if (on) c.mat.map = c.tex[Math.min(9, Math.floor(((t - c.c.t0) / (c.c.t1 - c.c.t0)) * 10))]; }
-  props && props.update(t);
+  props.update(t);
+  LIGHT_U.uTorchLit.value = props.litTorch() ? 1 : 0;
 }
 
 // -------------------------------------------------------------- player ----
@@ -707,6 +709,11 @@ async function init() {
   document.getElementById('vig').style.display = style.vignette ? 'block' : 'none';
   const k = style.pixelate || 1;
   renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: k === 1, alpha: true, preserveDrawingBuffer: true });
+  renderer.debug.onShaderError = (gl, program, vertex, fragment) => {
+    const logs = [gl.getProgramInfoLog(program), gl.getShaderInfoLog(vertex), gl.getShaderInfoLog(fragment)].filter(Boolean);
+    renderError ??= ['WebGL shader compilation failed', ...logs].join('\n');
+  };
+  renderer.domElement.addEventListener('webglcontextlost', () => { renderError ??= 'WebGL context lost'; });
   renderer.setSize(W * RES / k, H * RES / k, false); renderer.setPixelRatio(1);
   maxAniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   renderer.shadowMap.enabled = !!style.shadows; renderer.shadowMap.type = THREE.PCFShadowMap;
@@ -755,7 +762,11 @@ async function init() {
 // Automatic checks used by tools/qa.py (data only; the human still has to look at the frames).
 function collectQA(t, camPos) {
   const W = story.size?.[0] ?? 1280, H = story.size?.[1] ?? 720;
-  const solid = (p) => grid.has(`${Math.floor(p.x)},${Math.floor(p.y)},${Math.floor(p.z)}`);
+  const wt = worldTime(story, t);
+  const solid = (p) => {
+    const block = blockAt(`${Math.floor(p.x)},${Math.floor(p.y)},${Math.floor(p.z)}`, wt);
+    return block != null && !passableBlock(block);
+  };
   const lb = style.letterbox; const barPct = typeof lb === 'number' ? Math.max(0, (1 - (W / lb) / H) / 2) : (lb ? 0.11 : 0);
   const out = { t, cameraInBlock: solid(camPos), camera: [camPos.x, camPos.y, camPos.z], actors: {}, subtitle: null, activeShot: (currentShot(t) || {}).t ?? null };
   const cd = new THREE.Vector3(); camera.getWorldDirection(cd);
@@ -822,7 +833,14 @@ function applyLighting(t, wt, camPos) {
   sky && sky.update(L, LIGHT_U.uDay.value, camPos, camera, wt, flash);
 }
 
+function assertRenderHealthy() {
+  if (renderer.getContext().isContextLost()) renderError ??= 'WebGL context lost';
+  if (renderError) throw new Error(renderError);
+}
+
+window.__assertRenderHealthy = assertRenderHealthy;
 window.renderAt = (t) => {
+  assertRenderHealthy();
   const wt = worldTime(story, t); // speed ramps (story.timeRemap) bend world time only; cuts, subtitles, titles use t
   for (const a of actorOrder()) applyActor(a, wt);
   for (const a of Object.values(actors)) { const fs = faceStateAt(story, a, wt); if (a._clip === 'sleep') fs.eyes = 'closed'; a.face.update(fs); }
@@ -835,6 +853,7 @@ window.renderAt = (t) => {
   if (post) { const shot = currentShot(t) || {}; let fd; const f = shot.focus; if (f !== undefined) { const tp = (x) => { const v = typeof x === 'number' ? null : vec(x); return v ? camPos.distanceTo(v) : x; }; const f0 = tp(f), f1 = shot.focusTo !== undefined ? tp(shot.focusTo) : f0; const e = getEase(shot.ease || 'smooth')(clamp01((wt - worldTime(story, shot.t)) / (shot.dur ?? 3))); fd = f0 + (f1 - f0) * e; }
     post.render(t, [style.post, story.post, shot.post], fd); }
   else renderer.render(scene, camera);
+  assertRenderHealthy();
   lastQA = { t, camPos: camPos.clone() };
   return true;
 };

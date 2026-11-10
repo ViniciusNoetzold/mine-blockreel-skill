@@ -98,7 +98,9 @@ export function compileHud(hud) {
         break;
       case 'craft': {
         const end = t + time(event.dur, 'craft duration', Number.EPSILON);
-        const grid = slotsOf(event.grid, 9, stack);
+        const gridSize = event.gridSize ?? 3;
+        if (gridSize !== 2 && gridSize !== 3) throw new Error('hud: crafting gridSize must be 2 or 3');
+        const grid = slotsOf(event.grid, gridSize ** 2, stack);
         const result = stack(event.result);
         if (!grid.some(Boolean) || !result) throw new Error('hud: craft requires ingredients and a result');
         const takeAt = event.takeAt;
@@ -108,7 +110,7 @@ export function compileHud(hud) {
           if (event.toSlot !== undefined) slotIndex(event.toSlot, HOTBAR);
           changes.push({ t: takeAt, apply: (state) => takeCraft(state, grid, result, event.toSlot, takeAt) });
         }
-        panels.push({ type: event.type, t, end, grid, result, takeAt });
+        panels.push({ type: event.type, t, end, grid, gridSize, result, takeAt });
         break;
       }
       default:
@@ -226,7 +228,7 @@ export async function createHud(config, stage, width, height, barPct, itemIconUr
         if (active.type === 'craft') {
           panel.append(element('div', 'br-hud-title', label('crafting', 'Crafting')));
           const row = element('div', 'br-hud-craft');
-          row.append(drawGrid(taken ? Array(9).fill(null) : active.grid, 3),
+          row.append(drawGrid(taken ? active.grid.map(() => null) : active.grid, active.gridSize),
             element('span', 'br-hud-title', '→'), drawGrid([taken ? null : active.result], 1));
           panel.append(row);
         }

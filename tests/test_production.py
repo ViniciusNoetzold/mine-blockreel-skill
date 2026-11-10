@@ -50,12 +50,79 @@ def test_render_range_propagates_encoder_failure(tmp_path, monkeypatch):
     encoder = Mock(stdin=io.BytesIO(), args=["ffmpeg"])
     encoder.wait.return_value = 1
     monkeypatch.setattr(playwright, "sync_playwright", nullcontext)
-    monkeypatch.setattr(render, "serve", lambda _: (None, 0))
+    monkeypatch.setattr(render, "serve", lambda _: (Mock(), 0))
     monkeypatch.setattr(render, "open_page", lambda *_: (browser, page))
     monkeypatch.setattr(render.subprocess, "Popen", lambda *_, **__: encoder)
     with pytest.raises(subprocess.CalledProcessError):
         render.render_range(tmp_path / "story.json", {}, 30, 1, 0, 1, tmp_path / "film.mp4", 18, False)
     browser.close.assert_called_once()
+
+
+def test_bad_capture_preserves_still_and_range_outputs(tmp_path, monkeypatch):
+    from contextlib import nullcontext
+    from unittest.mock import Mock
+
+    import render
+    playwright = pytest.importorskip("playwright.sync_api")
+    page = Mock()
+    page.screenshot.return_value = b"bad pixels"
+    failure = playwright.Error("WebGL context lost")
+    page.evaluate.side_effect = [None, failure, None, failure]
+    monkeypatch.setattr(render, "render_page", lambda *args: nullcontext(page))
+    story = tmp_path / "story.json"
+    story.write_text("{}", encoding="utf-8")
+    still = tmp_path / "frame.png"
+    still.write_bytes(b"approved still")
+    assert render.main([str(story), "--frame", "0", "--out", str(still)]) == 2
+    assert still.read_bytes() == b"approved still"
+
+    video = tmp_path / "film.mp4"
+    video.write_bytes(b"approved film")
+    encoder = Mock()
+    encoder.poll.return_value = None
+
+    def begin_encode(args, **kwargs):
+        Path(args[-1]).write_bytes(b"partial encode")
+        return encoder
+
+    monkeypatch.setattr(render.subprocess, "Popen", begin_encode)
+    with pytest.raises(RuntimeError, match=r"render failed at 0\.000s: WebGL context lost"):
+        render.render_range(story, {}, 24, 1, 0, 2, video, 18, False)
+    assert video.read_bytes() == b"approved film"
+    encoder.stdin.write.assert_not_called()
+    encoder.stdin.close.assert_called_once()
+    encoder.terminate.assert_called_once()
+    encoder.wait.assert_called_once()
+
+
+def test_webgl_failure_guard_and_deterministic_seek():
+    import render
+    playwright = pytest.importorskip("playwright.sync_api")
+    story_path = ROOT / "examples" / "hello-world" / "story.json"
+    story = json.loads(story_path.read_text(encoding="utf-8"))
+    try:
+        with render.render_page(story_path, story, 0.35, False) as page:
+            fresh = render.capture_frame(page, 1)
+            render.capture_frame(page, 4)
+            assert render.capture_frame(page, 1) == fresh
+            page.evaluate("document.querySelector('#c').dispatchEvent(new Event('webglcontextlost', {cancelable: true}))")
+            with pytest.raises(RuntimeError, match="WebGL context lost"):
+                render.capture_frame(page, 1)
+
+            page.reload()
+            page.wait_for_function("window.__ready === true || window.__error")
+            # A false LINK_STATUS exercises Three.js's shader error callback on first draw.
+            page.evaluate("""() => {
+                const gl = document.querySelector('#c').getContext('webgl2');
+                const get = gl.getProgramParameter.bind(gl);
+                gl.getProgramParameter = (program, name) => name === gl.LINK_STATUS ? false : get(program, name);
+            }""")
+            with pytest.raises(RuntimeError, match="WebGL shader compilation failed"):
+                render.capture_frame(page, 1)
+    except playwright.Error as exc:
+        if "Executable doesn't exist" in str(exc):
+            pytest.skip("Chromium browser unavailable")
+        raise
 
 
 @pytest.mark.skipif(not shutil.which("ffmpeg"), reason="ffmpeg missing")

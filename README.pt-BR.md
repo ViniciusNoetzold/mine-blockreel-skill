@@ -16,13 +16,13 @@
 </p>
 
 <p align="center">
-  <a href="examples/aurora-express/showcase.mp4"><img src="examples/aurora-express/poster.jpg" width="900" alt="Aurora Express, um curta animado em um cenário de neve"></a>
+  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#first-night"><img src="examples/first-night/poster.jpg" width="900" alt="Primeira Noite, um curta de sobrevivência no estilo Minecraft"></a>
 </p>
 
 <p align="center">
-  <a href="examples/aurora-express/showcase.mp4"><b>▶ Veja Aurora Express (30 s, com som)</b></a> · <a href="examples/aurora-express/showcase.mp4?raw=true">Baixe o MP4</a><br>
-  Um mensageiro cruza uma ponte ferroviária congelada depois que um raio derruba parte da passarela. Curta em 720p, com trilha e efeitos sonoros originais.<br>
-  <a href="examples/aurora-express/story.json">Storyboard</a> · <a href="examples/aurora-express/make_audio.py">Código do áudio</a> · <a href="examples/aurora-express/README.md">Notas de produção</a> · <a href="examples/aurora-express/shotlist.md">Decupagem</a> · <a href="examples/aurora-express/qa.md">Relatório de QA</a>
+  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#first-night"><b>▶ Assista a Primeira Noite no navegador, com som (60 segundos)</b></a><br>
+  Um jogador corre contra o pôr do sol, se tranca dentro de uma encosta e descobre o que a luz da tocha escondia.<br>
+  <a href="examples/first-night/">Arquivos de produção</a> · <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#aurora-express">▶ Assista a Aurora Express (30 segundos)</a>
 </p>
 
 ## Começo rápido
@@ -108,40 +108,44 @@ python tools/render.py films/casa/story.json --preset preview --out films/casa/p
 
 ## Galeria de filmes
 
+[Assista aos filmes do BlockReel no navegador](https://viniciusnoetzold.github.io/mine-blockreel-skill-/). Os players têm controles nativos.
+
+### Demos anteriores
+
 <table>
   <tr>
     <td width="50%" valign="top">
-      <a href="docs/media/vila-viva.mp4"><img src="docs/media/vila-1-village.jpg" alt="Vila Viva"></a><br>
-      <b><a href="docs/media/vila-viva.mp4">▶ Vila Viva</a></b> · 28 s<br>
+      <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#vila-viva"><img src="docs/media/vila-1-village.jpg" alt="Vila Viva"></a><br>
+      <b><a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#vila-viva">▶ Vila Viva</a></b> · 28 s<br>
       Uma vila ao entardecer, filhotes de mobs, um passeio a cavalo e fogos. <a href="examples/village-life/plan.json">Plano</a>
     </td>
     <td width="50%" valign="top">
-      <a href="docs/media/herobrine.mp4"><img src="docs/media/herobrine-2-duel.jpg" alt="Eu vs Herobrine"></a><br>
-      <b><a href="docs/media/herobrine.mp4">▶ Eu vs Herobrine</a></b> · 40 s<br>
+      <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#herobrine"><img src="docs/media/herobrine-2-duel.jpg" alt="Eu vs Herobrine"></a><br>
+      <b><a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#herobrine">▶ Eu vs Herobrine</a></b> · 40 s<br>
       Uma persona personalizada enfrenta Herobrine em um duelo de espadas. <a href="examples/herobrine-duel/plan.json">Plano</a>
     </td>
   </tr>
   <tr>
     <td width="50%" valign="top">
-      <a href="docs/media/creeper-surprise.mp4"><img src="docs/media/casa-1-build.jpg" alt="A Casa Nova"></a><br>
-      <b><a href="docs/media/creeper-surprise.mp4">▶ A Casa Nova</a></b> · 39 s<br>
+      <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#creeper-surprise"><img src="docs/media/casa-1-build.jpg" alt="A Casa Nova"></a><br>
+      <b><a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#creeper-surprise">▶ A Casa Nova</a></b> · 39 s<br>
       Dois amigos constroem uma casa. Um creeper tem outros planos. <a href="examples/creeper-surprise/plan.json">Plano</a>
     </td>
     <td width="50%" valign="top">
-      <a href="docs/media/zombie-night.mp4"><img src="docs/media/noite-1-chase.jpg" alt="Primeira Noite"></a><br>
-      <b><a href="docs/media/zombie-night.mp4">▶ Primeira Noite</a></b> · 31 s<br>
+      <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#zombie-night"><img src="docs/media/noite-1-chase.jpg" alt="Primeira Noite, demo anterior de sobrevivência"></a><br>
+      <b><a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#zombie-night">▶ Primeira Noite (demo anterior)</a></b> · 31 s<br>
       Uma perseguição na floresta termina em um combate com espada de pedra. <a href="examples/zombie-night/plan.json">Plano</a>
     </td>
   </tr>
   <tr>
     <td width="50%" valign="top">
-      <a href="docs/media/farol-negro.mp4"><img src="docs/media/farol-2-horde.jpg" alt="Farol Negro"></a><br>
-      <b><a href="docs/media/farol-negro.mp4">▶ Farol Negro</a></b> · 22 s<br>
+      <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#farol-negro"><img src="docs/media/farol-2-horde.jpg" alt="Farol Negro"></a><br>
+      <b><a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#farol-negro">▶ Farol Negro</a></b> · 22 s<br>
       Uma guerreira solitária defende um farol contra uma horda.
     </td>
     <td width="50%" valign="top">
-      <a href="docs/media/the-last-torch.mp4"><img src="docs/media/torch-2-warden.jpg" alt="The Last Torch"></a><br>
-      <b><a href="docs/media/the-last-torch.mp4">▶ The Last Torch</a></b> · 34 s<br>
+      <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#the-last-torch"><img src="docs/media/torch-2-warden.jpg" alt="The Last Torch"></a><br>
+      <b><a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#the-last-torch">▶ The Last Torch</a></b> · 34 s (sem áudio)<br>
       Um curta cinematográfico com briefing, decupagem e relatório de QA. <a href="examples/last-torch">Arquivos de produção</a>
     </td>
   </tr>

@@ -24,6 +24,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+from contextlib import contextmanager, suppress
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -127,36 +128,72 @@ def open_page(pw, port, story_path, story, scale, gpu, allow_missing=False):
     return browser, page
 
 
+@contextmanager
+def render_page(story_path, story, scale, gpu, allow_missing=False):
+    from playwright.sync_api import sync_playwright
+    server, port = serve(story_path.parent)
+    try:
+        with sync_playwright() as pw:
+            browser, page = open_page(pw, port, story_path, story, scale, gpu, allow_missing)
+            try:
+                yield page
+            finally:
+                browser.close()
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
+def capture_frame(page, t):
+    from playwright.sync_api import Error
+
+    try:
+        page.evaluate("window.renderAt", t)
+        png = page.screenshot(type="png")
+        # A context loss can arrive after the draw while the screenshot is captured.
+        page.evaluate("window.__assertRenderHealthy()")
+        return png
+    except Error as exc:
+        raise RuntimeError(f"render failed at {t:.3f}s: {exc}") from exc
+
+
 def render_range(story_path, story, fps, scale, n0, n1, out, crf, gpu, quiet=False, allow_missing=False, mblur=1):
     """Render frames [n0, n1) to a silent mp4."""
-    from playwright.sync_api import sync_playwright
-    srv, port = serve(story_path.parent)
-    with sync_playwright() as pw:
-        browser, page = open_page(pw, port, story_path, story, scale, gpu, allow_missing)
+    out = Path(out)
+    with render_page(story_path, story, scale, gpu, allow_missing) as page, tempfile.TemporaryDirectory(dir=out.parent) as staging:
+        staged = Path(staging) / out.name
         ff = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "image2pipe", "-framerate", str(fps), "-i", "-",
                                "-c:v", "libx264", "-preset", "veryfast", "-crf", str(crf), "-pix_fmt", "yuv420p",
-                               "-movflags", "+faststart", str(out)], stdin=subprocess.PIPE)
-        for i in range(n0, n1):
-            if mblur > 1:  # average sub-frames across half a frame (a 180-degree shutter): deterministic motion blur
-                import io
-                import numpy as np
-                from PIL import Image
-                acc = None
-                for k in range(mblur):
-                    page.evaluate(f"renderAt({(i + ((k + 0.5) / mblur - 0.5) * 0.5) / fps})")
-                    im = np.asarray(Image.open(io.BytesIO(page.screenshot(type="png"))).convert("RGB"), dtype=np.float32)
-                    acc = im if acc is None else acc + im
-                buf = io.BytesIO(); Image.fromarray((acc / mblur).round().astype(np.uint8)).save(buf, format="PNG"); ff.stdin.write(buf.getvalue())
-            else:
-                page.evaluate(f"renderAt({i / fps})")
-                ff.stdin.write(page.screenshot(type="png"))
-            if not quiet and (i - n0) % max(1, int(fps)) == 0:
-                print(f"\r{i - n0}/{n1 - n0} frames", end="", flush=True)
-        ff.stdin.close()
+                               "-movflags", "+faststart", str(staged)], stdin=subprocess.PIPE)
+        try:
+            for i in range(n0, n1):
+                if mblur > 1:  # average sub-frames across half a frame (a 180-degree shutter): deterministic motion blur
+                    import io
+                    import numpy as np
+                    from PIL import Image
+                    acc = None
+                    for k in range(mblur):
+                        t = (i + ((k + 0.5) / mblur - 0.5) * 0.5) / fps
+                        png = capture_frame(page, t)
+                        im = np.asarray(Image.open(io.BytesIO(png)).convert("RGB"), dtype=np.float32)
+                        acc = im if acc is None else acc + im
+                    buf = io.BytesIO(); Image.fromarray((acc / mblur).round().astype(np.uint8)).save(buf, format="PNG"); ff.stdin.write(buf.getvalue())
+                else:
+                    ff.stdin.write(capture_frame(page, i / fps))
+                if not quiet and (i - n0) % max(1, int(fps)) == 0:
+                    print(f"\r{i - n0}/{n1 - n0} frames", end="", flush=True)
+            ff.stdin.close()
+        except BaseException:
+            if ff.poll() is None:
+                ff.terminate()
+            with suppress(BrokenPipeError):
+                ff.stdin.close()
+            ff.wait()
+            raise
         returncode = ff.wait()
-        browser.close()
         if returncode:
             raise subprocess.CalledProcessError(returncode, ff.args)
+        staged.replace(out)
 
 
 def main(argv=None):
@@ -190,25 +227,24 @@ def main(argv=None):
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
 
     if a.frame is not None:
-        from playwright.sync_api import sync_playwright
-        srv, port = serve(story_path.parent)
-        with sync_playwright() as pw:
-            try:
-                browser, page = open_page(pw, port, story_path, story, scale, a.gpu, a.allow_missing)
-            except RuntimeError as e:
-                print(e, file=sys.stderr); return 2
-            page.evaluate(f"renderAt({a.frame})")
-            page.screenshot(path=a.out)
-            browser.close()
-        if story_path != audio_story_path and story_path.name.startswith("."):
-            story_path.unlink(missing_ok=True)
+        try:
+            with render_page(story_path, story, scale, a.gpu, a.allow_missing) as page:
+                Path(a.out).write_bytes(capture_frame(page, a.frame))
+        except RuntimeError as e:
+            print(e, file=sys.stderr); return 2
+        finally:
+            if story_path != audio_story_path and story_path.name.startswith("."):
+                story_path.unlink(missing_ok=True)
         print("wrote", a.out)
         return 0
 
     n0, n1 = int(round(a.start * fps)), int(round(end * fps))
     if a.frames:
         n0, n1 = map(int, a.frames.split(":"))
-        render_range(story_path, story, fps, scale, n0, n1, a.out, a.crf, a.gpu, quiet=True, allow_missing=a.allow_missing, mblur=a.motion_blur)
+        try:
+            render_range(story_path, story, fps, scale, n0, n1, a.out, a.crf, a.gpu, quiet=True, allow_missing=a.allow_missing, mblur=a.motion_blur)
+        except RuntimeError as e:
+            print(e, file=sys.stderr); return 2
         return 0
 
     tmp = Path(tempfile.mkdtemp(prefix="blockreel_"))
@@ -245,6 +281,8 @@ def main(argv=None):
                 mixed = True
         if not mixed:
             shutil.copyfile(silent, a.out)
+    except RuntimeError as e:
+        print(e, file=sys.stderr); return 2
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
         if story_path != audio_story_path and story_path.name.startswith("."):
