@@ -20,8 +20,8 @@
 </p>
 
 <p align="center">
-  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#blockreel-promo"><b>▶ Assista ao trailer oficial do BlockReel com som (75 segundos)</b></a><br>
-  Construções a partir de referências, personagens animados, texturas próprias e câmeras cinematográficas em um só filme.<br>
+  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#blockreel-promo"><b>▶ Assista ao trailer cinematográfico do BlockReel com som (1 min 51 s)</b></a><br>
+  Veja a cabana e o templo ganharem forma, com a construção completa da <i>Praça do Horizonte</i> e o curta <i>Primeira Noite</i> na íntegra.<br>
   <a href="examples/blockreel-promo/">Arquivos de produção</a> · <a href="#começo-rápido">Experimente as skills</a>
 </p>
 

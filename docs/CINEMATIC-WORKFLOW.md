@@ -18,6 +18,8 @@ In a sustained point of view, use the subject, blocking, light, distance, or sou
 
 For a showcase or recap of your own work, log the source and in/out points of the earlier clips requested in the brief. Give each clip a job in the edit, such as showing a build stage, a character reaction or a finished camera move. Let those shots carry the demonstration. Keep the opening title and closing call to action short enough to read on the intended screen while the film moves.
 
+When a reused scene depends on setup and payoff, keep the action continuous. Bring its original effects into the new mix and lower the score before an authored silence. Let the last impact decay before the end card. Check picture and sound together at that cut.
+
 For exact delivery, calculate the frame budget before writing the storyboard. For example, 30 seconds at 30 fps gives 900 frames. The compiler adds a 0.1-second tail to the beat sum. Inspect the emitted `story.json` duration because some beat types determine their own timing. If the tail is intentional, budget it inside the target. Keep cut points on the chosen frame grid.
 
 ## 3. Keep one reproducible source
@@ -54,6 +56,8 @@ python tools/check_media.py films/example/film.mp4 --duration 30 --size 1280x720
 If a parallel render misses the exact frame rate, rerender with `--workers 1` to avoid rounding at segment joins. A WebGL shader or context failure stops the render. Run a software probe of the affected scene, then rerender it with the default backend. For a partial repair, cut on the frame grid, rejoin the picture and the original audio, and run the media check again.
 
 Check that the full encoded file decodes and inspect frames from the opening, the most demanding set, transitions in lighting or geometry, any repaired interval, and the ending. Compare those frames against the approved QA stills. The media check confirms duration, dimensions, frame rate, and audio coverage. Record the separate picture and sound review in `qa.md` and identify any checks that could not be performed. Label an export that still needs that review as an unreviewed render.
+
+Check the decoded audio near a loud impact. AAC can raise transient peaks above the source mix. Leave headroom at the impact, verify the intended pause, and compare the sound onset with the picture cut.
 
 For a browser-playable showcase, publish a poster and a page with native video controls. Make the README's primary link open that player. Put the short description and project or install link beside the player so they stay visible without taking up screen time in the film. After deployment, load the public page, start playback with sound, seek into the film and verify the advertised duration. Save the QA decisions alongside the project sources and reproduction commands.
 
