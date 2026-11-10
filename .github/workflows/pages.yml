@@ -8,6 +8,8 @@ on:
       - 'docs/gallery/**'
       - 'docs/media/*.mp4'
       - 'docs/media/*.jpg'
+      - 'examples/blockreel-promo/showcase.mp4'
+      - 'examples/blockreel-promo/poster.jpg'
       - 'examples/aurora-express/showcase.mp4'
       - 'examples/aurora-express/poster.jpg'
       - 'examples/first-night/showcase.mp4'
@@ -43,7 +45,7 @@ jobs:
         run: |
           mkdir -p _site
           cp docs/gallery/index.html _site/
-          for film in first-night aurora-express house-timelapse city-timelapse; do
+          for film in blockreel-promo first-night aurora-express house-timelapse city-timelapse; do
             mkdir -p "_site/media/$film"
             cp "examples/$film/showcase.mp4" "examples/$film/poster.jpg" "_site/media/$film/"
           done

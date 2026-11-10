@@ -16,13 +16,13 @@
 </p>
 
 <p align="center">
-  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#first-night"><img src="examples/first-night/poster.jpg" width="900" alt="Primeira Noite, um curta de sobrevivência no estilo Minecraft"></a>
+  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#blockreel-promo"><img src="examples/blockreel-promo/poster.jpg" width="900" alt="Showcase do BlockReel, o trailer oficial do projeto"></a>
 </p>
 
 <p align="center">
-  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#first-night"><b>▶ Assista a Primeira Noite com som (60 segundos)</b></a> · <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#first-night-reel"><b>Assista ao Reel vertical 9:16</b></a><br>
-  Um jogador corre contra o pôr do sol, se tranca dentro de uma encosta e descobre o que a luz da tocha escondia.<br>
-  <a href="examples/first-night/">Arquivos de produção</a> · <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#aurora-express">▶ Assista a Aurora Express (30 segundos)</a>
+  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#blockreel-promo"><b>▶ Assista ao trailer oficial do BlockReel com som (75 segundos)</b></a><br>
+  Construções a partir de referências, personagens animados, texturas próprias e câmeras cinematográficas em um só filme.<br>
+  <a href="examples/blockreel-promo/">Arquivos de produção</a> · <a href="#começo-rápido">Experimente as skills</a>
 </p>
 
 ## Começo rápido
@@ -123,6 +123,8 @@ python tools/render.py films/casa/story.json --preset preview --out films/casa/p
 ## Galeria de filmes
 
 [Assista aos filmes do BlockReel no navegador](https://viniciusnoetzold.github.io/mine-blockreel-skill/). Os players têm controles nativos.
+
+[Primeira Noite (60 s)](https://viniciusnoetzold.github.io/mine-blockreel-skill/#first-night) · [Reel em 9:16](https://viniciusnoetzold.github.io/mine-blockreel-skill/#first-night-reel) · [Aurora Express (30 s)](https://viniciusnoetzold.github.io/mine-blockreel-skill/#aurora-express)
 
 [Assista ao timelapse da casa](https://viniciusnoetzold.github.io/mine-blockreel-skill/#house-timelapse) para ver a construção da fundação ao exterior pronto. [Exemplo editável](examples/house-timelapse/)
 

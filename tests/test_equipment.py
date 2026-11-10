@@ -93,3 +93,37 @@ def test_mod_sprite_and_cape_switch_in_render(tmp_path):
     finally:
         server.shutdown()
         server.server_close()
+
+
+def test_sword_head_qa_uses_pose_visibility_and_opaque_pixels(tmp_path):
+    Image.new("RGBA", (16, 16)).save(tmp_path / "transparent.png")
+    third_person = {"pos": [-3.5, 2.3, -2.6], "look": [0.5, 2, 0.5], "fov": 32}
+    story = {
+        "size": [320, 180], "duration": 3, "textures": "builtin",
+        "actors": {"hero": {
+            "skin": "/core/builtin/skins/hero.png", "model": "classic",
+            "pos": [0.5, 1, 0.5], "height": 1.4, "holding": "diamond_sword",
+        }},
+        "items": {"test:transparent_sword": {"texture": "transparent.png"}},
+        "world": [{"fill": ["stone", [-4, 0, -4], [4, 0, 4]]}],
+        "camera": [
+            {"t": 0, **third_person},
+            {"t": 1.2, "first": "hero"},
+            {"t": 1.6, **third_person},
+        ],
+        "timeline": [
+            {"t": 0.5, "actor": "hero", "do": "guard", "dur": 2.4},
+            {"t": 2.25, "actor": "hero", "do": "guard", "dur": 0.75, "holding": "test:transparent_sword"},
+        ],
+    }
+    source = tmp_path / "story.json"
+    source.write_text(json.dumps(story), encoding="utf-8")
+    with render.render_page(source, story, 1, False) as page:
+        swords = page.evaluate("window.__pathCheck(0.05).swords")
+    assert len(swords) == 2
+    for hit in swords:
+        assert (hit["actor"], hit["item"], hit["hand"]) == ("hero", "diamond_sword", "right")
+    assert 0.5 <= swords[0]["t0"] < 0.8
+    assert swords[0]["t1"] == 1.2
+    assert swords[1]["t0"] == 1.6
+    assert swords[1]["t1"] == 2.25

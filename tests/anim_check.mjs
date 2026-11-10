@@ -59,12 +59,13 @@ const mk = (cfg, timeline) => ({ story: { timeline }, a: { name: 'a', cfg } });
 {
   const keys = ['head', 'rArm', 'lArm', 'rLeg', 'lLeg', 'body'];
   const delta = (a, b) => Math.max(...keys.flatMap((key) => a[key].map((v, i) => Math.abs(v - b[key][i]))));
-  for (const name of ['nod', 'shake_head', 'shrug', 'flinch', 'relief', 'salute', 'laugh', 'inspect']) {
+  for (const name of ['nod', 'shake_head', 'shrug', 'flinch', 'relief', 'salute', 'laugh', 'inspect', 'greet', 'beckon', 'disbelief']) {
     const at = (t) => evalClip(name, t, 1, 1, 0);
     const rest = at(0);
     const middle = at(0.3);
     ok(Math.max(...[0.2, 0.4, 0.6].map((t) => delta(rest, at(t)))) > 0.12, name + ' has a readable pose');
     ok(delta(rest, at(1)) < 1e-6, name + ' settles');
+    ok(delta(rest, at(0.001)) < 0.001 && delta(rest, at(0.999)) < 0.001, name + ' eases at both endpoints');
     ok(delta(middle, at(0.3)) === 0, name + ' evaluates deterministically');
   }
   const { story, a } = mk({}, [

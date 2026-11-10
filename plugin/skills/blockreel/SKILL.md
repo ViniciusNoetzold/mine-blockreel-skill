@@ -91,7 +91,7 @@ finisher → silence → ending. Swords: `diamond_sword` for the hero, `iron_swo
 
 - Cast a requested Minecraft wolf as `"mob": "wolf", "rig": "builtin"` in a plan or `"type": "wolf", "rig": "builtin"` in a storyboard. Use wolf acting such as `sniff`, `play_bow`, `head_tilt`, `bark`, and `howl`. Check `docs/MOBS.md` for the rig's full clip list and available looks. Place bark and howl sounds on the matching cue if the scene calls for them.
 - For a short character, set an explicit standing `height` in blocks (for example 1.15), or use relative `scale`. Reframe close-ups to the actor's eyes and keep the feet on the floor.
-- Stage a reaction around a clear target. Select a short clip such as `nod`, `shake_head`, `shrug`, `flinch`, `relief`, `salute`, `laugh`, or `inspect`. Use an `act` beat or timeline `do` with enough time for anticipation, the gesture, and recovery. Add a short `blend` and `lookAt` as needed. Check the transition in motion and inspect hair, shoulders and sleeve seams in the closest frame.
+- Stage a reaction around a clear target. Use `greet` for a single wave, `beckon` to call another actor over, and `disbelief` for a hand beside the temple and a head tilt. Other short clips include `nod`, `flinch`, `relief`, and `inspect`. Use an `act` beat or timeline `do` with enough time for anticipation, the gesture, and recovery. Add a short `blend` and `lookAt` as needed. Check the transition in motion and inspect hair, shoulders and sleeve seams in the closest frame.
 - When a cape is requested, choose a preset or use the supplied PNG with `cape.texture`. Use timeline changes for costume swaps. When a mod item is requested, confirm its ID and appearance, register its local sprite in `items`, and use that ID across held props and HUD. Stage its effect with supported scene cues. See `docs/EQUIPMENT.md`.
 - Add `hud` only when the producer asks for a gameplay overlay. Match event text to the film's language. Time any death message to the actual story event. If a craft is shown, author the ingredients, result, and when the result moves to the inventory. Check legibility above letterbox bars and alongside subtitles.
 
@@ -110,9 +110,7 @@ someone who is not the user (or who did not agree). Presets: `herobrine knight n
 
 ## A reference image
 
-If the user sends a reference (a place, a build, a mood): read its palette and composition and translate them: time of day → style and
-`lighting`, dominant materials → blocks (stone castle → `stonebrick`/`mossy_cobblestone`, desert → `biome: desert`), landmarks →
-`structure` ops or hand-written `fill`/`set` builds, framing → the establishing `shot`. Describe what you took from it.
+For a mood reference, use its dominant materials to choose blocks and its light and composition to set the style and establishing shot. For a subject the user wants matched, list its visible anchors in the brief and render a comparison still from the reference angle before polishing. Record assumptions about surfaces hidden in the reference. For reference-driven construction, follow `plugin/skills/blockreel-builds/SKILL.md`.
 
 ## World sense (rules the generator enforces - keep them when you build by hand)
 
@@ -174,7 +172,7 @@ Give each scene a change the viewer can perceive in action, composition, light, 
     Write `story.json` from the shot list (`docs/STORYBOARD.md`). Start from the nearest `examples/*/story.json`.
    Camera offsets are world-space: put the camera in front of the face you want to see.
 3. **Test stills.** `python tools/render.py story.json --frame <t> --out check.png` and LOOK at the image
-   (framing first, then light, then acting).
+   (framing first, then light, then acting). Check first-person hands and held props at the extremes of the action. Inspect the last frame before a viewpoint cut and the first frame after it.
 4. **Sound (unless the brief calls for silence).** Build every file the `audio` block points at. Use original or licensed sound effects for public projects, and reserve cached game effects for permitted local work. Compose an original score that follows the energy shape
    (`python tools/score.py --out music.wav --duration 30 --sections calm:0:7,build:7:15,battle:15:23,silence:23:26,dawn:26:30`), and voices: the user's recordings first; otherwise `tools/voice.py` (offline only: Piper neural voices fetched with
    `python tools/voice.py fetch`, e.g. `--voice piper:faber`, or the Windows OneCore voices `daniel`/`maria` with SSML pauses and emphasis),

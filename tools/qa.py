@@ -5,7 +5,7 @@
 
 It (1) picks at least N frames spread over the film: the opening, every shot change, every close-up, the ending;
 (2) renders them and builds a contact sheet; (3) runs automatic checks through the engine (camera inside a block,
-actor out of frame, face turned away from the camera, subtitle clipped, shots longer than the tone allows,
+sword through its holder's head, actor out of frame, face turned away from the camera, subtitle clipped, shots longer than the tone allows,
 subtitle/title overlap, reading speed); (4) writes qa/auto.json and, if missing, a qa.md next to the story.
 
 The automatic checks cannot see skin holes, odd shadows, awkward poses or a confusing story. After running it you
@@ -168,13 +168,17 @@ def review(a, source, story_path, story, out):
         missing = page.evaluate("window.__missing || []")
         if missing:
             issues.append(("FAIL", None, "missing block textures (they render as magenta/black): " + ", ".join(sorted(set(missing)))))
-        # dense path check: every 0.05 s, actors' bodies and the camera against the world at that moment
+        # Dense path check: sample world collisions and held swords between the contact sheet stills.
         pc = page.evaluate("window.__pathCheck(0.05)")
         for h in pc["actors"]:
             issues.append(("FAIL", h["t0"], f"{h['actor']} is inside {h['block']} at {h['pos']} from {h['t0']:.2f} s to {h['t1']:.2f} s "
                                             "(spawns in or walks through a block/tree/wall: move it or route the walk around it)"))
         for h in pc["camera"]:
             issues.append(("FAIL", h["t0"], f"camera passes through {h['block']} at {h['pos']} from {h['t0']:.2f} s to {h['t1']:.2f} s"))
+        for h in pc["swords"]:
+            issues.append(("FAIL", h["t0"], f"{h['actor']}'s {h['item']} ({h['hand']} hand) intersects their head "
+                                            f"from {h['t0']:.2f} s to {h['t1']:.2f} s. Adjust the pose or item tilt."))
+        times = sorted(set(times) | {h["t0"] for h in pc["swords"] if h["t0"] < story.get("duration", 10)})
         for t in times:
             q = page.evaluate(f"window.__qa({t})")
             f = out / "frames" / f"{len(frames) + 1:02d}_t{t:06.2f}.png"
@@ -233,7 +237,7 @@ def review(a, source, story_path, story, out):
         lines += ["", "## Frames reviewed by eye", "", "| # | t | what I looked at | verdict | action taken |", "|---|---|---|---|---|"]
         lines += [f"| {i + 1} | {t} | TODO | TODO | TODO |" for i, (t, _, _) in enumerate(frames)]
         lines += ["", "## Checklist (tick only what you actually checked)", ""]
-        for c in ["camera inside a block", "character out of frame", "subtitle cut off or overlapping", "face turned away in a dialogue shot",
+        for c in ["camera inside a block", "held items cross the head or lens during movement", "character out of frame", "subtitle cut off or overlapping", "face turned away in a dialogue shot",
                   "odd shadows / floating objects", "skin holes or missing texture (magenta)", "pacing: any shot too long", "story clear without audio",
                   "energy shape: quiet, loud, quiet", "ending reads (button or card)"]:
             lines.append(f"- [ ] {c}")

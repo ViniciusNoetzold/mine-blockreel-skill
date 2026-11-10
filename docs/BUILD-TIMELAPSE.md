@@ -11,7 +11,7 @@ Use the `blockreel-builds` skill in a BlockReel runtime checkout. Send a photogr
 | Multiple elevations or a plan | Use the same scale and origin in every view. Check that each window or corner agrees where two views meet. |
 | Mid-build frame | Match the visible stage first. Use another frame or stated assumptions for any unfinished surfaces. |
 
-When precision matters, compare the rendered front with the reference at the same apparent scale. Check the silhouette and openings before texture detail. Record any feature that had to be simplified to the block grid.
+When precision matters, render the finished structure from the reference angle at a similar apparent scale and compare it alongside the reference. Check silhouette, proportions and openings first. For stairs and tiered roofs, count the visible runs and levels and compare their placement, width, setbacks and contrast with the surrounding trim. Use a side or three-quarter check to inspect tread depth, landings, rail or trim offsets and roof overhang. Mark inferred dimensions or surfaces in the review and record any feature that had to be simplified to the block grid.
 
 ## Blueprint format
 
@@ -33,7 +33,7 @@ Use integer coordinates and +Z as the front of the building. The top of the grou
 
 The example above illustrates coordinates. Start from the [complete house blueprint](../examples/house-timelapse/) for a full structure. A fill includes both corners. Put phases in playback order and use separate operations where placement order matters. The compiler reports the overall bounds and the times of each phase so you can sample the end of each stage.
 
-Use built-in full blocks, glass blocks, oriented logs, stairs, slabs, doors and torches. A door reserves the cell immediately above its base. Connection-dependent shapes such as panes and fences and flowing liquids need a different staging approach. Record visible substitutions, such as full glass in place of connected panes.
+Use built-in full blocks, glass blocks, oriented logs, stairs, slabs, doors and torches. Orient stairs toward the direction of ascent and use supported shapes to model visible changes in height and depth. A door reserves the cell immediately above its base. Connection-dependent shapes such as panes and fences and flowing liquids need a different staging approach. Record visible substitutions, such as full glass in place of connected panes.
 
 ## Render and verify
 
@@ -47,7 +47,7 @@ python tools/render.py work/house-timelapse/story.json --out work/house-timelaps
 python tools/check_media.py work/house-timelapse/film.mp4 --duration 12 --size 1280x720 --fps 24 --require-audio
 ```
 
-Use the preview to check that each stage adds something legible and the finished shot gives viewers time to see the result. Compare the encoded final shot with the reference and listen to the timing of the build sounds. For a Reel, render portrait with [the Reels preset](REELS.md) and inspect the frame on a narrow viewport.
+Use the preview to check that each stage adds something legible and the finished shot gives viewers time to see the result. Keep the comparison frame and notes on any mismatch with the QA record. Compare the encoded final shot with the approved frame and listen to the timing of the build sounds. For a Reel, render portrait with [the Reels preset](REELS.md) and inspect the frame on a narrow viewport.
 
 For a build with visible characters, keep the blueprint as the source for placements. Add cast and actions to a separate copy of the generated storyboard. Keep the builders outside the active placement area or time their routes around the blocks that appear.
 

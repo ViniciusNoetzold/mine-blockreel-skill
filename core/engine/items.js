@@ -2,7 +2,7 @@
 // in a hand. Front and back are the sprite; every opaque pixel on an outline gets a 1x1 side face coloured by that pixel.
 // Texture resolution is shared between this renderer and the HUD in engine.js.
 
-export function extrudeItem(THREE, img, tex, size = 0.85, grip = [3.5 / 16, 12.5 / 16]) {
+export function extrudeItem(THREE, img, tex, size = 0.85, grip = [3.5 / 16, 12.5 / 16], trackOpaqueRows = false) {
   const W = img.width, H = img.height; const c = document.createElement('canvas'); c.width = W; c.height = H;
   const g = c.getContext('2d'); g.drawImage(img, 0, 0); const d = g.getImageData(0, 0, W, H).data;
   const op = (x, y) => x >= 0 && y >= 0 && x < W && y < H && d[(y * W + x) * 4 + 3] > 127;
@@ -26,7 +26,22 @@ export function extrudeItem(THREE, img, tex, size = 0.85, grip = [3.5 / 16, 12.5
   geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeBoundingSphere();
   const mat = new THREE.MeshLambertMaterial({ map: tex, alphaTest: 0.5, side: THREE.FrontSide });
   const mesh = new THREE.Mesh(geo, mat); mesh.castShadow = true;
-  return { mesh, grip: [(0.5 - grip[0]) * W * px, (grip[1] - 0.5) * H * px] };
+  let collision;
+  if (trackOpaqueRows) {
+    // The rendered front/back planes use alpha testing. Preserve the opaque runs for geometric QA.
+    const rows = [];
+    for (let y = 0; y < H; y++) {
+      let x = 0;
+      while (x < W) {
+        if (!op(x, y)) { x++; continue; }
+        const start = x;
+        while (op(x, y)) x++;
+        rows.push([(X(start) + X(x)) / 2, Y(y + 0.5), (x - start) * px / 2]);
+      }
+    }
+    collision = { rows, halfPixel: px / 2, halfDepth: th / 2 };
+  }
+  return { mesh, grip: [(0.5 - grip[0]) * W * px, (grip[1] - 0.5) * H * px], collision };
 }
 
 // Mount an item in a hand. `arm` is the arm group (pivot at the shoulder; the hand is 10 px below it).

@@ -94,6 +94,7 @@ Movement and life (v0.3): `swim` (breaststroke, horizontal), `crawl`, `climb` (m
 the actor sits on that actor's saddle and turns with it; the mount moves itself), `eat`, `drink`, `sleep` (lying, eyes closed), `glide`
 (horizontal, spreads the elytra).
 Social emotes: `nod`, `shake_head`, `shrug`, `flinch`, `relief`, `salute`, `laugh`, and `inspect`. Set `dur` to pace the gesture and `blend` to shape its entrance.
+Use `greet` for a one-shot side wave, `beckon` for a left-hand invitation, and `disbelief` for a hand lifted beside the temple with a bowed head. Leave the acting hand empty to read the gesture clearly.
 Mobs: `walk run swell hit die` (`swell` = creeper-style inflate and flash).
 The torso, head and arms lean together from the hips; legs stay planted.
 

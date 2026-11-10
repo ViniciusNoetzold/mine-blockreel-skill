@@ -1,6 +1,6 @@
 {
   "name": "blockreel",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Make Minecraft-style films and reference-driven construction timelapses, plus skills for player skins and resource-pack textures. Rendered in code.",
   "author": { "name": "ViniciusNoetzold" },
   "homepage": "https://github.com/ViniciusNoetzold/mine-blockreel-skill",

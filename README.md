@@ -16,13 +16,13 @@
 </p>
 
 <p align="center">
-  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#first-night"><img src="examples/first-night/poster.jpg" width="900" alt="Primeira Noite, a Minecraft-style survival short"></a>
+  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#blockreel-promo"><img src="examples/blockreel-promo/poster.jpg" width="900" alt="BlockReel Showcase, the official project trailer"></a>
 </p>
 
 <p align="center">
-  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#first-night"><b>▶ Watch Primeira Noite with sound (First Night, 60 seconds)</b></a> · <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#first-night-reel"><b>Watch the vertical 9:16 Reel</b></a><br>
-  A player races the sunset, seals himself inside a hillside, and discovers what the torchlight was hiding.<br>
-  <a href="examples/first-night/">Production files</a> · <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#aurora-express">▶ Watch Aurora Express (30 seconds)</a>
+  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#blockreel-promo"><b>▶ Watch the official BlockReel showcase with sound (75 seconds)</b></a><br>
+  Reference-driven builds, animated characters, custom textures, and cinematic cameras in one film.<br>
+  <a href="examples/blockreel-promo/">Production files</a> · <a href="#quick-start">Try the skills</a>
 </p>
 
 ## Quick start
@@ -123,6 +123,8 @@ python tools/render.py films/casa/story.json --preset preview --out films/casa/p
 ## Film gallery
 
 [Watch BlockReel films in the browser](https://viniciusnoetzold.github.io/mine-blockreel-skill/). The players have native controls.
+
+[Primeira Noite (60 s)](https://viniciusnoetzold.github.io/mine-blockreel-skill/#first-night) · [9:16 Reel](https://viniciusnoetzold.github.io/mine-blockreel-skill/#first-night-reel) · [Aurora Express (30 s)](https://viniciusnoetzold.github.io/mine-blockreel-skill/#aurora-express)
 
 [Watch the house timelapse](https://viniciusnoetzold.github.io/mine-blockreel-skill/#house-timelapse) to see the build progress from the foundation to the finished exterior. [Editable example](examples/house-timelapse/)
 

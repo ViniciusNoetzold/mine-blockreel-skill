@@ -1,5 +1,6 @@
 // BlockReel engine: deterministic Three.js scene player.  window.renderAt(t) draws the frame for time t (seconds).
 import * as THREE from 'three';
+import { OBB } from 'three/addons/math/OBB.js';
 import { ease, getEase, clamp01, actorState, lookState, aimAngles, worldTime, noise, hurtAt, clipState } from './anim.js';
 import { extrudeItem, mountItem } from './items.js';
 import { itemAsset } from './asset-refs.js';
@@ -447,7 +448,7 @@ async function itemIconUrl(id) {
   return blockTexUrl(def.tex.side);
 }
 
-async function heldObject(id) {
+async function heldObject(id, trackOpaqueRows) {
   const asset = itemAsset(id, story.items);
   const url = await spriteUrl(id, asset);
   if (url) {
@@ -457,7 +458,7 @@ async function heldObject(id) {
     if (asset.texture && (img.width > 128 || img.height > 128)) {
       throw new Error(`item "${id}" sprite must fit within 128 × 128 pixels`);
     }
-    return { item: extrudeItem(THREE, img, tex, asset.size, asset.grip) };
+    return { item: extrudeItem(THREE, img, tex, asset.size, asset.grip, trackOpaqueRows) };
   }
   const { name } = asset;
   if (window.__missing.includes(name)) return null;
@@ -509,7 +510,7 @@ async function makePlayer(name, cfg) {
   const lLeg = legacy ? limb(inner, 4, 12, 4, 0, 16, 0, 0, [2.02, 12, 0], 0) : limb(inner, 4, 12, 4, 16, 48, 0, 48, [2.02, 12, 0], 0.35);
   if (legacy) { lArm.scale.x = -1; lLeg.scale.x = -1; }
   // held items: everything this actor holds at any time (cfg.holding / cfg.offhand and timeline "holding" / "offhand" switches)
-  const hands = { right: {}, left: {} };
+  const hands = { right: {}, left: {} }; const swords = [];
   const wants = { right: new Set([cfg.holding].filter(Boolean)), left: new Set([cfg.offhand].filter(Boolean)) };
   for (const sg of story.timeline || []) if (sg.actor === name) { if (sg.holding) wants.right.add(sg.holding); if (sg.offhand) wants.left.add(sg.offhand); }
   for (const side of ['right', 'left']) for (const it of wants[side]) {
@@ -519,11 +520,13 @@ async function makePlayer(name, cfg) {
       const hold = new THREE.Group(); hold.position.set((side === 'left' ? 2.6 : -2.6) * PX, -7 * PX, 1.5 * PX); hold.rotation.y = (side === 'left' ? 1 : -1) * Math.PI / 2;
       sh.userData.shield = true; hold.add(sh); arm.add(hold); hold.visible = false; hands[side][it] = hold; continue;
     }
-    const obj = await heldObject(it);
+    const isSword = /(?:^|[_:/-])sword$/i.test(it);
+    const obj = await heldObject(it, isSword);
     if (!obj) continue;
     const g = obj.item ? mountItem(THREE, arm, obj.item, { left: side === 'left', tilt: cfg.itemTilt }) : (() => { const h = new THREE.Group(); h.position.set(0, -10.5 * PX, 5 * PX); obj.mesh.position.set(0, 0, 0); h.add(obj.mesh); arm.add(h); return h; })();
     if (side === 'left' && legacy) g.scale.x = -1;
     g.visible = false; hands[side][it] = g;
+    if (obj.item?.collision) swords.push({ id: it, hand: side, mount: g, item: obj.item });
   }
   // name tag
   if (cfg.nametag) { const sp = nametag(cfg.nametag); sp.position.set(0, 2.32, 0); root.add(sp); }
@@ -533,7 +536,12 @@ async function makePlayer(name, cfg) {
   const capeCues = (story.timeline || []).filter((s) => s.actor === name && 'cape' in s);
   const eq = await equip(THREE, { head, body, rArm, lArm, rLeg, lLeg }, cfg, pixelTex, exists, resolve, capeCues);
   for (const m of [base, over, face.material]) { m.emissiveMap = m.map; m.emissive = new THREE.Color(0, 0, 0); }
-  return { name, cfg, root, inner, upper, head, body, rArm, lArm, rLeg, lLeg, face, hands, equip: eq, mats: [base, over, face.material], headY: 1.9 * sc, eyeY: 1.62 * sc, _pos: [...(cfg.pos || [0, 1, 0])], _heading: 0 };
+  let headBounds;
+  if (swords.length) {
+    hm.geometry.computeBoundingBox();
+    headBounds = hm.geometry.boundingBox.clone().expandByScalar(-PX / 8);
+  }
+  return { name, cfg, root, inner, upper, head, body, rArm, lArm, rLeg, lLeg, face, hands, swords, headMesh: hm, headBounds, equip: eq, mats: [base, over, face.material], headY: 1.9 * sc, eyeY: 1.62 * sc, _pos: [...(cfg.pos || [0, 1, 0])], _heading: 0 };
 }
 
 // ----------------------------------------------------- actors (see anim.js) ----
@@ -653,6 +661,16 @@ function applyCamera(t, wt) {
   const f0 = shot.fov ?? style.fov ?? 60; const fov = shot.fovTo !== undefined ? f0 + (shot.fovTo - f0) * e : f0;
   if (camera.fov !== fov) { camera.fov = fov; camera.updateProjectionMatrix(); }
   return camera.position;
+}
+
+function aimCamera(t, wt) {
+  for (const a of Object.values(actors)) applyLook(a, wt, null);
+  const camPos = applyCamera(t, wt);
+  for (const a of Object.values(actors)) {
+    const ls = lookState(story, a, wt);
+    if (ls && (ls.target === 'camera' || ls.prev === 'camera')) applyLook(a, wt, camPos);
+  }
+  return camPos;
 }
 
 // ------------------------------------------------------------ overlays ----
@@ -909,9 +927,7 @@ window.renderAt = (t) => {
   for (const a of actorOrder()) applyActor(a, wt);
   for (const a of Object.values(actors)) { const fs = faceStateAt(story, a, wt); if (a._clip === 'sleep') fs.eyes = 'closed'; a.face.update(fs); }
   updateWorld(wt); particles && particles.update(wt);
-  for (const a of Object.values(actors)) applyLook(a, wt, null);
-  const camPos = applyCamera(t, wt);
-  for (const a of Object.values(actors)) { const ls = lookState(story, a, wt); if (ls && (ls.target === 'camera' || ls.prev === 'camera')) applyLook(a, wt, camPos); }
+  const camPos = aimCamera(t, wt);
   applyLighting(t, wt, camPos); followShadow(camPos); lightActors(); cullChunks(camPos); weather && weather.update(wt, camPos);
   applyOverlays(t); updateHud?.(t, wt); applyTransitions(t);
   if (post) { const shot = currentShot(t) || {}; let fd; const f = shot.focus; if (f !== undefined) { const tp = (x) => { const v = typeof x === 'number' ? null : vec(x); return v ? camPos.distanceTo(v) : x; }; const f0 = tp(f), f1 = shot.focusTo !== undefined ? tp(shot.focusTo) : f0; const e = getEase(shot.ease || 'smooth')(clamp01((wt - worldTime(story, shot.t)) / (shot.dur ?? 3))); fd = f0 + (f1 - f0) * e; }
@@ -925,17 +941,41 @@ window.__qa = (t) => { window.renderAt(t); return collectQA(t, lastQA.camPos); }
 window.__story = () => story;
 window.__actorPos = (n, t) => { if (t !== undefined) window.renderAt(t); const a = actors[n]; return a ? [...a._pos, a._clip] : null; };
 
-// Dense path check (tools/qa.py): walks the whole film every `step` seconds WITHOUT rendering and reports every interval in which
-// an actor's body or the camera is inside a solid block of the world as it is at that moment (breaks, places and blasts included).
-// Catches characters that spawn in a tree, cut through a wall between two sampled frames, or a camera that clips through a roof.
+// Dense path check (tools/qa.py): walk the film without rendering. Check the world at that moment
+// (breaks, places and blasts included) and the posed head against each held sword's opaque pixels.
 const PASSABLE = { has: (b) => passableBlock(b) };
 function blockAt(k, t) {
   const its = dynByKey.get(k);
   if (its) { for (const it of its) if (blockState(it.evs, it.vis0, t).vis) return it.block; if (dynKeys.has(k)) return null; }
   return grid.get(k) ?? null;
 }
+const swordToHead = new THREE.Matrix4();
+const spriteBounds = new THREE.Box3();
+const opaqueRow = new OBB();
+function swordIntersectsHead(actor, sword) {
+  const { mesh, collision } = sword.item;
+  actor.headMesh.updateWorldMatrix(true, false);
+  mesh.updateWorldMatrix(true, false);
+  swordToHead.copy(actor.headMesh.matrixWorld).invert().multiply(mesh.matrixWorld);
+  if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+  if (!spriteBounds.copy(mesh.geometry.boundingBox).applyMatrix4(swordToHead).intersectsBox(actor.headBounds)) return false;
+
+  // The head and sword share the actor's scale, so their relative transform is rigid.
+  opaqueRow.rotation.setFromMatrix4(swordToHead);
+  for (const [x, y, halfWidth] of collision.rows) {
+    opaqueRow.center.set(x, y, 0).applyMatrix4(swordToHead);
+    opaqueRow.halfSize.set(halfWidth, collision.halfPixel, collision.halfDepth);
+    if (opaqueRow.intersectsBox3(actor.headBounds)) return true;
+  }
+  return false;
+}
 window.__pathCheck = (step = 0.05) => {
-  const dur = story.duration ?? 10; const open = {}; const out = { actors: [], camera: [] };
+  const dur = story.duration ?? 10; const open = {}; const out = { actors: [], camera: [], swords: [] };
+  const openSwords = new Map();
+  const closeSword = (sword, t) => {
+    const hit = openSwords.get(sword);
+    if (hit) { out.swords.push({ ...hit, t1: +t.toFixed(2) }); openSwords.delete(sword); }
+  };
   const close = (key, list, t) => { const o = open[key]; if (o) { list.push({ ...o, t1: +t.toFixed(2) }); delete open[key]; } };
   for (let i = 0; i * step <= dur + 1e-6; i++) {
     const t = i * step, wt = worldTime(story, t);
@@ -964,11 +1004,17 @@ window.__pathCheck = (step = 0.05) => {
       if (hit && !open[n]) open[n] = { actor: n, t0: +t.toFixed(2), ...hit };
       else if (!hit) close(n, out.actors, t);
     }
-    const cp = applyCamera(t, wt); const ck = `${Math.floor(cp.x)},${Math.floor(cp.y)},${Math.floor(cp.z)}`; const cb = blockAt(ck, wt);
+    const cp = aimCamera(t, wt); const ck = `${Math.floor(cp.x)},${Math.floor(cp.y)},${Math.floor(cp.z)}`; const cb = blockAt(ck, wt);
     if (cb && !PASSABLE.has(cb)) { if (!open.__cam) open.__cam = { t0: +t.toFixed(2), block: cb, pos: ck.split(',').map(Number) }; }
     else close('__cam', out.camera, t);
+    for (const a of Object.values(actors)) for (const sword of a.swords || []) {
+      if (a.root.visible && a.head.visible && sword.mount.visible && swordIntersectsHead(a, sword)) {
+        if (!openSwords.has(sword)) openSwords.set(sword, { actor: a.name, item: sword.id, hand: sword.hand, t0: +t.toFixed(2) });
+      } else closeSword(sword, t);
+    }
   }
   for (const n of Object.keys(open)) close(n, n === '__cam' ? out.camera : out.actors, dur);
+  for (const sword of openSwords.keys()) closeSword(sword, dur);
   window.renderAt(0);
   return out;
 };

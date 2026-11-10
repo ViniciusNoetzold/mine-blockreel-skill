@@ -36,7 +36,7 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 | idle walk run wave talk mine punch dance sit look scared jump die spin | done |
 | swing hit lunge stance shout point raise zombie (anticipation, overshoot) | done |
 | Clip blending, turning, look-at, speed ramps | done |
-| Social emotes and reactions | done | `nod`, `shake_head`, `shrug`, `flinch`, `relief`, `salute`, `laugh`, `inspect` |
+| Social emotes and reactions | done | `nod`, `shake_head`, `shrug`, `flinch`, `relief`, `salute`, `laugh`, `inspect`, `greet`, `beckon`, `disbelief` |
 | slash overhead thrust guard dodge knockback (with hop) fall getup kneel cast summon levitate bow charge celebrate sneak crouch stagger | done |
 | swim, crawl, climb, ride (mount system: horse, camel, pig, minecart...), eat, drink, sleep, glide | done |
 | Held-item-aware hand poses (arm follows the tool) | partial: `wrist` turns the blade along the arm in thrusts and slashes |
