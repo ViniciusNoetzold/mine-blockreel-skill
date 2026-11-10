@@ -13,3 +13,5 @@ O primeiro passe encontrou colisões na corrida e um alerta falso em um bloco qu
 A verificação sonora foi feita por amostras e níveis. O WAV de origem tem uma pausa de um segundo de 56,25 a 57,25 s, seguida do estopim. A explosão começa com o corte para preto em 59,25 s.
 
 O primeiro master em GPU perdeu materiais do cenário no trecho noturno, embora o MP4 tivesse a duração correta. Re-renderizei a partir do corte em 29,625 s por software e preservei a faixa de áudio. Revisei o plano da tocha no MP4 corrigido. O FFmpeg decodificou todo o arquivo e confirmou o primeiro preto contínuo aos 59,25 s. O master tem 1.440 quadros, 1280 × 720 a 24 fps e AAC estéreo, com 60,000 s de duração.
+
+A última revisão do crafting confirmou os ícones de carvalho e da bancada no lugar das siglas. Foram substituídos apenas os quadros de 13,000 a 16,208 s, com a faixa AAC preservada. O MP4 final passou novamente no teste de duração e na decodificação completa.

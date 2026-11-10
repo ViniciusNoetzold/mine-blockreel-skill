@@ -407,7 +407,7 @@ async function itemIconUrl(id) {
   const sprite = await spriteUrl(id, asset);
   if (sprite) return sprite;
   const def = defOf(asset.name);
-  return blockTexUrl(def.side || def.all || def.top || asset.name);
+  return blockTexUrl(def.tex.side);
 }
 
 async function heldObject(id) {
