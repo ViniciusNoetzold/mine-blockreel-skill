@@ -109,6 +109,31 @@ def test_director_preserves_dialogue_without_music_or_sfx(tmp_path):
     assert "João" in (out / "shotlist.md").read_text(encoding="utf-8")
 
 
+def test_director_reports_missing_cues_after_trying_fallbacks(tmp_path, monkeypatch, capsys):
+    import compose
+
+    sounds = tmp_path / "sounds"
+    fallback = sounds / "random" / "explode2.wav"
+    fallback.parent.mkdir(parents=True)
+    fallback.touch()
+    monkeypatch.setattr(compose, "SND", sounds)
+    plan_path = tmp_path / "plan.json"
+    plan_path.write_text(json.dumps({
+        "textures": "builtin", "font": "css", "cast": {"lead": {}},
+        "beats": [{"beat": "explode", "at": [0, 0]}],
+    }), encoding="utf-8")
+    out = tmp_path / "film"
+
+    assert compose.main([str(plan_path), "--out", str(out), "--no-music"]) == 0
+    story = json.loads((out / "story.json").read_text(encoding="utf-8"))
+    assert story["textures"] == "builtin" and story["font"] == "css"
+    assert story["audio"]["sfx"] == [{"file": str(fallback), "t": 1.8, "volume": 1.0}]
+    warning = capsys.readouterr().err
+    assert "Unavailable automatic game SFX: random/fuse (x1)" in warning
+    assert "explode" not in warning
+    assert "random/fuse (x1)" in (out / "shotlist.md").read_text(encoding="utf-8")
+
+
 def test_composed_film_renders_with_builtin_textures(tmp_path):
     """Every block, item and sky texture the director and the world generator use has a CC0 fallback: the film renders
     with "textures": "builtin" and no missing-texture checker (render.py refuses to render with one)."""

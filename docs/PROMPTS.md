@@ -1,14 +1,24 @@
 # Prompts prontos / Ready-made prompts
 
-Cole no Claude Code dentro da pasta do repositório (ou com o plugin instalado). / Paste into Claude Code inside the repo folder (or with the plugin installed).
-Os prompts funcionam em português ou inglês; a skill escreve código e docs em inglês. / Prompts work in Portuguese or English.
+No Codex, abra a raiz do repositório e peça para ler `plugin/skills/blockreel/SKILL.md`. No Claude Code, use o plugin ou abra a raiz do repositório. Os prompts funcionam em português ou inglês.
+
+In Codex, open the repository root and ask it to read `plugin/skills/blockreel/SKILL.md`. In Claude Code, use the plugin or open the repository root.
 
 ---
 
+## Terror cinematográfico em primeira pessoa (PT-BR)
+
+```text
+Use a skill BlockReel e siga docs/CINEMATIC-WORKFLOW.md para criar um curta de terror em primeira pessoa de 45 segundos, em 1280 × 720 a 24 fps, com som. Use Primeira Noite como referência de ritmo, luz e revisão.
+
+Um mineiro encontra um trilho interrompido e ouve um carrinho vindo do escuro. Mantenha o ponto de vista do mineiro. Faça a primeira tocha revelar o trilho partido, aproxime o olhar de uma pista perto dos pés e use o som do carrinho para puxar a atenção de volta ao túnel. Mude a composição ou a luz quando mudar o que ele sabe. Deixe um silêncio curto antes da revelação final.
+
+Defina os planos e os sons juntos. Confira os assets usados e gere uma prévia com a mixagem. Revise enquadramento, leitura da pista, ritmo e sincronia dos efeitos. Ajuste os trechos que ficaram repetitivos e confira o MP4 codificado com som antes de entregar. Inclua o storyboard, os assets de produção e o qa.md.
+```
+
 ## 1. Super produção de 30 s: "O Cerco do Farol Negro" (PT-BR)
 
-> Antes de colar: veja [COVERAGE.md](COVERAGE.md). O prompt foi escrito para ficar **dentro do que o motor faz hoje** (sem espadas/ferramentas na mão, sem escadas/cercas,
-> mobs só creeper/porco/aranha/zumbi). Estimativa de tempo de render: 1080p30 com pós-processamento e 4 workers, algo entre 25 e 45 min (**estimativa, 1080p não foi medido**).
+> Veja a [cobertura do motor](COVERAGE.md) antes de escolher os rigs e efeitos. Renderize um trecho na resolução final para medir o custo na sua máquina.
 
 ```text
 Use a skill blockreel (siga o fluxo A→E inteiro, sem pular etapas) para produzir uma SUPER PRODUÇÃO de Minecraft de EXATAMENTE 30 segundos, 1920x1080, 30 fps,
@@ -43,8 +53,8 @@ DIREÇÃO TÉCNICA
 - Atuação: use swing / hit / lunge / stance / shout, olhar (lookAt), faces (glow, wide, angry, shout, hurt, dead) e legendas curtas com lip-sync (no máximo 3 falas de até 6 palavras).
 - Câmera: handheld em toda ação, dutch angle no auge, rack focus (post.dof) na revelação do vigia, plano em primeira pessoa, órbita no clímax.
 - Partículas e mundo: poeira de passos, faíscas, fumaça, fogo, quebra de bloco com rachaduras, TNT com pavio, explosão que abre cratera, porta e baú animados.
-- Som: NÃO invente arquivos. Deixe a faixa "audio" do story.json preparada (música, efeitos e diálogo com ducking) apontando para assets/audio/*.wav e me diga
-  exatamente quais sons preciso colocar, com tempo de entrada, para eu soltar os arquivos livres que você listou.
+- Som: gere trilha e efeitos originais ou use os arquivos que eu fornecer. Sincronize os impactos, o pavio e a explosão aos planos. Monte e confira a mixagem com
+  a prévia. Se faltar um áudio indispensável, registre qual arquivo ou cue está pendente e sinalize a exportação como prévia.
 
 PRODUÇÃO (obrigatória)
 1. Quadros de teste de cada plano; prévia com --preset preview; só então o render final com --workers 4 em 1920x1080 (--scale 1.5 a partir de um story de 1280x720).

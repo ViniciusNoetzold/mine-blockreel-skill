@@ -20,6 +20,20 @@ O cenário usa texturas originais do BlockReel e dois sprites do projeto para o 
 
 Rode da raiz do repositório depois da [instalação](../../README.pt-BR.md#rode-as-ferramentas-diretamente).
 
+### Teste rápido com a cena da tocha
+
+Em um checkout limpo, gere a mixagem original e renderize só a revelação. O storyboard usa texturas incluídas, fonte CSS e os sprites desta pasta. Esse teste funciona sem baixar o cache de assets do Minecraft.
+
+```sh
+python examples/first-night/make_audio.py
+python tools/render.py examples/first-night/story.json --start 54 --end 56 --out work/first-night/reference.mp4
+python tools/check_media.py work/first-night/reference.mp4 --duration 2 --size 1280x720 --fps 24 --require-audio
+```
+
+Compare o enquadramento, a luz quente no jogador e a presença do Creeper no fundo com os segundos 54 a 56 da versão horizontal na galeria. Confira também se o trecho tem som.
+
+### Curta horizontal completo
+
 ```sh
 python examples/first-night/make_audio.py
 python tools/qa.py examples/first-night/story.json --out work/first-night/qa --no-md

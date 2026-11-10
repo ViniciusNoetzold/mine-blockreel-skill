@@ -29,7 +29,7 @@ Re-running `compose.py` overwrites it, so prefer fixing the plan.
 | field | meaning |
 |---|---|
 | `title`, `size`, `fps`, `seed` | as in `story.json` |
-| `style`, `styleOverride`, `post`, `sky`, `weather`, `lighting`, `textures`, `blocks` | copied into the story (see `docs/STORYBOARD.md`) |
+| `style`, `styleOverride`, `post`, `sky`, `weather`, `lighting`, `textures`, `font`, `blocks` | copied into the story (see `docs/STORYBOARD.md`) |
 | `world` | `{ "biome", "radius", "arena": {"center":[x,z], "radius", "y"}, "trees", "water", "amp", "scale", "structures": [...], "extra": [...ops], "arenaFloor": "stone_bricks" }`, or a raw list of world ops |
 | `cast` | `name -> { "skin": "file.png" \| "persona": {...} \| "preset": "herobrine", "name": "Shown name", "holding": "diamond_sword", "offhand", "eyes": "glow", "hidden": true, "nametag": true }`, or a mob: `{ "mob": "cow", "hidden": true, "parts": ["saddle"], "baby": true, "variant": "cold" }` (any of ~70 game mobs when cached; babies use the game's own baby models; variants: coats, breeds, biomes and professions, see `docs/MOBS.md`). Players also take `"armor"`, `"cape"`, `"elytra"`, `"offhand": "shield"` (the game's textures when cached; zombies walk with arms forward) |
 | `marks` | `name -> [x, z]` start positions (defaults: first actor south of the centre, second north) |

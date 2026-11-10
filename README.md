@@ -27,6 +27,10 @@
 
 ## Quick start
 
+### Use BlockReel in Codex
+
+Clone the repository and open the cloned folder as your Codex project. Start your film request by asking Codex to read `plugin/skills/blockreel/SKILL.md` from that checkout. The marketplace commands below install the Claude Code plugin.
+
 ### Use the Claude Code plugin
 
 ```bash
@@ -34,11 +38,7 @@ claude plugin marketplace add ViniciusNoetzold/mine-blockreel-skill-
 claude plugin install blockreel@blockreel-market
 ```
 
-Start a Claude Code session and invoke `/blockreel:blockreel`. Try this prompt.
-
-> Make a 30-second cinematic short about a courier crossing a collapsing ice bridge. Open with a clear visual hook, build to one decisive action, and end with a quiet payoff. Use original assets, score, and sound effects. Show me the brief and shot list, review the preview, and deliver the MP4 and editable project.
-
-Try more genres in the [prompt cookbook](docs/PROMPTS.md).
+Start a Claude Code session and invoke `/blockreel:blockreel`. Follow the skill's setup instructions for the renderer checkout.
 
 <details>
 <summary><b>Update an existing installation</b></summary>
@@ -51,6 +51,12 @@ claude plugin update blockreel@blockreel-market
 Start a new session to load the update. [Claude Code plugin updates](https://code.claude.com/docs/en/discover-plugins#keep-plugins-updated)
 
 </details>
+
+### Try a cinematic prompt
+
+> Make a 30-second cinematic short about a courier crossing a collapsing ice bridge. Use the cinematic production workflow. Give each scene a clear visual beat and time the original score and effects to the action. Review a moving preview with sound, fix any issues, and deliver the finished MP4, the editable storyboard, and the QA log.
+
+Try more genres in the [prompt cookbook](docs/PROMPTS.md).
 
 ### Run the tools directly
 
@@ -65,7 +71,9 @@ python -m playwright install chromium
 python tools/render.py examples/hello-world/story.json --preset preview --out films/hello/preview.mp4
 ```
 
-Open `films/hello/preview.mp4` for the first render. Set `CHROME_PATH` to point to an existing Chrome or Chromium installation if needed.
+Open `films/hello/preview.mp4` to verify the setup. The `preview` preset halves the width and height and renders at 12 fps for iteration. Set `CHROME_PATH` to point to an existing Chrome or Chromium installation if needed.
+
+To compare your render against the published film, use the same storyboard and original audio. [Run the two-second torch test](examples/first-night/README.md#teste-rápido-com-a-cena-da-tocha)
 
 ### Render Aurora Express
 
@@ -194,7 +202,9 @@ The engine currently has gaps in redstone, boats, and large crowds. Render time 
 | [Mobs](docs/MOBS.md) · [Skins](docs/SKINS.md) · [Resource packs](docs/RESOURCE-PACKS.md) | Models, character art, and block textures |
 | [Asset policy](docs/LEGAL.md) | Built-in assets, local game cache, and third-party assets |
 
-BlockReel is an independent fan project. It can render with its bundled CC0 textures and skins, and it runs without a Minecraft installation. To use the game's look and effects, `python tools/vanilla.py all` fetches assets into the gitignored local cache at `work/vanilla/`. [Asset policy](docs/LEGAL.md)
+BlockReel is an independent fan project. The repository includes original CC0 textures and skins, plus the project assets and audio generators for the published showcases. *Primeira Noite* uses the bundled art, its own coal sprites, the renderer's CSS font, and a score and effects generated from its checked-in cues. It runs without Minecraft or its asset cache. [Primeira Noite production files](examples/first-night/)
+
+The optional cache at `work/vanilla/` can change a film's look and sound. `python tools/vanilla.py all` fetches the game's textures, sound effects, font, mob models, and equipment textures. The beat compiler's automatic game sound cues require that sound cache. For repeatable renders, record which assets the project uses and keep local game files out of the repository. [Asset policy](docs/LEGAL.md)
 
 ## Contribute
 

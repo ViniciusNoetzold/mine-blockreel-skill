@@ -8,11 +8,15 @@ description: Direct and render Minecraft-style animated films, cinematic shorts,
 You direct and build short blocky animations as code, then render them to MP4 frame by frame.
 No video model is involved: every frame comes from a Three.js scene driven by a JSON storyboard.
 
-**Choose the workflow before building.** For supported beats and straightforward shorts, compile a plan, review the generated shot list, then preview and run QA. For cinematic shorts, multi-scene episodes, or exact delivery requirements, use `docs/CINEMATIC-WORKFLOW.md` from the runtime checkout to lock the brief, timing, and visual direction before the final render. Research when it informs a creative or technical decision.
+## Choose the workflow before building
+
+- **Reproduce an example.** Use its checked-in storyboard and audio recipe. Follow the reproduction commands before changing any creative decisions. Use the torch scene in `examples/first-night/README.md` as a clean-checkout control when diagnosing a different result.
+- **Finish a cinematic film.** Use `docs/CINEMATIC-WORKFLOW.md` for showcase quality, multi-beat narrative, a look to match, or exact delivery requirements. Record the route in the brief. Compile supported beats as a starting point when useful, then direct each scene's camera, staging, lighting, and sound.
+- **Build a simple clip or a draft.** Use the beat compiler for a straightforward action its presets cover, or when the user explicitly wants a rough preview. For any requested final, continue through picture and sound review and export the master at the brief's settings.
 
 ## 0. Bootstrap
 
-Reuse a working checkout when available. The marketplace installs the skill files. Open the guides and run the tools from the runtime checkout. If needed, clone it:
+Reuse a working checkout when available. The Claude Code marketplace installs the skill files. In Codex, open the runtime checkout as the project and have Codex read this file if the skill is not installed. Run the tools from the checkout. If needed, clone it:
 
 ```sh
 git clone https://github.com/ViniciusNoetzold/mine-blockreel-skill-.git blockreel
@@ -26,7 +30,9 @@ Use Node 20+, Python 3.11+, FFmpeg and FFprobe. With a compatible installed Chro
 
 For a Reel, check that `python tools/export.py reels --help` works in the runtime checkout. If the command is missing, use a current checkout with the dependencies installed.
 
-Use the bundled originals for a self-contained public example. For local game fidelity, fetch the optional cache with `python tools/vanilla.py fetch`, `sounds`, and `font`. See `docs/LEGAL.md` before distributing a render or project. Keep all fetched game assets in the ignored `work/` cache. To reproduce a public example, use a clean cache and explicit original assets. The `"textures": "builtin"` setting controls textures. Sound, skins, and fonts have their own lookup paths.
+Before building, identify which inputs are bundled, generated, supplied by the user, or in an optional cache. For a portable look use `"textures": "builtin"` for automatic texture and mob lookups and `"font": "css"` for text. Explicit asset paths still apply. Confirm the rig and load the requested skins, sprites and sounds in a test shot. Generate the audio referenced by the storyboard before previewing or rendering it.
+
+For local game fidelity, use the optional commands in `tools/vanilla.py` as needed and keep their downloads in the ignored `work/` cache. Consult `docs/LEGAL.md` before distributing a render or project. If an intended asset is missing, use an appropriate permitted substitute or report what is pending. Use original or licensed effects for a public production.
 
 ## 1. Guides (read when you reach that step)
 
@@ -56,10 +62,9 @@ e.g. `examples/` and the "Farol Negro" production), **series episode** (talking 
 format of the big Minecraft animation channels). Each genre fixes pacing, camera grammar, sound and what to deliver; the premise
 can be about anything the user wants.
 
-## Fast path: the director (use it for most requests)
+## Beat compiler for simple clips and drafts
 
-For a fight, a duel, a reveal, a short story with a few characters: write a **beat plan** and compile it. It is cheaper (20 lines
-instead of 500) and better (coverage, choreography, sound and score are done by rules that were checked frame by frame).
+For supported actions, write a **beat plan** and compile it. The compiler provides default camera coverage, choreography and music. For a cinematic project, review what it generated against the brief and take manual control where the defaults miss the intended shot.
 
 ```bash
 python tools/compose.py --example
@@ -67,7 +72,7 @@ python tools/compose.py --example
 python tools/compose.py films/<name>/plan.json --out films/<name>
 python tools/render.py films/<name>/story.json --preset preview --out films/<name>/preview.mp4
 ```
-See `docs/DIRECTOR-PLAN.md` for supported beats. Record the brief (A), review the compiler's shot list (C), and complete QA (E).
+This command produces a draft at half resolution and 12 fps. See `docs/DIRECTOR-PLAN.md` for supported beats. Record the brief (A), review the compiler's shot list (C), and complete QA (E) before delivering a requested master. If the compiler reports unavailable game sound cues, fill the beats that need sound with original or licensed effects. A music track alone can pass the audio stream check.
 Write the plan in the user's language (subtitles, title, end card). Mix beats freely: **not every film is a fight**. The skill is for
 any Minecraft animation the user imagines: comedy (`examples/creeper-surprise`), survival and chases (`examples/zombie-night`),
 builds and timelapses (`build`), mining (`mine`), dialogue episodes (`line`/`look`), calm moods (`walk`/`act`/`wait`), slice of life with
@@ -131,8 +136,7 @@ Use targeted research for unfamiliar techniques, references the user wants match
 1. **Animation language for the tone**: pacing, camera, comedy timing / horror dread / epic scale.
 2. **Rigid-body character animation**: anticipation, overshoot, follow-through, squash substitutes, impact frames.
 3. **Setting references**: block architecture, color palettes, landmarks for the chosen setting.
-4. **Free-to-use music and sound-effect sources**: list the source, the track name and **its license**. Never download
-   or add audio without the user's permission; the user supplies the files that go into `story.json`.
+4. **Third-party music and sound-effect sources**: list the source, track name and license. Ask permission before downloading third-party audio. Use original generated or user-supplied audio when appropriate.
 
 Then add a **"Principles to apply"** section: 5–10 bullets in your own words, each tied to a shot or rule in this film.
 Never copy another work's scenes, characters or lines; extract principles. Keep local copies of any reference video
@@ -143,6 +147,8 @@ only in `work/` (gitignored); only your written conclusions go in the repo.
 Write `films/<name>/shotlist.md` using the table in `DIRECTOR.md` §7 (add an **intent** column: what the shot makes
 the viewer feel or know). Check it against the briefing: one idea, clear beats (setup → escalation → turn → payoff),
 energy shape (quiet → loud → quiet), shot lengths per the tone, every line short.
+
+Give each scene a change the viewer can perceive in action, composition, light, or sound. In first person, use gaze, depth, reveals and motivated changes of distance to preserve the viewpoint while giving each beat its own image. Check adjacent shots for repetitions that add no information or tension.
 
 ## D. Build
 
@@ -167,13 +173,13 @@ energy shape (quiet → loud → quiet), shot lengths per the tone, every line s
    Camera offsets are world-space: put the camera in front of the face you want to see.
 3. **Test stills.** `python tools/render.py story.json --frame <t> --out check.png` and LOOK at the image
    (framing first, then light, then acting).
-4. **Preview.** `python tools/render.py story.json --out preview.mp4 --fps 12 --scale 0.5`.
-5. **Sound (unless the brief calls for silence).** Build every file the `audio` block points at. Use original or licensed sound effects for public projects, and reserve cached game effects for permitted local work. Compose an original score that follows the energy shape
+4. **Sound (unless the brief calls for silence).** Build every file the `audio` block points at. Use original or licensed sound effects for public projects, and reserve cached game effects for permitted local work. Compose an original score that follows the energy shape
    (`python tools/score.py --out music.wav --duration 30 --sections calm:0:7,build:7:15,battle:15:23,silence:23:26,dawn:26:30`), and voices: the user's recordings first; otherwise `tools/voice.py` (offline only: Piper neural voices fetched with
    `python tools/voice.py fetch`, e.g. `--voice piper:faber`, or the Windows OneCore voices `daniel`/`maria` with SSML pauses and emphasis),
    with a character preset (`hero`, `villain`, `monster`, `child`, `narrator`, `radio`). Fit each line inside its shot: measure it, then
    adjust `--rate` or the shot length. See `films/`-style `make_audio.py` in `docs/GENRES.md`.
    `python tools/audio.py story.json --out mix.wav`, listen, then render with audio (or mux the mix into the silent render).
+5. **Preview.** `python tools/render.py story.json --out preview.mp4 --fps 12 --scale 0.5`. Review the moving preview with the mix. Fix issues in staging, timing, legibility or sound, then review the affected interval again.
 6. **Final render.** `python tools/render.py story.json --workers 2 --out film.mp4`. Benchmark a short segment at the delivery resolution with the intended renderer and worker count. Include the scene with the most geometry and a lighting or material change. Each worker loads the world in a separate browser. Try `--gpu` after a successful full-size probe. If WebGL reports a failed shader or lost context, rerender the affected interval using the default software renderer.
    Economy: compose → preview → QA on stills → only then the final render; never re-render the whole film to check one shot
    (`--frame t` or `--start/--end`).
@@ -199,7 +205,7 @@ longer than the limit for its tone). Then **open every frame image and look at i
 skin holes, odd shadows, awkward pose, unclear story, pacing. Fix, re-render, repeat until clean.
 After the final render, play the encoded file with sound. Inspect decoded frames from the opening, both sides of major lighting or set changes, each recovered interval, and the ending. Check terrain, walls, particles and practical lights against the approved preview. Use `tools/check_media.py` with the target duration, size, fps, and `--require-audio` when sound is requested.
 
-Record the visual and media checks in `films/<name>/qa.md` (see `docs/QA.md`). Resolve each FAIL and record a decision for every WARN. Deliver the MP4 plus its reproducible project sources. For a browser-playable publication, link the README to the deployed player and verify sound, seeking and full duration at the public URL.
+Record the reviewed intervals, fixes and media check in `films/<name>/qa.md` (see `docs/QA.md`). Resolve each FAIL and record a decision for every WARN. If a requested element or playback check is pending, label the output as a preview or an unreviewed export and report the specific gap. Deliver the reviewed MP4 plus the brief, shot list, storyboard and the permitted audio sources or recipe. For a browser-playable publication, link the README to the deployed player and verify sound, seeking and full duration at the public URL.
 
 ## Rules
 

@@ -27,6 +27,10 @@
 
 ## Começo rápido
 
+### Use o BlockReel no Codex
+
+Clone o repositório e abra a pasta clonada como projeto no Codex. Comece o pedido do filme pedindo ao Codex que leia `plugin/skills/blockreel/SKILL.md` nessa pasta. Os comandos de marketplace abaixo instalam o plugin do Claude Code.
+
 ### Use o plugin no Claude Code
 
 ```bash
@@ -34,11 +38,7 @@ claude plugin marketplace add ViniciusNoetzold/mine-blockreel-skill-
 claude plugin install blockreel@blockreel-market
 ```
 
-Abra uma sessão no Claude Code e chame `/blockreel:blockreel`. Experimente este prompt.
-
-> Faça um curta cinematográfico de 30 segundos sobre um mensageiro que precisa atravessar uma ponte congelada prestes a desabar. Abra com um gancho visual, construa a tensão até uma ação decisiva e encerre em um momento de calma. Use arte, trilha e efeitos sonoros originais. Mostre o briefing e a decupagem, revise a prévia e entregue o MP4 e o projeto editável.
-
-Encontre mais gêneros e exemplos nos [prompts prontos](docs/PROMPTS.md).
+Abra uma sessão no Claude Code e chame `/blockreel:blockreel`. Siga as instruções da skill para preparar o repositório do renderizador.
 
 <details>
 <summary><b>Atualize uma instalação existente</b></summary>
@@ -51,6 +51,12 @@ claude plugin update blockreel@blockreel-market
 Abra uma nova sessão para carregar a atualização. [Atualizações de plugins no Claude Code](https://code.claude.com/docs/en/discover-plugins#keep-plugins-updated)
 
 </details>
+
+### Experimente um prompt cinematográfico
+
+> Faça um curta de 30 segundos sobre um mensageiro que precisa atravessar uma ponte congelada prestes a desabar. Siga o fluxo de produção cinematográfica. Dê a cada cena um acontecimento visual claro e sincronize a trilha e os efeitos originais com a ação. Revise a prévia em movimento e com som, corrija os problemas e entregue o MP4 final, o storyboard editável e o registro de revisão.
+
+Encontre mais gêneros e exemplos nos [prompts prontos](docs/PROMPTS.md).
 
 ### Rode as ferramentas diretamente
 
@@ -65,7 +71,9 @@ python -m playwright install chromium
 python tools/render.py examples/hello-world/story.json --preset preview --out films/hello/preview.mp4
 ```
 
-Abra `films/hello/preview.mp4` para ver seu primeiro render. Se precisar apontar para um Chrome ou Chromium já instalado, use `CHROME_PATH`.
+Abra `films/hello/preview.mp4` para conferir a instalação. O preset `preview` reduz a largura e a altura pela metade e renderiza a 12 fps para testar ajustes. Se precisar apontar para um Chrome ou Chromium já instalado, use `CHROME_PATH`.
+
+Para comparar seu render com o filme publicado, use o mesmo storyboard e áudio original. [Teste os dois segundos da cena da tocha](examples/first-night/README.md#teste-rápido-com-a-cena-da-tocha)
 
 ### Renderize Aurora Express
 
@@ -194,7 +202,9 @@ O motor ainda tem lacunas em redstone, barcos e grandes multidões. O tempo de r
 | [Mobs](docs/MOBS.md) · [Skins](docs/SKINS.md) · [Resource packs](docs/RESOURCE-PACKS.md) | Modelos, arte de personagens e texturas de blocos |
 | [Política de arquivos](docs/LEGAL.md) | Arte incluída, cache local do jogo e arquivos de terceiros |
 
-O BlockReel é um projeto independente de fãs. Ele renderiza com as texturas e skins CC0 incluídas e funciona sem instalar o Minecraft. Para usar o visual e os efeitos do jogo, `python tools/vanilla.py all` baixa os arquivos para o cache local `work/vanilla/`, ignorado pelo Git. [Política de arquivos](docs/LEGAL.md)
+O BlockReel é um projeto independente de fãs. O repositório inclui texturas e skins originais em CC0, além dos arquivos de projeto e geradores de áudio dos curtas publicados. *Primeira Noite* usa a arte incluída, sprites próprios de carvão, a fonte CSS do renderizador e uma trilha com efeitos gerados a partir das marcações de áudio do projeto. Ele roda sem Minecraft ou o cache do jogo. [Arquivos de *Primeira Noite*](examples/first-night/)
+
+O cache opcional em `work/vanilla/` pode mudar o visual e o som. `python tools/vanilla.py all` baixa texturas, efeitos sonoros, a fonte do jogo, modelos de mobs e texturas de equipamentos. Os efeitos automáticos de jogo do compilador de ações dependem do cache de sons. Para reproduzir um render, registre quais arquivos o projeto usa e mantenha os arquivos do jogo fora do repositório. [Política de arquivos](docs/LEGAL.md)
 
 ## Contribua
 
