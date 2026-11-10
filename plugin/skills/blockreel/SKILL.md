@@ -21,7 +21,7 @@ For a standalone house, facade, or city construction timelapse, use `plugin/skil
 Reuse a working checkout when available. The Claude Code marketplace installs the skill files. In Codex, open the runtime checkout as the project and have Codex read this file if the skill is not installed. Run the tools from the checkout. If needed, clone it:
 
 ```sh
-git clone https://github.com/ViniciusNoetzold/mine-blockreel-skill-.git blockreel
+git clone https://github.com/ViniciusNoetzold/mine-blockreel-skill.git blockreel
 cd blockreel
 npm ci
 python -m pip install -r requirements.txt

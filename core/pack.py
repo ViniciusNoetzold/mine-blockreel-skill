@@ -90,7 +90,7 @@ def build(src, name, pack_format, description, out, make_zip=True, icon=None, mi
         fmt = f"pack_format {pack_format}"
     (pack / "pack.mcmeta").write_text(json.dumps(meta, indent=2))
     (pack / "README.txt").write_text(
-        f"{name}\nBuilt with BlockReel (https://github.com/ViniciusNoetzold/mine-blockreel-skill-). Textures: see the project's license.\n\n"
+        f"{name}\nBuilt with BlockReel (https://github.com/ViniciusNoetzold/mine-blockreel-skill). Textures: see the project's license.\n\n"
         f"Pack format used: {fmt}\nFor Minecraft Java Edition: {format_version or 'NOT RECORDED (look it up!)'}\n"
         f"Source of the number: {format_source or 'NOT RECORDED'}\n"
         "If the game says the pack is incompatible, the format number does not match your game version.\n", encoding="utf-8")

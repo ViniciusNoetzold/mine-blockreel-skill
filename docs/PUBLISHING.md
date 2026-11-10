@@ -4,7 +4,7 @@ Nothing in this file has been run for you: git and GitHub actions publish your w
 
 ## 1. Placeholders (done for this repo)
 
-The publishing placeholders were replaced with the owner `ViniciusNoetzold` and the repo `mine-blockreel-skill-` using `tools/set_placeholders.py`
+The publishing placeholders were replaced with the owner `ViniciusNoetzold` and the repo `mine-blockreel-skill` using `tools/set_placeholders.py`
 (it replaces `YOUR_USER/blockreel` with `<user>/<repo>` and any leftover `YOUR_USER` / `YOUR_NAME`). To publish a fork under another name:
 
 ```bash
@@ -36,7 +36,7 @@ Never commit game assets or reference videos (`work/` and `films/` are gitignore
 ## 4. Create the repo and push
 
 ```bash
-gh repo create ViniciusNoetzold/mine-blockreel-skill- --public --source . --remote origin --description "Make Minecraft-style animations, skins and texture packs from a prompt. Rendered in code, no video model. A Claude Code plugin." --push
+gh repo create ViniciusNoetzold/mine-blockreel-skill --public --source . --remote origin --description "Make Minecraft-style animations, skins and texture packs from a prompt. Rendered in code, no video model. A Claude Code plugin." --push
 git push origin v0.1.0
 ```
 
@@ -46,7 +46,7 @@ Suggested **topics**: `minecraft`, `animation`, `claude-code`, `claude-code-plug
 `resource-pack`, `texture-pack`, `video-generation`, `python`, `ffmpeg`, `playwright`.
 
 ```bash
-gh repo edit ViniciusNoetzold/mine-blockreel-skill- --add-topic minecraft --add-topic animation --add-topic claude-code --add-topic claude-code-plugin \
+gh repo edit ViniciusNoetzold/mine-blockreel-skill --add-topic minecraft --add-topic animation --add-topic claude-code --add-topic claude-code-plugin \
   --add-topic claude-skills --add-topic threejs --add-topic procedural-generation --add-topic pixel-art --add-topic minecraft-skins \
   --add-topic resource-pack --add-topic texture-pack --add-topic video-generation --add-topic python --add-topic ffmpeg --add-topic playwright
 ```
@@ -67,5 +67,5 @@ Ready to paste or create with `gh`: [GOOD-FIRST-ISSUES.md](GOOD-FIRST-ISSUES.md)
 
 ## 8. After publishing
 
-- Install the plugin from GitHub on a clean machine: `claude plugin marketplace add ViniciusNoetzold/mine-blockreel-skill-` then `claude plugin install blockreel@blockreel-market`, and run `/blockreel:blockreel`.
+- Install the plugin from GitHub on a clean machine: `claude plugin marketplace add ViniciusNoetzold/mine-blockreel-skill` then `claude plugin install blockreel@blockreel-market`, and run `/blockreel:blockreel`.
 - Look at the Actions tab: CI installs Chromium with software GL, so the real-render tests run there too. If a render test fails only on CI, check the Chromium launch flags in `tools/render.py`.

@@ -26,7 +26,7 @@
 ## Install
 
 ```bash
-claude plugin marketplace add ViniciusNoetzold/mine-blockreel-skill-
+claude plugin marketplace add ViniciusNoetzold/mine-blockreel-skill
 claude plugin install blockreel@blockreel-market
 ```
 Needs Node 20+, Python 3.11+, ffmpeg and Chrome/Chromium (`python -m playwright install chromium`).

@@ -5,10 +5,10 @@
 <p align="center">Direct characters, worlds, and cameras from an editable storyboard. BlockReel draws every frame in Three.js, generates a score, and renders the finished film to MP4.</p>
 
 <p align="center">
-  <a href="https://github.com/ViniciusNoetzold/mine-blockreel-skill-/actions/workflows/ci.yml"><img src="https://github.com/ViniciusNoetzold/mine-blockreel-skill-/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/ViniciusNoetzold/mine-blockreel-skill/actions/workflows/ci.yml"><img src="https://github.com/ViniciusNoetzold/mine-blockreel-skill/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT"></a>
   <a href="plugin/skills/blockreel/SKILL.md"><img src="https://img.shields.io/badge/Claude%20Code-plugin-8A5CF6" alt="Claude Code plugin"></a>
-  <a href="https://github.com/ViniciusNoetzold/mine-blockreel-skill-/stargazers"><img src="https://img.shields.io/github/stars/ViniciusNoetzold/mine-blockreel-skill-?style=social" alt="GitHub stars"></a>
+  <a href="https://github.com/ViniciusNoetzold/mine-blockreel-skill/stargazers"><img src="https://img.shields.io/github/stars/ViniciusNoetzold/mine-blockreel-skill?style=social" alt="GitHub stars"></a>
 </p>
 
 <p align="center">
@@ -16,13 +16,13 @@
 </p>
 
 <p align="center">
-  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#first-night"><img src="examples/first-night/poster.jpg" width="900" alt="Primeira Noite, a Minecraft-style survival short"></a>
+  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#first-night"><img src="examples/first-night/poster.jpg" width="900" alt="Primeira Noite, a Minecraft-style survival short"></a>
 </p>
 
 <p align="center">
-  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#first-night"><b>▶ Watch Primeira Noite with sound (First Night, 60 seconds)</b></a> · <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#first-night-reel"><b>Watch the vertical 9:16 Reel</b></a><br>
+  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#first-night"><b>▶ Watch Primeira Noite with sound (First Night, 60 seconds)</b></a> · <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#first-night-reel"><b>Watch the vertical 9:16 Reel</b></a><br>
   A player races the sunset, seals himself inside a hillside, and discovers what the torchlight was hiding.<br>
-  <a href="examples/first-night/">Production files</a> · <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#aurora-express">▶ Watch Aurora Express (30 seconds)</a>
+  <a href="examples/first-night/">Production files</a> · <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#aurora-express">▶ Watch Aurora Express (30 seconds)</a>
 </p>
 
 ## Quick start
@@ -34,7 +34,7 @@ Clone the repository and open the cloned folder as your Codex project. Start you
 ### Use the Claude Code plugin
 
 ```bash
-claude plugin marketplace add ViniciusNoetzold/mine-blockreel-skill-
+claude plugin marketplace add ViniciusNoetzold/mine-blockreel-skill
 claude plugin install blockreel@blockreel-market
 ```
 
@@ -69,8 +69,8 @@ Try more genres in the [prompt cookbook](docs/PROMPTS.md).
 Install **Node.js 20+**, **Python 3.11+**, and **FFmpeg**. Make sure `ffmpeg` and `ffprobe` are on your `PATH`. The renderer uses Chromium and can run with software graphics.
 
 ```bash
-git clone https://github.com/ViniciusNoetzold/mine-blockreel-skill-
-cd mine-blockreel-skill-
+git clone https://github.com/ViniciusNoetzold/mine-blockreel-skill
+cd mine-blockreel-skill
 npm ci
 python -m pip install -r requirements.txt
 python -m playwright install chromium
@@ -122,48 +122,48 @@ python tools/render.py films/casa/story.json --preset preview --out films/casa/p
 
 ## Film gallery
 
-[Watch BlockReel films in the browser](https://viniciusnoetzold.github.io/mine-blockreel-skill-/). The players have native controls.
+[Watch BlockReel films in the browser](https://viniciusnoetzold.github.io/mine-blockreel-skill/). The players have native controls.
 
-[Watch the house timelapse](https://viniciusnoetzold.github.io/mine-blockreel-skill-/#house-timelapse) to see the build progress from the foundation to the finished exterior. [Editable example](examples/house-timelapse/)
+[Watch the house timelapse](https://viniciusnoetzold.github.io/mine-blockreel-skill/#house-timelapse) to see the build progress from the foundation to the finished exterior. [Editable example](examples/house-timelapse/)
 
-[Watch Praça do Horizonte take shape](https://viniciusnoetzold.github.io/mine-blockreel-skill-/#city-timelapse), from the avenue grid to a market, a park, houses and a clock tower. [Editable layout](examples/city-timelapse/)
+[Watch Praça do Horizonte take shape](https://viniciusnoetzold.github.io/mine-blockreel-skill/#city-timelapse), from the avenue grid to a market, a park, houses and a clock tower. [Editable layout](examples/city-timelapse/)
 
 ### Earlier demos
 
 <table>
   <tr>
     <td width="50%" valign="top">
-      <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#vila-viva"><img src="docs/media/vila-1-village.jpg" alt="Vila Viva"></a><br>
-      <b><a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#vila-viva">▶ Vila Viva</a></b> · 28 s<br>
+      <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#vila-viva"><img src="docs/media/vila-1-village.jpg" alt="Vila Viva"></a><br>
+      <b><a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#vila-viva">▶ Vila Viva</a></b> · 28 s<br>
       A sunset village with families of mobs, a horse ride, and fireworks. <a href="examples/village-life/plan.json">Plan</a>
     </td>
     <td width="50%" valign="top">
-      <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#herobrine"><img src="docs/media/herobrine-2-duel.jpg" alt="Eu vs Herobrine"></a><br>
-      <b><a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#herobrine">▶ Eu vs Herobrine</a></b> · 40 s<br>
+      <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#herobrine"><img src="docs/media/herobrine-2-duel.jpg" alt="Eu vs Herobrine"></a><br>
+      <b><a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#herobrine">▶ Eu vs Herobrine</a></b> · 40 s<br>
       A custom persona faces Herobrine in a sword duel. <a href="examples/herobrine-duel/plan.json">Plan</a>
     </td>
   </tr>
   <tr>
     <td width="50%" valign="top">
-      <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#creeper-surprise"><img src="docs/media/casa-1-build.jpg" alt="A Casa Nova"></a><br>
-      <b><a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#creeper-surprise">▶ A Casa Nova</a></b> · 39 s<br>
+      <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#creeper-surprise"><img src="docs/media/casa-1-build.jpg" alt="A Casa Nova"></a><br>
+      <b><a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#creeper-surprise">▶ A Casa Nova</a></b> · 39 s<br>
       Two friends build a house. A creeper has other plans. <a href="examples/creeper-surprise/plan.json">Plan</a>
     </td>
     <td width="50%" valign="top">
-      <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#zombie-night"><img src="docs/media/noite-1-chase.jpg" alt="Primeira Noite, earlier survival demo"></a><br>
-      <b><a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#zombie-night">▶ Primeira Noite (earlier demo)</a></b> · 31 s<br>
+      <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#zombie-night"><img src="docs/media/noite-1-chase.jpg" alt="Primeira Noite, earlier survival demo"></a><br>
+      <b><a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#zombie-night">▶ Primeira Noite (earlier demo)</a></b> · 31 s<br>
       A forest chase ends with a stone-sword fight. <a href="examples/zombie-night/plan.json">Plan</a>
     </td>
   </tr>
   <tr>
     <td width="50%" valign="top">
-      <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#farol-negro"><img src="docs/media/farol-2-horde.jpg" alt="Farol Negro"></a><br>
-      <b><a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#farol-negro">▶ Farol Negro</a></b> · 22 s<br>
+      <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#farol-negro"><img src="docs/media/farol-2-horde.jpg" alt="Farol Negro"></a><br>
+      <b><a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#farol-negro">▶ Farol Negro</a></b> · 22 s<br>
       A lone warrior defends a beacon from a horde.
     </td>
     <td width="50%" valign="top">
-      <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#the-last-torch"><img src="docs/media/torch-2-warden.jpg" alt="The Last Torch"></a><br>
-      <b><a href="https://viniciusnoetzold.github.io/mine-blockreel-skill-/#the-last-torch">▶ The Last Torch</a></b> · 34 s (silent)<br>
+      <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#the-last-torch"><img src="docs/media/torch-2-warden.jpg" alt="The Last Torch"></a><br>
+      <b><a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#the-last-torch">▶ The Last Torch</a></b> · 34 s (silent)<br>
       A cinematic short with its brief, shot list, and QA log. <a href="examples/last-torch">Production files</a>
     </td>
   </tr>
@@ -223,7 +223,7 @@ The optional cache at `work/vanilla/` can change a film's look and sound. `pytho
 
 ## Contribute
 
-Share a film made with BlockReel, report a render issue with its smallest reproducible storyboard, or contribute a beat, animation, style, or documentation fix. [Open an issue](https://github.com/ViniciusNoetzold/mine-blockreel-skill-/issues/new) · [Engine coverage](docs/COVERAGE.md)
+Share a film made with BlockReel, report a render issue with its smallest reproducible storyboard, or contribute a beat, animation, style, or documentation fix. [Open an issue](https://github.com/ViniciusNoetzold/mine-blockreel-skill/issues/new) · [Engine coverage](docs/COVERAGE.md)
 
 For code changes, run the Python suite and the engine checks.
 
@@ -235,7 +235,7 @@ node tests/world_check.mjs
 node tests/geo_check.mjs
 ```
 
-If you make something with BlockReel, star the repo so other creators can find it. [BlockReel on GitHub](https://github.com/ViniciusNoetzold/mine-blockreel-skill-)
+If you make something with BlockReel, star the repo so other creators can find it. [BlockReel on GitHub](https://github.com/ViniciusNoetzold/mine-blockreel-skill)
 
 ## License
 

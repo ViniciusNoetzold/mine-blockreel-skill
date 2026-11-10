@@ -2,7 +2,7 @@
 
 Timelapse de 14 segundos em que duas avenidas cruzam um terreno vazio e ligam quatro bairros. A construção ocupa uma área de 81 × 67 blocos. A torre do relógio marca a silhueta acima dos telhados.
 
-[Assista ao timelapse](https://viniciusnoetzold.github.io/mine-blockreel-skill-/#city-timelapse) · [Layout editável](layout.json) · [Guia de timelapses](../../docs/BUILD-TIMELAPSE.md)
+[Assista ao timelapse](https://viniciusnoetzold.github.io/mine-blockreel-skill/#city-timelapse) · [Layout editável](layout.json) · [Guia de timelapses](../../docs/BUILD-TIMELAPSE.md)
 
 | Etapa | O que aparece |
 | --- | --- |

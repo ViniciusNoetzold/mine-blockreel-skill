@@ -2,7 +2,7 @@
 
 Um jogador corre contra o pôr do sol, se fecha numa encosta e descobre o que a luz da tocha estava escondendo. Curta de 60 segundos em 1280 × 720 a 24 fps, com trilha e efeitos sonoros originais.
 
-[Assista à versão horizontal](https://viniciusnoetzold.github.io/mine-blockreel-skill-/#first-night) · [Assista ao Reel 9:16](https://viniciusnoetzold.github.io/mine-blockreel-skill-/#first-night-reel) · [Storyboard editável](story.json) · [Registro de revisão](qa.md)
+[Assista à versão horizontal](https://viniciusnoetzold.github.io/mine-blockreel-skill/#first-night) · [Assista ao Reel 9:16](https://viniciusnoetzold.github.io/mine-blockreel-skill/#first-night-reel) · [Storyboard editável](story.json) · [Registro de revisão](qa.md)
 
 A versão vertical de 720 × 1280 tem os mesmos 60 segundos com som. Câmeras e interface foram ajustadas para o quadro 9:16. [Guia de Reels](../../docs/REELS.md)
 
