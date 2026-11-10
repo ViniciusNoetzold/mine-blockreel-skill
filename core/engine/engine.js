@@ -212,6 +212,17 @@ function clearCameraFoliage() {
   window.__foliageCleared = n; return n;
 }
 
+function blockGeometry(builder) {
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(builder.pos, 3));
+  geo.setAttribute('normal', new THREE.Float32BufferAttribute(builder.nor, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(builder.uv, 2));
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(builder.col, 3));
+  geo.setAttribute('mcLight', new THREE.Float32BufferAttribute(builder.lit, 2));
+  geo.setIndex(builder.idx);
+  return geo;
+}
+
 async function buildWorld() {
   grid = expandWorld(story.world, story.seed ?? 1);
   snapToGround(); clearCameraFoliage();
@@ -221,15 +232,25 @@ async function buildWorld() {
   const { groups, light } = meshWorld(grid, defOf, ch.dynKeys); worldLight = light;
   for (const g of groups.values()) {
     const b = g.builder; if (!b.n) continue;
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(b.pos, 3)); geo.setAttribute('normal', new THREE.Float32BufferAttribute(b.nor, 3));
-    geo.setAttribute('uv', new THREE.Float32BufferAttribute(b.uv, 2)); geo.setAttribute('color', new THREE.Float32BufferAttribute(b.col, 3));
-    geo.setAttribute('mcLight', new THREE.Float32BufferAttribute(b.lit, 2)); geo.setIndex(b.idx); geo.computeBoundingSphere();
+    const geo = blockGeometry(b);
+    geo.computeBoundingSphere();
     const mesh = new THREE.Mesh(geo, await worldMaterial(g.tex, g.kind, g.flow));
     mesh.castShadow = g.kind !== 'translucent' && g.kind !== 'emissive'; mesh.receiveShadow = g.kind !== 'emissive';
     if (g.kind === 'translucent') mesh.renderOrder = 1;
     if (g.chunk) { const [cx, cz] = g.chunk.split(',').map(Number); mesh.userData.cx = (cx + 0.5) * CHUNK; mesh.userData.cz = (cz + 0.5) * CHUNK; }
     scene.add(mesh); worldMeshes.push(mesh);
+  }
+  if (story.sky?.groundBackdrop) {
+    // A distant grass surface keeps the edge of the voxel terrain out of wide aerial shots.
+    const span = 900;
+    const map = (await mipTex(defOf('grass').tex.top, false)).clone();
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(span, span);
+    map.needsUpdate = true;
+    const horizon = new THREE.Mesh(new THREE.PlaneGeometry(span, span), new THREE.MeshLambertMaterial({ map }));
+    horizon.rotation.x = -Math.PI / 2;
+    horizon.position.set(...story.sky.groundBackdrop);
+    scene.add(horizon);
   }
   const geo = new THREE.BoxGeometry(1, 1, 1); const m = new THREE.Matrix4();
   { // face shade per vertex for the dynamic cubes (BoxGeometry order: +x -x +y -y +z -z)
@@ -241,17 +262,33 @@ async function buildWorld() {
   const white = new THREE.Color(1, 1, 1);
   for (const [b, list] of Object.entries(dby)) {
     const d = defOf(b); const kind = d.kind === 'emissive' ? 'emissive' : d.kind;
-    const mats = await Promise.all(FACES.map((f) => worldMaterial(d.tex[f.slot], kind, d.flow)));
-    const g2 = geo.clone(); const lit = new Float32Array(list.length * 2);
+    const lit = new Float32Array(list.length * 2);
     list.forEach((it, i) => { // light of the brightest open neighbour (the block's own cell is solid)
       let best = [0, 0]; for (const f of FACES) { const l = light.at(it.pos[0] + f.n[0], it.pos[1] + f.n[1], it.pos[2] + f.n[2]); if (l[0] + l[1] > best[0] + best[1]) best = l; }
       lit[i * 2] = best[0] / 15; lit[i * 2 + 1] = best[1] / 15;
     });
-    g2.setAttribute('mcLight', new THREE.InstancedBufferAttribute(lit, 2));
-    const mesh = new THREE.InstancedMesh(g2, mats, list.length);
-    mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); mesh.castShadow = mesh.receiveShadow = true; mesh.frustumCulled = false;
-    list.forEach((it, i) => { mesh.setColorAt(i, white); dyn.push({ mesh, i, it }); });
-    scene.add(mesh);
+    const attach = (geometry, material) => {
+      geometry.setAttribute('mcLight', new THREE.InstancedBufferAttribute(lit, 2));
+      const mesh = new THREE.InstancedMesh(geometry, material, list.length);
+      mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); mesh.castShadow = mesh.receiveShadow = true; mesh.frustumCulled = false;
+      list.forEach((it, i) => { mesh.setColorAt(i, white); dyn.push({ mesh, i, it }); });
+      scene.add(mesh);
+    };
+    // Model the shape once in block-local space, then animate all placements as instances.
+    // Neighbor-dependent shapes still need a separate dynamic connection pass.
+    const needsModel = ['slab', 'stairs', 'door', 'torch'].includes(d.shape) ||
+      (d.shape === 'cube' && (d.prop === 'x' || d.prop === 'z'));
+    if (needsModel) {
+      const { groups: models } = meshWorld(new Map([['0,0,0', b]]), defOf);
+      for (const model of models.values()) {
+        const local = blockGeometry(model.builder);
+        local.translate(-0.5, -0.5, -0.5);
+        attach(local, await worldMaterial(model.tex, model.kind, model.flow));
+      }
+    } else {
+      const materials = await Promise.all(FACES.map((f) => worldMaterial(d.tex[f.slot], kind, d.flow)));
+      attach(geo.clone(), materials);
+    }
   }
   if (ch.cracks.length) {
     const tex = crackTextures(THREE);

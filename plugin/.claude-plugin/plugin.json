@@ -1,7 +1,7 @@
 {
   "name": "blockreel",
-  "version": "0.5.1",
-  "description": "Make Minecraft-style animated videos from a prompt (research, shot list, QA), plus skills for player skins and resource-pack textures. Rendered in code, no video model.",
+  "version": "0.6.0",
+  "description": "Make Minecraft-style films and reference-driven construction timelapses, plus skills for player skins and resource-pack textures. Rendered in code.",
   "author": { "name": "ViniciusNoetzold" },
   "homepage": "https://github.com/ViniciusNoetzold/mine-blockreel-skill-",
   "repository": "https://github.com/ViniciusNoetzold/mine-blockreel-skill-",

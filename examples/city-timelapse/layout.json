@@ -1,0 +1,56 @@
+{
+  "title": "Praça do Horizonte",
+  "size": [
+    1280,
+    720
+  ],
+  "fps": 24,
+  "duration": 14,
+  "districts": [
+    {
+      "id": "streets",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "blueprint": "districts/streets.json"
+    },
+    {
+      "id": "market",
+      "origin": [
+        -20,
+        0,
+        17
+      ],
+      "blueprint": "districts/market.json"
+    },
+    {
+      "id": "park",
+      "origin": [
+        20,
+        0,
+        17
+      ],
+      "blueprint": "districts/park.json"
+    },
+    {
+      "id": "homes",
+      "origin": [
+        -20,
+        0,
+        -17
+      ],
+      "blueprint": "districts/homes.json"
+    },
+    {
+      "id": "civic",
+      "origin": [
+        20,
+        0,
+        -17
+      ],
+      "blueprint": "districts/civic.json"
+    }
+  ]
+}

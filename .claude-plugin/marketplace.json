@@ -1,12 +1,12 @@
 {
   "name": "blockreel-market",
-  "description": "BlockReel: Minecraft-style animations, skins and texture packs, made in code.",
+  "description": "BlockReel: Minecraft-style films, construction timelapses, skins and texture packs.",
   "owner": { "name": "ViniciusNoetzold" },
   "plugins": [
     {
       "name": "blockreel",
       "source": "./plugin",
-      "description": "Make Minecraft-style animated videos from a prompt (research, shot list, QA), plus skills for player skins and resource-pack textures. Rendered in code, no video model."
+      "description": "Make Minecraft-style films, construction timelapses, player skins and resource-pack textures."
     }
   ]
 }

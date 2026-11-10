@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <a href="README.pt-BR.md">Português</a> · <a href="#quick-start">Quick start</a> · <a href="#cinematic-workflow">Cinematic workflow</a> · <a href="#film-gallery">Films</a> · <a href="#contribute">Contribute</a>
+  <a href="README.pt-BR.md">Português</a> · <a href="#quick-start">Quick start</a> · <a href="#construction-timelapses">Timelapses</a> · <a href="#cinematic-workflow">Cinematic workflow</a> · <a href="#film-gallery">Films</a> · <a href="#contribute">Contribute</a>
 </p>
 
 <p align="center">
@@ -51,6 +51,12 @@ claude plugin update blockreel@blockreel-market
 Start a new session to load the update. [Claude Code plugin updates](https://code.claude.com/docs/en/discover-plugins#keep-plugins-updated)
 
 </details>
+
+### Construction timelapses
+
+Attach a reference image and ask BlockReel to reconstruct the building and show it going up block by block. Use `/blockreel:blockreel-builds` in Claude Code or ask Codex to read [the construction skill](plugin/skills/blockreel-builds/SKILL.md) from the checkout. The workflow checks the visible façade against the reference and records assumptions for hidden sides, depth, and interiors. Extra views or dimensions help when those details matter.
+
+[House blueprint](examples/house-timelapse/) · [City layout and districts](examples/city-timelapse/) · [Timelapse guide](docs/BUILD-TIMELAPSE.md)
 
 ### Try a cinematic prompt
 
@@ -118,6 +124,10 @@ python tools/render.py films/casa/story.json --preset preview --out films/casa/p
 
 [Watch BlockReel films in the browser](https://viniciusnoetzold.github.io/mine-blockreel-skill-/). The players have native controls.
 
+[Watch the house timelapse](https://viniciusnoetzold.github.io/mine-blockreel-skill-/#house-timelapse) to see the build progress from the foundation to the finished exterior. [Editable example](examples/house-timelapse/)
+
+[Watch Praça do Horizonte take shape](https://viniciusnoetzold.github.io/mine-blockreel-skill-/#city-timelapse), from the avenue grid to a market, a park, houses and a clock tower. [Editable layout](examples/city-timelapse/)
+
 ### Earlier demos
 
 <table>
@@ -159,7 +169,11 @@ python tools/render.py films/casa/story.json --preset preview --out films/casa/p
   </tr>
 </table>
 
-More formats include channel openings, building timelapses, quiet slice-of-life films, and dialogue episodes. [Genre guide](docs/GENRES.md)
+More formats include channel openings, quiet slice-of-life films, and dialogue episodes. [Genre guide](docs/GENRES.md)
+
+### Marketing and social videos
+
+Use the same storyboard and renderer for voxel product reveals, short event announcements, and brand or channel intros. Stage a model or block-built logo, add titles and a call to action, sync the music and effects, and export a landscape MP4 or a 9:16 Reel. The workflow is for authored animated scenes. Campaigns built around live footage use a separate editing workflow. [Genre guide](docs/GENRES.md) · [Reels guide](docs/REELS.md)
 
 ## What you can direct
 
@@ -185,11 +199,12 @@ More formats include channel openings, building timelapses, quiet slice-of-life 
 
 The engine currently has gaps in redstone, boats, and large crowds. Render time depends on scene complexity, resolution, and hardware. Use the preview preset or render one still with `--frame` to iterate on a shot. [Engine coverage](docs/COVERAGE.md)
 
-### Three skills in one plugin
+### Four skills in one plugin
 
 | Skill | Use it for |
 | --- | --- |
 | [`blockreel`](plugin/skills/blockreel/SKILL.md) | Directing an animated film from a prompt or reference, through the final mix and visual review |
+| [`blockreel-builds`](plugin/skills/blockreel-builds/SKILL.md) | Turning building references and district layouts into editable blueprints and staged timelapses. [House](examples/house-timelapse/) · [City](examples/city-timelapse/) |
 | [`blockreel-skins`](plugin/skills/blockreel-skins/SKILL.md) | Painting and validating player skins with a four-angle turntable. [Skin example](examples/skin-demo) |
 | [`blockreel-textures`](plugin/skills/blockreel-textures/SKILL.md) | Designing tileable block and item textures, previewing them in a scene, and packing a resource ZIP. [Texture example](examples/texture-pack-demo) |
 

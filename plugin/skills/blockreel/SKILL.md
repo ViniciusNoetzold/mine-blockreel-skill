@@ -10,6 +10,8 @@ No video model is involved: every frame comes from a Three.js scene driven by a 
 
 ## Choose the workflow before building
 
+For a standalone house, facade, or city construction timelapse, use `plugin/skills/blockreel-builds/SKILL.md`. Use the main film workflow when construction is one beat in a longer story.
+
 - **Reproduce an example.** Use its checked-in storyboard and audio recipe. Follow the reproduction commands before changing any creative decisions. Use the torch scene in `examples/first-night/README.md` as a clean-checkout control when diagnosing a different result.
 - **Finish a cinematic film.** Use `docs/CINEMATIC-WORKFLOW.md` for showcase quality, multi-beat narrative, a look to match, or exact delivery requirements. Record the route in the brief. Compile supported beats as a starting point when useful, then direct each scene's camera, staging, lighting, and sound.
 - **Build a simple clip or a draft.** Use the beat compiler for a straightforward action its presets cover, or when the user explicitly wants a rough preview. For any requested final, continue through picture and sound review and export the master at the brief's settings.

@@ -14,6 +14,10 @@ on:
       - 'examples/first-night/poster.jpg'
       - 'examples/first-night/reel.mp4'
       - 'examples/first-night/reel-poster.jpg'
+      - 'examples/house-timelapse/showcase.mp4'
+      - 'examples/house-timelapse/poster.jpg'
+      - 'examples/city-timelapse/showcase.mp4'
+      - 'examples/city-timelapse/poster.jpg'
   workflow_dispatch:
 
 permissions:
@@ -39,7 +43,7 @@ jobs:
         run: |
           mkdir -p _site
           cp docs/gallery/index.html _site/
-          for film in first-night aurora-express; do
+          for film in first-night aurora-express house-timelapse city-timelapse; do
             mkdir -p "_site/media/$film"
             cp "examples/$film/showcase.mp4" "examples/$film/poster.jpg" "_site/media/$film/"
           done

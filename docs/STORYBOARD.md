@@ -241,6 +241,7 @@ Any subset of `sky`, `ambient`, `sun`, `fog` per key; values interpolate smoothl
 `"sky": { "clouds": true, "stars": 1, "celestial": true, "cloudHeight": 34, "cloudSpeed": 0.6, "sunsetGlow": true }`: a dome that keeps the
 horizon level, the square sun and moon on the light direction (night styles show the moon), stars that fade in at night and the
 game's cloud layer (from its cloud map when cached).
+Set `sky.groundBackdrop` to `[x, y, z]` to center a distant grass surface below the voxel terrain in wide aerial shots. It is visual scenery and has no collision.
 `"lightning": [ { "t": 5, "pos": [x, z] | "actorName", "dur": 0.45, "seed": 3 } ]`: a jagged bolt that flickers, lights the area and
 flashes the sky and the scene.
 

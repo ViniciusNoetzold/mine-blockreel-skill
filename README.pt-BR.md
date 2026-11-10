@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <a href="README.md">English</a> · <a href="#começo-rápido">Começo rápido</a> · <a href="#fluxo-cinematográfico">Fluxo cinematográfico</a> · <a href="#galeria-de-filmes">Filmes</a> · <a href="#contribua">Contribua</a>
+  <a href="README.md">English</a> · <a href="#começo-rápido">Começo rápido</a> · <a href="#timelapses-de-construção">Timelapses</a> · <a href="#fluxo-cinematográfico">Fluxo cinematográfico</a> · <a href="#galeria-de-filmes">Filmes</a> · <a href="#contribua">Contribua</a>
 </p>
 
 <p align="center">
@@ -51,6 +51,12 @@ claude plugin update blockreel@blockreel-market
 Abra uma nova sessão para carregar a atualização. [Atualizações de plugins no Claude Code](https://code.claude.com/docs/en/discover-plugins#keep-plugins-updated)
 
 </details>
+
+### Timelapses de construção
+
+Anexe uma imagem de referência e peça ao BlockReel para recriar a construção e mostrar a montagem bloco a bloco. No Claude Code, use `/blockreel:blockreel-builds`. No Codex, peça a leitura da [skill de construção](plugin/skills/blockreel-builds/SKILL.md) no repositório. O fluxo confere a fachada visível com a referência e registra as decisões sobre laterais ocultas, profundidade e interior. Envie outros ângulos ou medidas quando esses detalhes forem importantes.
+
+[Planta da casa](examples/house-timelapse/) · [Mapa da cidade e bairros](examples/city-timelapse/) · [Guia de timelapses](docs/BUILD-TIMELAPSE.md)
 
 ### Experimente um prompt cinematográfico
 
@@ -118,6 +124,10 @@ python tools/render.py films/casa/story.json --preset preview --out films/casa/p
 
 [Assista aos filmes do BlockReel no navegador](https://viniciusnoetzold.github.io/mine-blockreel-skill-/). Os players têm controles nativos.
 
+[Assista ao timelapse da casa](https://viniciusnoetzold.github.io/mine-blockreel-skill-/#house-timelapse) para ver a construção da fundação ao exterior pronto. [Exemplo editável](examples/house-timelapse/)
+
+[Assista à construção da Praça do Horizonte](https://viniciusnoetzold.github.io/mine-blockreel-skill-/#city-timelapse), das avenidas à feira, ao jardim, às casas e à torre do relógio. [Mapa editável](examples/city-timelapse/)
+
 ### Demos anteriores
 
 <table>
@@ -159,7 +169,11 @@ python tools/render.py films/casa/story.json --preset preview --out films/casa/p
   </tr>
 </table>
 
-Também dá para fazer aberturas de canal, timelapses de construção, histórias de cotidiano e episódios com diálogo. [Guia de gêneros](docs/GENRES.md)
+Também dá para fazer aberturas de canal, histórias de cotidiano e episódios com diálogo. [Guia de gêneros](docs/GENRES.md)
+
+### Vídeos de marketing e divulgação
+
+O mesmo renderizador serve para apresentar produtos em blocos, anunciar eventos e fazer vinhetas de marca. Monte o produto ou logotipo na cena, use títulos e uma chamada para ação, sincronize trilha e efeitos e exporte em MP4 horizontal ou Reel 9:16. O fluxo produz animações. Campanhas montadas a partir de gravações reais usam uma etapa de edição separada. [Guia de gêneros](docs/GENRES.md) · [Guia de Reels](docs/REELS.md)
 
 ## O que dá para dirigir
 
@@ -185,11 +199,12 @@ Também dá para fazer aberturas de canal, timelapses de construção, história
 
 O motor ainda tem lacunas em redstone, barcos e grandes multidões. O tempo de render varia com a complexidade da cena, a resolução e o hardware. Use o preset de prévia ou renderize um quadro com `--frame` para ajustar um plano. [Cobertura do motor](docs/COVERAGE.md)
 
-### Três skills em um plugin
+### Quatro skills em um plugin
 
 | Skill | Use para |
 | --- | --- |
 | [`blockreel`](plugin/skills/blockreel/SKILL.md) | Dirigir um filme animado a partir de um prompt ou referência, até a mixagem e a revisão visual |
+| [`blockreel-builds`](plugin/skills/blockreel-builds/SKILL.md) | Converter referências de construções e mapas de bairros em plantas editáveis e timelapses por etapas. [Casa](examples/house-timelapse/) · [Cidade](examples/city-timelapse/) |
 | [`blockreel-skins`](plugin/skills/blockreel-skins/SKILL.md) | Pintar e validar skins de jogadores com uma prévia em quatro ângulos. [Exemplo de skin](examples/skin-demo) |
 | [`blockreel-textures`](plugin/skills/blockreel-textures/SKILL.md) | Criar texturas de blocos e itens que se repetem sem emendas, conferir em cena e gerar um resource pack ZIP. [Exemplo de texturas](examples/texture-pack-demo) |
 
