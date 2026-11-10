@@ -20,9 +20,9 @@
 </p>
 
 <p align="center">
-  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#blockreel-promo"><b>▶ Assista ao trailer cinematográfico do BlockReel com som (1 min 51 s)</b></a><br>
-  Veja a cabana e o templo ganharem forma, com a construção completa da <i>Praça do Horizonte</i> e o curta <i>Primeira Noite</i> na íntegra.<br>
-  <a href="examples/blockreel-promo/">Arquivos de produção</a> · <a href="#começo-rápido">Experimente as skills</a>
+  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#blockreel-promo"><b>▶ Assista ao trailer completo do BlockReel com som (2 min 53 s)</b></a><br>
+  A animação do trailer original, as construções completas da casa e da cidade, e os curtas <i>Aurora Express</i> e <i>Primeira Noite</i> na íntegra.<br>
+  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#blockreel-characters">▶ Assista a Personagens e Texturas em um vídeo separado (50 s)</a> · <a href="examples/blockreel-promo/">Arquivos de produção</a> · <a href="#começo-rápido">Experimente as skills</a>
 </p>
 
 ## Começo rápido

@@ -20,9 +20,9 @@
 </p>
 
 <p align="center">
-  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#blockreel-promo"><b>▶ Watch the BlockReel cinematic showcase with sound (1 min 51 s)</b></a><br>
-  See a cabin and temple take shape, followed by the full <i>Praça do Horizonte</i> build and <i>Primeira Noite</i> short.<br>
-  <a href="examples/blockreel-promo/">Production files</a> · <a href="#quick-start">Try the skills</a>
+  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#blockreel-promo"><b>▶ Watch the complete BlockReel showcase with sound (2 min 53 s)</b></a><br>
+  The original animation showcase, the full house and city builds, and the complete <i>Aurora Express</i> and <i>Primeira Noite</i> shorts.<br>
+  <a href="https://viniciusnoetzold.github.io/mine-blockreel-skill/#blockreel-characters">▶ Watch Characters &amp; Textures separately (50 s)</a> · <a href="examples/blockreel-promo/">Production files</a> · <a href="#quick-start">Try the skills</a>
 </p>
 
 ## Quick start

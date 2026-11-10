@@ -1,17 +1,18 @@
 # BlockReel Showcase
 
-[Watch the 111-second cinematic cut with sound](https://viniciusnoetzold.github.io/mine-blockreel-skill/#blockreel-promo).
+[Watch the complete 2 min 53 s showcase](https://viniciusnoetzold.github.io/mine-blockreel-skill/#blockreel-promo) · [Watch Characters & Textures separately](https://viniciusnoetzold.github.io/mine-blockreel-skill/#blockreel-characters)
 
 | Time | On screen | Source |
 | --- | --- | --- |
-| 0:00–0:08 | An oak cabin rises from the clearing. | [*A Casa Nova* build timelapse](../house-timelapse/) |
-| 0:08–0:15 | The temple goes up in five phases and holds on the completed facade. | Showcase temple |
-| 0:15–0:29 | From the first avenue to the clock tower and final skyline. | [*Praça do Horizonte*](../city-timelapse/), complete 14-second build |
-| 0:29–0:47 | Custom skins, cape motion, a mounted run through 64 × 64 materials, and a nighttime encounter. | Showcase animation |
-| 0:47–1:47 | From the first look at the world to the cave reveal. | [*Primeira Noite*](../first-night/), complete 60-second short |
-| 1:47–1:51 | BlockReel and the repository address. | Showcase end card |
+| 0:00–0:50 | Temple reveal, nighttime encounter, custom skins, cape motion, and a mounted run through 64 × 64 materials. | Original showcase animation |
+| 0:50–1:02 | An oak cabin rises from the clearing. | [*A Casa Nova*](../house-timelapse/), complete build |
+| 1:02–1:16 | From the first avenue to the clock tower and final skyline. | [*Praça do Horizonte*](../city-timelapse/), complete city build |
+| 1:16–1:46 | A courier races across a frozen rail bridge. | [*Aurora Express*](../aurora-express/), complete short |
+| 1:46–2:46 | From the first look at the world to the cave reveal. | [*Primeira Noite*](../first-night/), complete short |
+| 2:46–2:49 | A side-by-side comparison of the horizontal and vertical cuts. | [*Primeira Noite* and its Reel](../first-night/) |
+| 2:49–2:53 | BlockReel and the repository address. | Showcase end card |
 
-The master is 1920 × 1080 at 30 fps with stereo AAC and seven chapter markers. It combines native 1080p showcase shots with the original angles of the earlier 720p films. A new score accompanies the opening showcase. *Primeira Noite* keeps its original score and effects, including the silence, fuse and blast.
+The master combines the original showcase with four complete films and a closing aspect-ratio comparison. The separate 50-second showcase focuses on the temple, characters, and materials. *Primeira Noite* retains its pause, fuse and blast.
 
 ## Rebuild the temple
 

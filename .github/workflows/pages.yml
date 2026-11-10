@@ -10,6 +10,8 @@ on:
       - 'docs/media/*.jpg'
       - 'examples/blockreel-promo/showcase.mp4'
       - 'examples/blockreel-promo/poster.jpg'
+      - 'examples/blockreel-promo/characters.mp4'
+      - 'examples/blockreel-promo/characters.jpg'
       - 'examples/aurora-express/showcase.mp4'
       - 'examples/aurora-express/poster.jpg'
       - 'examples/first-night/showcase.mp4'
@@ -49,6 +51,7 @@ jobs:
             mkdir -p "_site/media/$film"
             cp "examples/$film/showcase.mp4" "examples/$film/poster.jpg" "_site/media/$film/"
           done
+          cp examples/blockreel-promo/characters.mp4 examples/blockreel-promo/characters.jpg _site/media/blockreel-promo/
           cp examples/first-night/reel.mp4 examples/first-night/reel-poster.jpg _site/media/first-night/
           mkdir -p _site/media/archive
           cp \
