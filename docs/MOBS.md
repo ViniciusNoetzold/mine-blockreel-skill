@@ -52,6 +52,33 @@ variant falls back to the default and logs the known ones. Villagers are layered
 
 ## Without the cache: original rigs and textures
 
-Three box rigs ship with BlockReel (`core/engine/mobs.js`): `creeper`, `pig`, `spider`, driven by a 64x32 texture you provide in the
-classic layout (`core/builtin/mobs/sample-*-layout.png` are CC0 placeholders that show the layout). They are used only when the game's
-geometry is not cached or `"textures": "builtin"` is set.
+BlockReel ships `creeper`, `pig`, and `spider` box rigs driven by a 64×32 texture in the classic layout
+(`core/builtin/mobs/sample-*-layout.png` shows each layout). The bundled wolf has its own quadruped rig and original 64×64 coat.
+
+## Direct a wolf as the lead
+
+Start with this cast entry in a beat plan. The compiler picks the original rig for a wolf unless you request a cached variant or rig.
+
+```json
+{"cast": {"luna": {"mob": "wolf", "name": "Luna", "rig": "builtin", "parts": ["collar"]},
+          "scout": {"height": 1.15, "name": "Scout"}}}
+```
+
+In a hand-authored storyboard, use `"type": "wolf"` and `"rig": "builtin"`. Keep `parts` empty for a wild wolf, or include `"collar"`
+for a tamed look. Set `"baby": true` for a smaller cub. An optional `texture` in a storyboard can repaint the bundled coat using the
+same layout as `core/builtin/mobs/wolf.png`. For a specific game coat, use `"rig": "vanilla"` with the desired `variant` from the local cache.
+
+| Performance | Clips for the original wolf |
+|---|---|
+| Travel | `walk`, `run`, `sneak`, `jump` |
+| Behavior | `sit`, `sleep`, `sniff`, `play_bow`, `head_tilt`, `wag` |
+| Vocal pose | `bark`, `howl` (add a separate sound cue when the film calls for it) |
+| Reaction | `scared`, `hit`, `knockback`, `fall`, `die` |
+
+Use `act` with `do`, `dur`, and `shot` in a beat plan. The wolf can look at actors, the camera, or a world point via `lookAt`.
+Build reactions through the muzzle, ears, legs, and tail. Player face textures, held gear, and humanoid combat clips belong to the
+player rig. Cached models use their own rig and motion set.
+
+`height` sets the standing height in blocks. Use `scale` for a multiplier instead, for example `"scale": 0.75` on a cub.
+The director frames close and tracking shots to suit the cast. Check a full-body shot beside another actor or a familiar block
+when the height difference matters to the story.

@@ -16,9 +16,11 @@ See docs/DIRECTOR-PLAN.md for every beat and option.
 import argparse
 import json
 import math
+import re
 import shutil
 import subprocess
 import sys
+from copy import deepcopy
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -41,6 +43,21 @@ def v_norm(a):
 def r2(x): return round(x, 3)
 
 
+def validate_cast_size(name, actor):
+    if "height" in actor and "scale" in actor:
+        raise SystemExit(f"cast {name!r}: choose either height or scale")
+    for key in ("height", "scale"):
+        if key in actor:
+            value = actor[key]
+            if type(value) not in (int, float) or not 0 < value < float("inf"):
+                raise SystemExit(f"cast {name!r}: {key} must be a positive number")
+
+
+def heading_vector(degrees):
+    angle = math.radians(degrees)
+    return [math.sin(angle), math.cos(angle)]
+
+
 class Film:
     def __init__(self, plan, out):
         self.p = plan; self.out = Path(out); self.t = 0.0
@@ -51,9 +68,14 @@ class Film:
         for k in ("styleOverride", "post", "weather", "sky", "textures", "blocks"):
             if k in plan:
                 self.story[k] = plan[k]
+        if "hud" in plan:
+            self.story["hud"] = deepcopy(plan["hud"])
+        if "items" in plan:
+            self.story["items"] = plan["items"]
         self.sfx = []; self.sections = []; self.shots = []; self.pos = {}; self.hidden = set(); self.hurt = {}
         self.side = 1 if plan.get("cameraSide", "right") == "right" else -1
         self.arena = None; self.cast_names = {}; self.k = 0
+        self.wolf_heading = {}
 
     # ------------------------------------------------------------------------------------------------ setup ----
     def world(self):
@@ -79,16 +101,16 @@ class Film:
     def cast(self):
         (self.out / "skins").mkdir(parents=True, exist_ok=True)
         marks = self.p.get("marks", {})
-        names = list(self.p.get("cast", {}).keys())
         cx, cz = self.arena["center"]
         for i, (name, c) in enumerate(self.p.get("cast", {}).items()):
-            if c.get("mob"):  # creeper / pig / spider rigs, zombie on the player rig; the game's textures when cached
+            validate_cast_size(name, c)
+            if c.get("mob"):
                 self.add_mob(name, c, i); continue
             skin = self.skin_for(name, c)
             default_mark = [cx, cz + 3.5] if i == 0 else [cx, cz - 3.5] if i == 1 else [cx + (i - 1) * 2.5, cz + 6]
             m = marks.get(name, default_mark); self.pos[name] = [float(m[0]), float(m[1])]
             a = {"skin": skin, "pos": [m[0], None, m[1]], "face": c.get("face", 180 if i == 0 else 0)}
-            for k in ("holding", "offhand", "model", "scale", "dust", "armor", "cape", "elytra"):
+            for k in ("holding", "offhand", "model", "scale", "height", "dust", "armor", "cape", "elytra"):
                 if k in c:
                     a[k] = c[k]
             if c.get("name") and c.get("nametag", self.p.get("nametags", False)):  # cinematic default: no floating name tags
@@ -101,22 +123,37 @@ class Film:
                 self.hide(name, 0)
 
     def add_mob(self, name, c, i):
-        kind = c["mob"]; cx, cz = self.arena["center"]; m = self.p.get("marks", {}).get(name, [cx + 5 + i, cz + 5])
+        kind = c["mob"]; cx, cz = self.arena["center"]
+        lead = kind == "wolf" and i == 0
+        m = self.p.get("marks", {}).get(name, [cx, cz + 3.5] if lead else [cx + 5 + i, cz + 5])
         self.pos[name] = [float(m[0]), float(m[1])]; self.cast_names[name] = c.get("name", kind.capitalize()); self.mobs = getattr(self, "mobs", {}); self.mobs[name] = kind
         builtin_ok = self.p.get("textures") != "builtin"
         cached = ROOT / "work" / "vanilla" / "entity" / f"{kind}.png"
         geo = (ROOT / "work" / "vanilla" / "mobs" / f"{kind}.geo.json").exists() and builtin_ok
         tex = c.get("texture") or (f"/work/vanilla/entity/{kind}.png" if cached.exists() and builtin_ok else f"/core/builtin/mobs/sample-{kind}-layout.png")
-        a = {"pos": [m[0], None, m[1]], "face": c.get("face", 0)}
-        if kind == "zombie" and not c.get("geo") and not (c.get("baby") and geo):
+        a = {"pos": [m[0], None, m[1]], "face": c.get("face", 180 if lead else 0)}
+        if kind == "wolf":
+            rig = c.get("rig", "vanilla" if c.get("variant") or c.get("geo") else "builtin")
+            if rig not in ("builtin", "vanilla") or (rig == "builtin" and (c.get("variant") or c.get("geo"))):
+                raise SystemExit(f"cast {name!r}: use the vanilla wolf rig for a cached variant or custom geometry")
+            if rig == "vanilla" and not (geo or c.get("geo")):
+                raise SystemExit(f"cast {name!r}: this wolf needs cached geometry (python tools/vanilla.py mobs)")
+            a.update(type=kind, rig=rig)
+            for key in ("texture", "geo", "parts"):
+                if key in c:
+                    a[key] = c[key]
+            if c.get("name") and c.get("nametag", self.p.get("nametags", False)):
+                a["nametag"] = c["name"]
+            self.wolf_heading[name] = heading_vector(a["face"])
+        elif kind == "zombie" and not c.get("geo") and not (c.get("baby") and geo):
             a["skin"] = tex  # zombies on the player rig: every player clip (hit, die, duel moves) works on them
         elif geo or kind in ("creeper", "pig", "spider"):
             a.update(type=kind, **({"texture": tex} if not geo else {}))
             if c.get("parts"):
                 a["parts"] = c["parts"]
         else:
-            raise SystemExit(f"mob {kind!r}: run  python tools/vanilla.py mobs  (the game's geometry for ~70 mobs) or use creeper/pig/spider/zombie")
-        for k in ("scale", "holding", "baby", "variant", "molang"):
+            raise SystemExit(f"mob {kind!r}: run  python tools/vanilla.py mobs  (the game's geometry for ~70 mobs) or use creeper/pig/spider/wolf/zombie")
+        for k in ("scale", "height", "holding", "baby", "variant", "molang"):
             if k in c:
                 a[k] = c[k]
         self.story["actors"][name] = a
@@ -151,7 +188,16 @@ class Film:
 
     # ------------------------------------------------------------------------------------------ primitives ----
     def seg(self, **kw):
-        kw = {k: v for k, v in kw.items() if v is not None or k in ("holding", "offhand", "lookAt")}  # null means "no change" except for these
+        kw = {k: v for k, v in kw.items() if v is not None or k in ("holding", "offhand", "lookAt", "cape")}  # null means "no change" except for these
+        actor = kw.get("actor")
+        if actor in self.wolf_heading:
+            facing = kw.get("face", kw.get("to"))
+            if isinstance(facing, (int, float)):
+                self.wolf_heading[actor] = heading_vector(facing)
+            else:
+                target = facing[::2] if isinstance(facing, list) else self.pos.get(facing)
+                if target and v_len(v_sub(target, self.pos[actor])) > 0.01:
+                    self.wolf_heading[actor] = v_norm(v_sub(target, self.pos[actor]))
         kw["t"] = r2(kw["t"]); self.story["timeline"].append(kw); return kw
 
     def face(self, t, who, **kw):
@@ -189,37 +235,58 @@ class Film:
             self.sections.append([kind, t0, t1])
 
     # camera: offsets relative to an actor (world-space), so the frame follows the actor wherever the engine puts it
+    def frame_scale(self, name):
+        actor = self.story["actors"].get(name, {})
+        if "height" in actor:
+            return actor["height"] / 2
+        nominal = 1
+        if actor.get("type") == "wolf":
+            nominal = (19.45 / 32) * (0.55 if actor.get("baby") else 1)
+        return nominal * actor.get("scale", 1)
+
+    def face_offset(self, name):
+        if name in self.wolf_heading:
+            return v_mul(self.wolf_heading[name], (21.3 / 19.45) * self.frame_scale(name))
+        return [0, 0]
+
     def cam(self, t, dur, kind, a, b=None, **kw):
         P = self.pos; shot = {"t": r2(t), "dur": r2(dur)}
         gap = 99.0
         if b and b in P and a in P and P[a] != P[b]:
             d, n = self.axis(a, b); gap = v_len(v_sub(P[b], P[a]))
         else:
-            hd = kw.pop("heading", None); d = hd or [0, -1]; n = [-d[1] * self.side, d[0] * self.side]
+            d = kw.pop("heading", None) or self.wolf_heading.get(a, [0, -1]); n = [-d[1] * self.side, d[0] * self.side]
+        sa = self.frame_scale(a); sb = self.frame_scale(b) if b else sa
         fwd = lambda want: min(want, max(0.6, gap * 0.55))  # a close-up never puts the lens inside the other actor
-        def off(base_actor, vec_xz, y):
-            return {"actor": base_actor, "offset": [r2(vec_xz[0]), y, r2(vec_xz[1])]}
+        def off(base_actor, vec_xz, y, factor=None, zoom=1):
+            factor = self.frame_scale(base_actor) if factor is None else factor
+            return {"actor": base_actor, "offset": [r2(vec_xz[0] * zoom), r2(y * factor), r2(vec_xz[1] * zoom)]}
+        close_dist = max(0.35, sa)
         if kind == "wide":  # two-shot from the side of the line of action
             mid = v_mul(v_sub(P[b], P[a]), 0.5) if b else [0, 0]; dist = kw.pop("dist", max(5.5, v_len(v_sub(P[b], P[a])) * 1.25 if b else 6))
-            shot.update(pos=off(a, v_add(mid, v_mul(n, dist)), 2.0), look=off(a, mid, 1.1), fov=kw.pop("fov", 50))
+            shot.update(pos=off(a, v_add(mid, v_mul(n, dist)), 2.0, max(sa, sb)), look=off(a, mid, 1.1, (sa + sb) / 2), fov=kw.pop("fov", 50))
         elif kind == "side":
             mid = v_mul(v_sub(P[b], P[a]), 0.5) if b else [0, 0]
-            shot.update(pos=off(a, v_add(mid, v_mul(n, 4.2)), 1.3), look=off(a, mid, 1.2), fov=kw.pop("fov", 46))
+            shot.update(pos=off(a, v_add(mid, v_mul(n, 4.2)), 1.3, max(sa, sb)), look=off(a, mid, 1.2, (sa + sb) / 2), fov=kw.pop("fov", 46))
         elif kind == "ots":  # over a's shoulder onto b
-            shot.update(pos=off(a, v_add(v_mul(d, -2.3), v_mul(n, 1.15)), 1.95), look=off(b, [0, 0], 1.3), fov=kw.pop("fov", 46))
+            shot.update(pos=off(a, v_add(v_mul(d, -2.3), v_mul(n, 1.15)), 1.95), look=off(b, self.face_offset(b), 1.3), fov=kw.pop("fov", 46))
         elif kind == "close":  # a's face, from the camera side of the line, slightly in front
-            shot.update(pos=off(a, v_add(v_mul(d, fwd(2.1)), v_mul(n, 1.2)), 1.65), look=off(a, [0, 0], 1.62), fov=kw.pop("fov", 44))
+            face = self.face_offset(a)
+            offset = v_add(v_mul(d, fwd(2.1 * close_dist)), v_mul(n, 1.2 * close_dist))
+            shot.update(pos=off(a, v_add(face, offset), 1.65), look=off(a, face, 1.62), fov=kw.pop("fov", 44))
         elif kind == "xclose":  # eyes
-            shot.update(pos=off(a, v_add(v_mul(d, fwd(1.8)), v_mul(n, 0.45 if gap >= 3 else 1.1)), 1.64), look=off(a, [0, 0], 1.62), fov=kw.pop("fov", 34 if gap >= 3 else 44))
+            face = self.face_offset(a)
+            offset = v_add(v_mul(d, fwd(1.8 * close_dist)), v_mul(n, (0.45 if gap >= 3 else 1.1) * close_dist))
+            shot.update(pos=off(a, v_add(face, offset), 1.64), look=off(a, face, 1.62), fov=kw.pop("fov", 34 if gap >= 3 else 44))
         elif kind == "low":  # hero angle
-            shot.update(pos=off(a, v_add(v_mul(d, 2.9), v_mul(n, 1.5)), 0.4), look=off(a, [0, 0], 1.35), fov=kw.pop("fov", 60))
+            shot.update(pos=off(a, v_add(v_mul(d, 2.9), v_mul(n, 1.5)), 0.4, zoom=close_dist), look=off(a, [0, 0], 1.35), fov=kw.pop("fov", 60))
         elif kind == "high":
             shot.update(pos=off(a, v_add(v_mul(d, 3.5), v_mul(n, 2.0)), 5.5), look=off(a, [0, 0], 0.8), fov=kw.pop("fov", 50))
         elif kind == "track":  # follow a walking actor from the side, slightly ahead
             dd = v_norm(kw.pop("dir", d)); nn = [-dd[1] * self.side, dd[0] * self.side]
-            shot.update(pos=off(a, v_add(v_mul(nn, 4.0), v_mul(dd, 1.6)), 1.7), look=off(a, v_mul(dd, 0.8), 1.2), fov=kw.pop("fov", 50))
+            shot.update(pos=off(a, v_add(v_mul(nn, 4.0), v_mul(dd, 1.6)), 1.7, zoom=close_dist), look=off(a, v_mul(dd, 0.8), 1.2, zoom=close_dist), fov=kw.pop("fov", 50))
         elif kind == "front":  # in front of the actor (along its heading dir), looking back at it
-            dd = v_norm(kw.pop("dir", d)); shot.update(pos=off(a, v_add(v_mul(dd, 3.4), v_mul([-dd[1], dd[0]], 0.8 * self.side)), 1.6), look=off(a, [0, 0], 1.35), fov=kw.pop("fov", 46))
+            dd = v_norm(kw.pop("dir", d)); shot.update(pos=off(a, v_add(v_mul(dd, 3.4), v_mul([-dd[1], dd[0]], 0.8 * self.side)), 1.6, zoom=close_dist), look=off(a, [0, 0], 1.35), fov=kw.pop("fov", 46))
         elif kind == "pov":
             shot.update(first=a, fov=kw.pop("fov", 75))
         elif kind == "orbit":
@@ -339,10 +406,12 @@ class Film:
 
     def b_look(self, b):
         who = b["who"]; at = b["at"]; dur = b.get("dur", 1.5); t = self.t
-        self.seg(t=t, actor=who, face=at, lookAt=at, turn=b.get("turn", 0.5))
+        wolf = self.story["actors"][who].get("rig") == "builtin" and who in self.wolf_heading
+        reaction = {"do": "scared" if b.get("emotion") == "scared" else "head_tilt", "dur": dur} if wolf else {}
+        self.seg(t=t, actor=who, face=at, lookAt=at, turn=b.get("turn", 0.5), **reaction)
         if b.get("emotion") == "scared":
             self.face(t + 0.2, who, eyes="wide", dur=dur)
-        self.cam(t, dur, b.get("shot", "close"), who, at if at in self.pos else None, handheld=0.2)
+        self.cam(t, dur, b.get("shot", "close"), who, at if isinstance(at, str) and at in self.pos else None, handheld=0.2)
         return dur
 
     def b_reveal(self, b):
@@ -609,8 +678,11 @@ class Film:
         if b.get("with") and "face" not in seg:  # play the action toward the other character
             seg["face"] = b["with"]
         if "to" in seg:
-            self.pos[who] = list(seg["to"][::2]) if len(seg["to"]) == 3 else list(seg["to"]); seg["to"] = self.p3(self.pos[who])
+            target = seg["to"][::2] if len(seg["to"]) == 3 else seg["to"]
+            seg["to"] = self.p3(target)
         self.seg(t=t, actor=who, **seg)
+        if "to" in seg:
+            self.pos[who] = list(target)
         self.cam(t, dur, b.get("shot", "wide"), who, b.get("with"), handheld=0.3)
         return dur
 
@@ -713,8 +785,14 @@ class Film:
         if isinstance(tgt, str):
             back = self.clamp(v_add(tp, v_mul(d, 3.0)))
             self.seg(t=te, actor=tgt, do="knockback", dur=0.9, to=self.p3(back), arc=0.8, ease="outCubic", face=who); self.pos[tgt] = back
-            self.seg(t=te + 0.9, actor=tgt, do=b.get("then", "fall"), dur=1.0, hold=True)
+            then = b.get("then", "fall")
+            self.seg(t=te + 0.9, actor=tgt, do=then, dur=1.0, hold=True)
             self.sound(["damage/hit1"], te + 0.05, 0.8)
+            chat = (self.story.get("hud") or {}).get("chat")
+            if then == "die" and isinstance(chat, dict) and chat.get("auto"):
+                name = self.cast_names.get(tgt) or tgt
+                text = chat.get("exploded", "{name} was blown up by a Creeper").replace("{name}", name)
+                chat.setdefault("messages", []).append({"t": r2(te), "clock": "world", "text": text})
         self.cam(te, 2.4, "wide", tgt if isinstance(tgt, str) else who, None, dist=9, shake=0.05, handheld=0.6, heading=[-d[1], d[0]])
         return te - t + 2.4
 
@@ -756,6 +834,37 @@ class Film:
         return total + 0.2
 
     # ----------------------------------------------------------------------------------------------- build ----
+    def copy_equipment_assets(self):
+        """Keep item and cape PNGs beside the compiled story."""
+        base = Path(self.p.get("_dir", ".")).resolve()
+        out = self.out.resolve()
+        items = self.story.get("items", {})
+        if not isinstance(items, dict):
+            raise ValueError("plan items must map item IDs to definitions")
+        assets = []
+        for item_id, entry in items.items():
+            if not isinstance(entry, dict) or "texture" not in entry:
+                raise ValueError(f'item "{item_id}" needs a texture')
+            assets.append((entry["texture"], f'item "{item_id}"'))
+        for entry in (*self.story["actors"].values(), *self.story["timeline"]):
+            cape = entry.get("cape")
+            if isinstance(cape, dict) and "texture" in cape:
+                assets.append((cape["texture"], "cape"))
+            if isinstance(cape, str) and cape.lower().endswith(".png") and not cape.startswith(("/", "http")):
+                assets.append((cape, "cape"))
+        for name, owner in assets:
+            if not isinstance(name, str) or not re.fullmatch(r"[a-zA-Z0-9_.-]+(?:/[a-zA-Z0-9_.-]+)*\.png", name, re.I):
+                raise ValueError(f"{owner} needs a project-relative PNG path")
+            src = (base / name).resolve()
+            dst = (out / name).resolve()
+            if any(part in {".", ".."} for part in name.split("/")) or not src.is_relative_to(base) or not dst.is_relative_to(out):
+                raise ValueError(f"{owner} needs a project-relative PNG path")
+            if not src.is_file():
+                raise FileNotFoundError(f"{owner} texture is missing: {src}")
+            if src != dst:
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(src, dst)
+
     def build(self, music=True):
         self.world(); self.cast()
         for b in self.p.get("beats", []):
@@ -774,6 +883,7 @@ class Film:
                 self.seg(t=t0 + at, actor=who, **a)
             d = fn(b); self.t += d
             self.section(b.get("music", SECTION.get(kind)), t0, self.t)
+        self.copy_equipment_assets()
         self.story["duration"] = r2(self.t + 0.1)
         for k in ("lightning", "lighting", "timeRemap", "changes", "transitions", "titles", "fx"):
             if not self.story[k]:

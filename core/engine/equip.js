@@ -4,13 +4,17 @@
 // "armor": "diamond" | { "helmet": "iron", "chestplate": "diamond", "leggings": "iron", "boots": "gold", "color": "#a06540" }
 // "cape": "red" | "path/to/cape.png"      "elytra": true      "offhand": "shield"
 import { boxUV } from './geo.js';
+import { capeAsset } from './asset-refs.js';
+import { ease, clamp01 } from './anim.js';
 
 const PX = 1 / 16;
 const MATS = ['leather', 'chainmail', 'iron', 'gold', 'diamond', 'netherite', 'copper', 'turtle_scute'];
 
 // parts: { head, body, rArm, lArm, rLeg, lLeg } groups of the player rig (pivots: head at the neck, arms at the shoulder, legs at the hip)
-export async function equip(THREE, a, cfg, load, exists) {
-  const out = { capes: [], wings: [], update() {} };
+export async function equip(THREE, a, cfg, load, exists, resolve, capeCues) {
+  const out = { wings: [], update() {} };
+  const capes = new Map();
+  const cues = [...capeCues].sort((x, y) => x.t - y.t);
   const dir = async (rel) => { for (const d of ['/work/vanilla/equipment', '/core/builtin/equipment']) if (await exists(`${d}/${rel}`)) return `${d}/${rel}`; return null; };
   // ---- armour: layer 1 (helmet, chestplate, boots) and layer 2 (leggings), classic 64x32 layout, inflated like the game
   let arm = cfg.armor;
@@ -56,19 +60,50 @@ export async function equip(THREE, a, cfg, load, exists) {
         pivot.rotation.order = 'ZYX'; out.wings.push({ pivot, s });
       }
     }
-  } else if (cfg.cape) {
-    const u = /\.png$/i.test(cfg.cape) ? cfg.cape : await dir(`capes/${cfg.cape}.png`);
-    if (u) {
-      const mt = new THREE.MeshLambertMaterial({ map: await load(u), alphaTest: 0.5, side: THREE.DoubleSide });
-      const pivot = new THREE.Group(); pivot.position.set(0, 6 * PX, -2.2 * PX); a.body.add(pivot);
-      const c = new THREE.Mesh(boxUV(THREE, 10, 16, 1, 0, 0, 64, 32, 0, false), mt); c.position.set(0, -8 * PX, -0.5 * PX); c.rotation.y = Math.PI; c.castShadow = true; pivot.add(c);
-      out.capes.push(pivot);
+  } else {
+    for (const choice of new Set([cfg.cape, ...cues.map((cue) => cue.cape)])) {
+      if (choice == null || choice === false || choice === '') continue;
+      const { texture, preset, sway } = capeAsset(choice);
+      const url = texture ? resolve(texture) : await dir(`capes/${preset}.png`);
+      if (!url) throw new Error(`cape texture unavailable for "${preset}"`);
+      const map = await load(url);
+      if (map.image.width * 0.5 !== map.image.height || map.image.width % 64 !== 0) {
+        throw new Error(`cape "${texture || preset}" needs a 64×32 layout or a whole-number multiple`);
+      }
+      const mat = new THREE.MeshLambertMaterial({ map, alphaTest: 0.5, side: THREE.DoubleSide });
+      const pivot = new THREE.Group();
+      pivot.position.set(0, 6 * PX, (cfg.armor ? -3.1 : -2.6) * PX);
+      a.body.add(pivot);
+      const mesh = new THREE.Mesh(boxUV(THREE, 10, 16, 1, 0, 0, 64, 32, 0, false), mat);
+      mesh.position.set(0, -8 * PX, -0.5 * PX);
+      mesh.rotation.y = Math.PI;
+      mesh.castShadow = true;
+      pivot.add(mesh);
+      pivot.visible = false;
+      capes.set(choice, { pivot, sway });
     }
   }
-  // per frame: the cape lifts with speed and flutters; the elytra folds or spreads to glide
-  out.update = (st, t) => {
-    const speed = st.clip === 'run' || st.clip === 'charge' ? 1 : st.clip === 'walk' || st.clip === 'sneak' ? 0.5 : st.clip === 'glide' || st.clip === 'knockback' ? 1.2 : 0;
-    for (const p of out.capes) p.rotation.x = 0.08 + speed * 0.55 + Math.sin(t * (4 + speed * 8)) * (0.03 + speed * 0.07);
+  // Blend at clip boundaries without retaining state between frames.
+  const drive = (clip) => {
+    if (['glide', 'knockback'].includes(clip)) return 1.2;
+    if (['run', 'charge'].includes(clip)) return 1;
+    return ['walk', 'sneak'].includes(clip) ? 0.5 : 0;
+  };
+  out.update = (st, t, clipAt) => {
+    if (capes.size) {
+      const cue = cues.findLast((event) => event.t <= t);
+      const choice = cue ? cue.cape : cfg.cape;
+      for (const [key, { pivot }] of capes) pivot.visible = key === choice;
+      const cape = capes.get(choice);
+      if (cape) {
+        const cur = clipAt(t);
+        const weight = ease.smooth(clamp01((t - cur.start) / 0.25));
+        const prev = weight < 1 && cur.start > 0 ? drive(clipAt(cur.start - 1e-4).clip) : drive(cur.clip);
+        const speed = prev + (drive(cur.clip) - prev) * weight;
+        const flutter = Math.sin(t * 6.5) * (0.03 + speed * 0.06);
+        cape.pivot.rotation.set(0.1 + (speed * 0.52 + flutter) * cape.sway, 0, Math.sin(t * 4) * speed * 0.035 * cape.sway);
+      }
+    }
     for (const w of out.wings) {
       if (!w.pivot) continue;
       const glide = st.clip === 'glide' ? 1 : 0;

@@ -38,7 +38,9 @@ Use the bundled originals for a self-contained public example. For local game fi
 | `docs/QA.md` | step E: the checklist and `tools/qa.py` |
 | `docs/CINEMATIC-WORKFLOW.md` | exact timing, multi-scene continuity, shot review, audio and final media checks |
 | `styles/<style>/STYLE.md` | the look of the chosen style |
-| `docs/SKINS.md`, `docs/BLOCK-ATLAS.md`, `docs/RESOURCE-PACKS.md`, `docs/MOBS.md` | asset work |
+| `docs/SKINS.md`, `docs/BLOCK-ATLAS.md`, `docs/RESOURCE-PACKS.md`, `docs/MOBS.md` | asset work and mob-specific acting |
+| `docs/EQUIPMENT.md` | capes, costume changes, and authorized mod item sprites |
+| `docs/HUD.md` | opt-in event chat, hotbar, inventory, and timed crafting |
 | `docs/COVERAGE.md` | what the engine can and cannot animate yet: check it before promising a scene |
 
 ## Genres (pick one first, like a style)
@@ -74,6 +76,14 @@ part of the storyboard by hand. Save manual edits in a separate source or a repe
 (or their skin, or ask once), Herobrine = `preset: herobrine`, `eyes: glow`, `hidden: true` (he arrives by `reveal`); night style;
 a shrine near the arena; beats: establish → walk → reveal → 2 lines → faceoff → duel → teleport → power (lightning) → getup → duel →
 finisher → silence → ending. Swords: `diamond_sword` for the hero, `iron_sword` for the villain.
+
+## Casting and acting
+
+- Cast a requested Minecraft wolf as `"mob": "wolf", "rig": "builtin"` in a plan or `"type": "wolf", "rig": "builtin"` in a storyboard. Use wolf acting such as `sniff`, `play_bow`, `head_tilt`, `bark`, and `howl`. Check `docs/MOBS.md` for the rig's full clip list and available looks. Place bark and howl sounds on the matching cue if the scene calls for them.
+- For a short character, set an explicit standing `height` in blocks (for example 1.15), or use relative `scale`. Reframe close-ups to the actor's eyes and keep the feet on the floor.
+- Stage a reaction around a clear target. Select a short clip such as `nod`, `shake_head`, `shrug`, `flinch`, `relief`, `salute`, `laugh`, or `inspect`. Use an `act` beat or timeline `do` with enough time for anticipation, the gesture, and recovery. Add a short `blend` and `lookAt` as needed. Check the transition in motion and inspect hair, shoulders and sleeve seams in the closest frame.
+- When a cape is requested, choose a preset or use the supplied PNG with `cape.texture`. Use timeline changes for costume swaps. When a mod item is requested, confirm its ID and appearance, register its local sprite in `items`, and use that ID across held props and HUD. Stage its effect with supported scene cues. See `docs/EQUIPMENT.md`.
+- Add `hud` only when the producer asks for a gameplay overlay. Match event text to the film's language. Time any death message to the actual story event. If a craft is shown, author the ingredients, result, and when the result moves to the inventory. Check legibility above letterbox bars and alongside subtitles.
 
 ## The user's photo → their skin
 
@@ -144,7 +154,7 @@ energy shape (quiet → loud → quiet), shot lengths per the tone, every line s
      `python tools/turntable.py skin.png --out tt.png` and at least 2 looked-at rounds. Block/item textures or a resource pack → **`blockreel-textures`**
      (`core/tilecheck.py`, `tools/pack_preview.py`, `core/pack.py`). Use the results inside the film (`story.json` skin paths / `blocks` folder).
    - The user sends a **photo of themself** → persona skin (section above). Herobrine and other characters → `core/persona.py preset`.
-   - Mobs: `docs/MOBS.md` (you need the user's textures; creeper-, pig-, spider-shaped rigs and a zombie via the player rig).
+   - Mobs: `docs/MOBS.md` lists portable rigs and cache-backed models. Match clips to the chosen rig and test its framing.
    - No skin → `python core/skin.py make ...` or the originals in `core/builtin/skins/`.
    - Sheet of blocks/items → `python core/atlas.py slice|label|faces` (see `docs/BLOCK-ATLAS.md`). Label only what you can identify.
 2. **Storyboard.** Letterbox bars and the vignette (darkened corners) come from the style (`letterbox`, `vignette`); for a

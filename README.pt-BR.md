@@ -154,7 +154,9 @@ Também dá para fazer aberturas de canal, timelapses de construção, história
 | Área | Recursos |
 | --- | --- |
 | Mundos | Biomas, cavernas, vilas geradas, objetos de cena, mudanças animadas, clima e iluminação por bloco |
-| Personagens | Skins classic e slim, personas a partir de fotos, variantes e filhotes de mobs, equipamentos e expressão facial |
+| Personagens | Skins classic e slim, altura personalizável, lobo sem cache, atuação facial e emotes com transições suaves. [Guia de mobs](docs/MOBS.md) |
+| Equipamento | Capas animadas com troca em cena, escudos e sprites de mods para itens na mão. [Guia de equipamentos](docs/EQUIPMENT.md) |
+| HUD opcional | Chat de eventos, barra rápida, inventário e receitas encenadas. [Guia de HUD](docs/HUD.md) |
 | Câmera e efeitos | Órbita, câmera na mão, primeira pessoa, mudança de foco, rampas de velocidade, partículas e tratamento de cor |
 | Som | Trilha original, efeitos sincronizados, vozes offline opcionais e redução da música durante as falas |
 | Entrega | MP4, GIF, render vertical 9:16, legendas SRT e miniatura |

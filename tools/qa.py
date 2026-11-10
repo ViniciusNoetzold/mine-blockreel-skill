@@ -51,7 +51,18 @@ def pick_times(story, n_min):
         k += 1
         if k > 4 * n_min:
             break
-    return sorted(out)
+    # Keep panel states even when they are closer together than the normal still spacing.
+    for event in (story.get("hud") or {}).get("events", []):
+        if event.get("type") not in ("inventory", "craft"):
+            continue
+        start = event["t"]
+        end = min(start + event["dur"], dur)
+        take = event.get("takeAt", start)
+        if start < take < end:
+            out.extend(((start + take) / 2, (take + end) / 2))
+        elif start < end:
+            out.append((start + end) / 2)
+    return sorted(set(out))
 
 
 def shot_tone(shot, default):

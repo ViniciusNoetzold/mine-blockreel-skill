@@ -38,13 +38,25 @@ export function kf(u, frames) {
   return frames[frames.length - 1][1];
 }
 
+// Timed gestures ease between original poses and settle to neutral.
+function gesture(defaultDuration, tracks) {
+  const channels = Object.entries(tracks).map(([key, frames]) => {
+    const rest = Array.isArray(frames[0][1]) ? Z : 0;
+    return [key, [[0, rest], ...frames, [1, rest]]];
+  });
+  return (t, _speed, duration) => {
+    const u = clamp01(t / (duration || defaultDuration));
+    return Object.fromEntries(channels.map(([key, frames]) => [key, kf(u, frames)]));
+  };
+}
+
 // -------------------------------------------------------------------- clips ----
 // A clip is (clipTime, speed, segmentDuration) -> partial pose. Rotations are radians [x, y, z].
 // Pose keys: head rArm lArm rLeg lLeg body (vec3) and bodyRx bob sink roll spinY (numbers).
 export const CLIPS = {
-  idle: (t) => ({ head: [S(t * 1.1) * 0.03, 0, 0], rArm: [0, 0, 0.04 + S(t * 1.5) * 0.03], lArm: [0, 0, -0.04 - S(t * 1.5) * 0.03], bodyRx: S(t * 1.6) * 0.012 }),
-  walk: (t, sp = 1) => { const a = S(t * 8 * sp) * 0.9; return { rLeg: [a, 0, 0], lLeg: [-a, 0, 0], rArm: [-a, 0, 0], lArm: [a, 0, 0], bob: Math.abs(S(t * 8 * sp)) * 0.03, body: [0, S(t * 8 * sp) * 0.06, 0], head: [0, -S(t * 8 * sp) * 0.03, 0] }; },
-  run: (t, sp = 1) => { const a = S(t * 12 * sp) * 1.25; return { rLeg: [a, 0, 0], lLeg: [-a, 0, 0], rArm: [-a * 1.1 - 0.2, 0, 0], lArm: [a * 1.1 - 0.2, 0, 0], bodyRx: 0.2, bob: Math.abs(S(t * 12 * sp)) * 0.08, body: [0, S(t * 12 * sp) * 0.1, 0], head: [-0.16, -S(t * 12 * sp) * 0.05, 0] }; },
+  idle: (t) => ({ head: [S(t * 1.1) * 0.03, 0, 0], rArm: [0, 0, -0.045 - S(t * 1.5) * 0.02], lArm: [0, 0, 0.045 + S(t * 1.5) * 0.02], bodyRx: S(t * 1.6) * 0.012 }),
+  walk: (t, sp = 1) => { const a = S(t * 8 * sp) * 0.9; return { rLeg: [a, 0, 0], lLeg: [-a, 0, 0], rArm: [-a, 0, 0], lArm: [a, 0, 0], bob: (a / 0.9) ** 2 * 0.03, body: [0, S(t * 8 * sp) * 0.06, 0], head: [0, -S(t * 8 * sp) * 0.03, 0] }; },
+  run: (t, sp = 1) => { const a = S(t * 12 * sp) * 1.25; return { rLeg: [a, 0, 0], lLeg: [-a, 0, 0], rArm: [-a * 1.1 - 0.2, 0, 0], lArm: [a * 1.1 - 0.2, 0, 0], bodyRx: 0.2, bob: (a / 1.25) ** 2 * 0.08, body: [0, S(t * 12 * sp) * 0.1, 0], head: [-0.16, -S(t * 12 * sp) * 0.05, 0] }; },
   wave: (t) => ({ rArm: [-PI + 0.35, 0, S(t * 9) * 0.45], head: [0, 0, 0.05] }),
   talk: (t) => ({ head: [S(t * 13) * 0.07, S(t * 2.1) * 0.12, 0], rArm: [S(t * 2.1) * 0.05 - 0.08, 0, 0.06], lArm: [S(t * 3.3) * 0.25 - 0.4, 0, -0.1] }), // gestures with the free (left) hand, so a held sword stays low
   mine: (t) => ({ rArm: [-1.1 - Math.abs(S(t * 8)) * 1.0, 0, 0], body: [0, S(t * 8) * 0.08, 0], lArm: [0.1, 0, 0] }),
@@ -56,6 +68,49 @@ export const CLIPS = {
   die: (t) => ({ roll: Math.min(1, t / 0.5) * PI / 2 }),
   spin: (t) => ({ spinY: t * 6, rArm: [0, 0, 1.2], lArm: [0, 0, -1.2] }),
   jump: () => ({ rArm: [-2.8, 0, 0.2], lArm: [-2.8, 0, -0.2], rLeg: [0.3, 0, 0], lLeg: [-0.3, 0, 0] }),
+
+  // ---- original social gestures and reactions ----
+  nod: gesture(0.75, {
+    head: [[0.18, [-0.10, 0, 0]], [0.40, [0.38, 0, 0]], [0.64, [-0.06, 0, 0]], [0.82, [0.11, 0, 0]]],
+    bodyRx: [[0.42, 0.05], [0.72, 0.01]],
+  }),
+  shake_head: gesture(1.0, {
+    head: [[0.16, [0, -0.46, -0.05]], [0.40, [0, 0.53, 0.08]], [0.64, [0, -0.32, -0.04]], [0.82, [0, 0.14, 0]]],
+  }),
+  shrug: gesture(1.2, {
+    rArm: [[0.32, [-0.53, 0, -0.71]], [0.63, [-0.56, 0, -0.73]]],
+    lArm: [[0.38, [-0.46, 0, 0.65]], [0.65, [-0.48, 0, 0.68]]],
+    head: [[0.26, [-0.17, 0.07, -0.22]], [0.64, [-0.14, 0.08, -0.18]]],
+    bodyRx: [[0.40, -0.09], [0.68, -0.08]],
+  }),
+  flinch: gesture(0.8, {
+    head: [[0.17, [-0.40, 0.22, 0.14]], [0.40, [0.06, 0.28, 0.08]], [0.68, [-0.07, 0.07, 0]]],
+    rArm: [[0.20, [-1.54, 0, -0.19]], [0.46, [-1.10, 0, -0.32]]],
+    lArm: [[0.25, [-1.08, 0, 0.37]], [0.52, [-0.65, 0, 0.21]]],
+    bodyRx: [[0.20, -0.24], [0.49, 0.10], [0.73, 0.03]],
+    sink: [[0.29, 0.13], [0.59, 0.07]],
+  }),
+  relief: gesture(1.55, {
+    head: [[0.24, [-0.28, 0, 0]], [0.54, [0.20, 0, -0.08]], [0.81, [0.11, 0, -0.04]]],
+    bodyRx: [[0.25, -0.11], [0.57, 0.14], [0.78, 0.06]],
+    rArm: [[0.27, [-0.25, 0, -0.21]], [0.58, [0.07, 0, -0.04]]],
+    lArm: [[0.31, [-0.22, 0, 0.18]], [0.62, [0.08, 0, 0.05]]],
+  }),
+  salute: gesture(1.25, {
+    rArm: [[0.13, [-0.45, 0, -0.21]], [0.34, [-2.20, 0, -0.07]], [0.65, [-2.18, 0, -0.08]], [0.83, [-0.68, 0, -0.19]]],
+    head: [[0.33, [0.09, -0.10, 0.07]], [0.64, [-0.09, -0.05, 0.04]]],
+  }),
+  laugh: gesture(1.45, {
+    head: [[0.14, [-0.30, 0, 0.13]], [0.31, [0.25, 0.12, 0.13]], [0.44, [0.04, 0.10, 0.10]], [0.59, [0.23, 0.06, 0.08]], [0.73, [0.08, 0.02, 0.04]]],
+    bodyRx: [[0.16, -0.10], [0.31, 0.23], [0.45, 0.07], [0.60, 0.21], [0.75, 0.08]],
+    rArm: [[0.29, [-0.55, 0, -0.12]], [0.65, [-0.45, 0, -0.10]]],
+    lArm: [[0.33, [-0.54, 0, 0.14]], [0.70, [-0.41, 0, 0.12]]],
+  }),
+  inspect: gesture(1.55, {
+    rArm: [[0.27, [-1.31, 0, -0.12]], [0.60, [-1.28, 0, -0.11]], [0.76, [-1.15, 0, -0.09]]],
+    head: [[0.35, [0.34, -0.29, 0.08]], [0.60, [0.28, -0.25, -0.11]], [0.76, [0.20, -0.14, 0.03]]],
+    wrist: [[0.35, 0.25], [0.57, -0.34], [0.75, 0.12]],
+  }),
 
   // ---- one-shot clips with built-in anticipation, overshoot and follow-through (they stretch to the segment's dur) ----
   swing: (t, sp, dur) => { // wind-up -> fast strike -> overshoot -> settle
@@ -219,6 +274,23 @@ export function clipState(story, a, t) {
   return { clip, ct, sp, dur, start, seg };
 }
 
+const blendDuration = (state) => state.seg ? (state.seg.blend ?? 0.15) : 0.2;
+
+function blendedPose(story, a, t, cur) {
+  const pose = evalClip(cur.clip, cur.ct, cur.sp, cur.dur, t);
+  const blend = blendDuration(cur);
+  const elapsed = t - cur.start;
+  if (cur.start <= 0 || blend <= 0 || elapsed >= blend) return pose;
+
+  const before = cur.start - 1e-6;
+  const prev = clipState(story, a, before);
+  // If a reaction interrupted an in-progress blend, continue from the actual visible pose.
+  // Settled outgoing clips can keep moving while the new clip takes over.
+  const interrupted = prev.start > 0 && before - prev.start < blendDuration(prev);
+  const outgoing = interrupted ? blendedPose(story, a, before, prev) : evalClip(prev.clip, prev.ct + (t - before), prev.sp, prev.dur, t);
+  return mixPose(outgoing, pose, ease.smooth(clamp01(elapsed / blend)));
+}
+
 // Full actor state at time t: feet position, heading, jump offset, blended pose.
 export function actorState(story, a, t, ctx = {}, depth = 0) {
   let pos = [...(a.cfg.pos || [0, 1, 0])];
@@ -259,16 +331,8 @@ export function actorState(story, a, t, ctx = {}, depth = 0) {
     heading = u >= 1 ? e.h : prev + d * u;
     if (u < 1) break;
   }
-  // pose with a short blend from the previous clip state
   const cur = clipState(story, a, t);
-  let pose = evalClip(cur.clip, cur.ct, cur.sp, cur.dur, t);
-  const bl = cur.seg ? (cur.seg.blend ?? 0.15) : 0.2;
-  if (cur.start > 0 && bl > 0 && t - cur.start < bl) {
-    const before = cur.start - 1e-3;
-    const prev = clipState(story, a, before);
-    const prevPose = evalClip(prev.clip, prev.ct + (t - before), prev.sp, prev.dur, t);
-    pose = mixPose(prevPose, pose, ease.smooth(clamp01((t - cur.start) / bl)));
-  }
+  const pose = blendedPose(story, a, t, cur);
   // hide / show flags: { "t": 5, "actor": "x", "hide": true } removes the actor (e.g. a mob that exploded) until a later "show"
   let hidden = false; for (const s of segsOf(story, a)) { if (s.t > t) break; if (s.hide) hidden = true; if (s.show) hidden = false; if (s.do === 'die' && s.vanish && t >= s.t + (s.dur ?? 1)) hidden = true; }
   return { pos, heading, jumpY, pose, clip: cur.clip, ct: cur.ct, sp: cur.sp, dur: cur.dur, hidden, seg: cur.seg, moving: cur.clip === 'walk' || cur.clip === 'run' };

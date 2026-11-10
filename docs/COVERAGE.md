@@ -11,11 +11,12 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 | Face: blink, eyes, mouth, wounds, glow, lip-sync | done | rows 3-7 of the face are repainted; skins must keep eyes on row 4 |
 | ~70 mobs with the game's own geometry and texture (cow, sheep, horse, villager, skeleton, enderman, iron golem, warden, ender dragon...) | done | `tools/vanilla.py mobs` + `core/engine/geo.js`; walk/idle/look/hit/die/swell animated by bone names; all rendered and checked (`docs/MOBS.md`) |
 | Blaze rods, magma cube segments, glowing mobs | done | the game's Molang animations are evaluated (`core/engine/molang.js`); emissive textures glow |
-| Creeper-, pig-, spider-shaped rigs without the cache | done | CC0 fallback rigs (`core/engine/mobs.js`) |
+| Creeper, pig, spider and wolf rigs without the cache | done | original textures and rigs. The wolf has its own locomotion, head, tail and reaction clips |
+| Custom character height | done | absolute height in blocks or relative scale, with framing and QA support |
 | Zombie / any humanoid mob | done | a normal actor with its texture and the `zombie` clip |
 | Mob-specific animations (a horse's gait and tail, a bee's wings, a villager's crossed arms, a blaze's rods) | done | the game's own animations through a Molang interpreter; the wolf, polar bear and ender dragon use the bone-name rules. A dragon's flight *path* is still yours to plan (`to` waypoints) |
 | Baby mobs, mob variants | done | the game's baby models and textures (~35 mobs, half size otherwise); coats, breeds, warm/cold, villager biomes and professions (`docs/MOBS.md`) |
-| Armour layers (8 materials, leather tinted), shield, cape (swings with speed), elytra (folds / spreads) | done | the game's textures (`tools/vanilla.py equipment`) or CC0 originals |
+| Armour, shield, animated cape, elytra | done | original cape presets, project PNGs and timeline wardrobe changes. See [equipment](EQUIPMENT.md) |
 | Crowds of hundreds | missing | many actors work, but there is no instancing |
 
 ## Held items and props
@@ -24,6 +25,7 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 |---|---|---|
 | A block in the hand | done | `"holding": "planks"` |
 | Tools, swords, bows, torches as items (extruded sprite from an item texture) | done | `holding`/`offhand`, switchable per segment; the blade follows the strike (`wrist`) |
+| Namespaced mod item sprites | done | supplied PNG, configurable size and grip, shared between held item and HUD |
 | Doors, chests | done | `props`; chest lid now 90° / 0.5 s / ease-out like the game. **Open:** the chest uses a block texture, not the entity texture (`entity/chest.png` is fetched but not mapped yet) |
 | Beds, signs with text, rails, minecarts (mob rig) | done | furnaces as blocks; boats missing |
 
@@ -34,6 +36,7 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 | idle walk run wave talk mine punch dance sit look scared jump die spin | done |
 | swing hit lunge stance shout point raise zombie (anticipation, overshoot) | done |
 | Clip blending, turning, look-at, speed ramps | done |
+| Social emotes and reactions | done | `nod`, `shake_head`, `shrug`, `flinch`, `relief`, `salute`, `laugh`, `inspect` |
 | slash overhead thrust guard dodge knockback (with hop) fall getup kneel cast summon levitate bow charge celebrate sneak crouch stagger | done |
 | swim, crawl, climb, ride (mount system: horse, camel, pig, minecart...), eat, drink, sleep, glide | done |
 | Held-item-aware hand poses (arm follows the tool) | partial: `wrist` turns the blade along the arm in thrusts and slashes |
@@ -76,6 +79,7 @@ The goal is a skill that can make *any* Minecraft animation. It is not there yet
 | Director compiler: a short beat plan -> full story with coverage, fight choreography, sound and score | done: `tools/compose.py`, `docs/DIRECTOR-PLAN.md` |
 | Skin from a photo of a person (persona painter + colour sampling) | done: `core/persona.py` (the assistant reads the photo; the tool samples exact colours and paints) |
 | The game's font for name tags, chat subtitles, titles (accents included) | done (cached locally) |
+| Event chat, hotbar, inventory, and crafting | done | timed opt-in [HUD](HUD.md) with authored recipes and item transfer |
 | Skins and textures: skills, turntable, tile checker, pack builder, in-scene preview | done (not tested in the game) |
 | Music, sfx, dialogue mix with ducking | done (you supply the audio) |
 | Original game textures and sound effects | done: `tools/vanilla.py fetch` / `sounds` into a local cache (not shipped) |

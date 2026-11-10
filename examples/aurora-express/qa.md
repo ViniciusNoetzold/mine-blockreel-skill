@@ -13,3 +13,7 @@
 The first pass caught the courier slipping out of the opening frame. Reframing the crane fixed it. The visual pass also caught tall rail faces where the renderer turns destructible blocks into cube instances. The rail now has a protected support while the walkway remains destructible.
 
 The encoded MP4 passed `tools/check_media.py` and a full FFmpeg decode. H.264 picture is 1280 × 720, 720 frames at 24 fps, exactly 30.000 seconds. Stereo AAC is 44.1 kHz and also runs 30.000 seconds. FFmpeg measured −19.9 LUFS integrated with a −2.8 dB true peak. The mix measures quieter during the held reaction than during the crossing and the signal cue. Audio was checked by decode, timeline and signal measurements.
+
+## Character render update (0.4.0)
+
+Re-rendered the same 30-second storyboard with the revised player meshes and pose blends. Reviewed the sleeve seams and hair silhouette at 3.25s and 17.75s in the new render. QA returned 0 failures and 0 warnings across 23 samples. The encoded master has 720 frames at 24 fps, 1280×720, and a 30-second stereo AAC track.

@@ -55,6 +55,30 @@ const mk = (cfg, timeline) => ({ story: { timeline }, a: { name: 'a', cfg } });
   ok(Math.abs(arm(1) - -0.1) < 0.05, 'swing settles');
 }
 
+// Expressive clips move, settle, and are safe to sample out of order.
+{
+  const keys = ['head', 'rArm', 'lArm', 'rLeg', 'lLeg', 'body'];
+  const delta = (a, b) => Math.max(...keys.flatMap((key) => a[key].map((v, i) => Math.abs(v - b[key][i]))));
+  for (const name of ['nod', 'shake_head', 'shrug', 'flinch', 'relief', 'salute', 'laugh', 'inspect']) {
+    const at = (t) => evalClip(name, t, 1, 1, 0);
+    const rest = at(0);
+    const middle = at(0.3);
+    ok(Math.max(...[0.2, 0.4, 0.6].map((t) => delta(rest, at(t)))) > 0.12, name + ' has a readable pose');
+    ok(delta(rest, at(1)) < 1e-6, name + ' settles');
+    ok(delta(middle, at(0.3)) === 0, name + ' evaluates deterministically');
+  }
+  const { story, a } = mk({}, [
+    { t: 0, actor: 'a', do: 'walk', dur: 1 },
+    { t: 1, actor: 'a', do: 'wave', dur: 0.05, blend: 0.4 },
+    { t: 1.05, actor: 'a', do: 'flinch', dur: 0.8, blend: 0.3 },
+  ]);
+  const before = actorState(story, a, 1.05 - 1e-4).pose;
+  const after = actorState(story, a, 1.05 + 1e-4).pose;
+  ok(delta(before, after) < 0.005, 'interrupting a crossfade preserves the visible pose');
+  const idle = evalClip('idle', 0, 1, 0, 0);
+  ok(idle.rArm[2] < 0 && idle.lArm[2] > 0, 'resting arms angle outward from the torso');
+}
+
 // look-at angles
 {
   const [pitch, yaw] = aimAngles([0, 1, 0], 0, 1.6, [5, 2.6, 0]); // target at +x while facing +z => turn right

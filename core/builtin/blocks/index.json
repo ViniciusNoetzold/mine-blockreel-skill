@@ -202,8 +202,8 @@
     "mossy_stone_bricks": "stonebrick",
     "stonebrick_cracked": "stonebrick",
     "crafting_table": {
-      "top": "planks",
-      "side": "planks",
+      "top": "crafting_table_top",
+      "side": "crafting_table_side",
       "bottom": "planks"
     },
     "dark_oak_log": {

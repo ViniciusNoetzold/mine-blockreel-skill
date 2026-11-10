@@ -30,6 +30,8 @@ Characters are boxes, but faces swap (eyes, mouth, wounds) and the mouth follows
 - **Faces**: use `faces` for wide eyes on a scare, `angry` before a fight, `glow` for a villain, `hurt` after a hit. Change the face *before* the body reacts.
 - **Talking** = `talk` clip (head bob) + a subtitle line in chat format. Max ~10 words per line, ~2 s on screen.
 
+Use short emotes for different jobs: a nod answers a question, a shrug reveals uncertainty, a flinch shows danger, and a sigh of relief pays off tension. Leave time to settle after the strongest pose. Keep the camera on the reaction long enough to read the eyes and silhouette. The variety of social gestures in [Not Enough Emotes](https://www.curseforge.com/minecraft-bedrock/addons/not-enough-emotes) is a reference for the kind of performance choices a director can offer. BlockReel's motion clips are authored in code.
+
 ## 4. Camera
 
 - Cut on action. Hard cuts by default. Dialogue/calm: 2–4 s per shot. **Action: 1–2 s per shot** (see section 10).

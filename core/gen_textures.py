@@ -7,7 +7,7 @@ import random
 import sys
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).parent))
 import skin as skinlib  # noqa: E402
@@ -309,7 +309,7 @@ EXTRA_INDEX = {
     "fire": {"all": "fire", "shape": "cross", "emissive": True, "light": 15}, "dead_bush": {"all": "dead_bush", "shape": "cross"},
     "quartz": "quartz", "dark_oak_planks": "dark_oak_planks", "spruce_planks": "planks", "birch_planks": "planks",
     "stonebrick_mossy": "stonebrick", "mossy_stone_bricks": "stonebrick", "stonebrick_cracked": "stonebrick",
-    "crafting_table": {"top": "planks", "side": "planks", "bottom": "planks"}, "dark_oak_log": {"top": "log_top", "side": "spruce_log", "bottom": "log_top"},
+    "crafting_table": {"top": "crafting_table_top", "side": "crafting_table_side", "bottom": "planks"}, "dark_oak_log": {"top": "log_top", "side": "spruce_log", "bottom": "log_top"},
     "oak_door": {"top": "door_upper", "side": "door_lower", "shape": "door"}, "door": {"top": "door_upper", "side": "door_lower", "shape": "door"},
     "trapdoor": {"all": "trapdoor", "shape": "trapdoor"}, "oak_trapdoor": {"all": "trapdoor", "shape": "trapdoor"},
     "ladder": {"all": "ladder", "shape": "ladder"}, "vine": {"all": "vine", "shape": "vine"}, "vines": {"all": "vine", "shape": "vine"},
@@ -416,6 +416,20 @@ def build():
         for x in range(16):
             p.putpixel((x, y), (126, 96, 56, 255))
     T["planks"] = p
+    worktop = noisy((142, 95, 50), 0.05, 97)
+    draw = ImageDraw.Draw(worktop)
+    draw.rectangle((1, 1, 14, 14), outline=(77, 45, 29))
+    for y in (2, 6, 10):
+        for x in (2, 6, 10):
+            draw.rectangle((x, y, x + 3, y + 3), fill=(181, 129, 73), outline=(112, 69, 39))
+    cabinet = p.copy()
+    draw = ImageDraw.Draw(cabinet)
+    draw.rectangle((0, 0, 15, 2), fill=(110, 68, 37))
+    draw.rectangle((2, 4, 13, 13), fill=(150, 102, 56), outline=(102, 64, 39))
+    draw.line((4, 11, 9, 6, 11, 8), fill=(84, 56, 37), width=2)
+    draw.line((8, 6, 10, 5, 12, 7), fill=(161, 162, 149))
+    T["crafting_table_top"] = worktop
+    T["crafting_table_side"] = cabinet
     lg = noisy((106, 82, 48), 0.07, 8)
     for x in range(0, 16, 4):
         for y in range(16):

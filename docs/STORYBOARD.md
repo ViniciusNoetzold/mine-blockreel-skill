@@ -37,15 +37,19 @@ relative to the story file. All times are in seconds on the **output timeline** 
   "dust": false,                     // footstep dust puffs while walking/running
   "armor": "diamond",                // or { "helmet": "iron", "chestplate": "diamond", "leggings": "iron", "boots": "gold", "color": "#3a6ad0" (leather) }
                                      // leather chainmail iron gold diamond netherite copper turtle_scute
-  "cape": "red",                     // red | blue | black (CC0) or "path/to/cape.png" (64x32 layout); swings with speed
+  "cape": "red",                     // red | blue | black, PNG path or cape object; see EQUIPMENT.md
   "elytra": true                     // folded on the back; spreads with the "glide" clip (hides the cape, like the game)
 }
 ```
+
+Use `height` for a standing height in blocks, or `scale` for a multiplier of the rig's default size. Supply one positive value.
+A default player stands 2 blocks tall before outer layers and equipment. Shorter characters keep the same skin layout and proportions.
 
 `"offhand": "shield"` holds the game's shield on the outside of the left forearm; it turns to face forward during `guard`/`block`.
 
 Mobs use `type` (+ `texture` for the built-in rigs) instead of `skin` (see `docs/MOBS.md`; ~70 types with the game's geometry):
 `{ "type": "creeper" | "pig" | "spider", "texture": "...", "pos": [...], "face": 0, "scale": 1 }`.
+A wolf with `"type": "wolf", "rig": "builtin"` comes with its own coat and quadruped performance clips. See [wolf direction](MOBS.md#direct-a-wolf-as-the-lead).
 A zombie is a normal actor with a zombie-layout skin and the `zombie` clip.
 
 ## Timeline segments
@@ -72,6 +76,7 @@ A zombie is a normal actor with a zombie-layout skin and the `zombie` clip.
 | `hide` / `show` | `true` removes / restores the actor (e.g. a mob that exploded) |
 | `arc` | a hop of this many blocks along any move (knock-back, leap), peaking mid-segment |
 | `holding` / `offhand` | switch the item in the right / left hand from this time on (`null` = empty hand). Entries with only these fields (or only `lookAt`, `hide`, `show`, `hurt`) do not interrupt the running clip |
+| `cape` | switch or remove the player's cape at this time. Use `null` to remove it. A cape-only cue preserves the active clip. See [capes](EQUIPMENT.md) |
 | `vanish` | on a `die` segment: when the fall ends the body disappears in the game's white poof |
 | `hurt` | `true` flashes the red damage tint (automatic on `hit` and `knockback`, held while dying) |
 
@@ -88,6 +93,7 @@ Combat and magic (v0.2): `slash` (horizontal cut), `overhead` (two-handed chop),
 Movement and life (v0.3): `swim` (breaststroke, horizontal), `crawl`, `climb` (move up with `to`), `ride` (with `"mount": "horse1"`:
 the actor sits on that actor's saddle and turns with it; the mount moves itself), `eat`, `drink`, `sleep` (lying, eyes closed), `glide`
 (horizontal, spreads the elytra).
+Social emotes: `nod`, `shake_head`, `shrug`, `flinch`, `relief`, `salute`, `laugh`, and `inspect`. Set `dur` to pace the gesture and `blend` to shape its entrance.
 Mobs: `walk run swell hit die` (`swell` = creeper-style inflate and flash).
 The torso, head and arms lean together from the hips; legs stay planted.
 
@@ -268,6 +274,10 @@ drives that actor's mouth from the recording's loudness (audio lip-sync; otherwi
 
 Drawn with the game's own font when cached (`python tools/vanilla.py font`), with its 1 px shadow; otherwise a pixel fallback.
 `"subtitleScale": 3` sets the chat text size at 720p; `"font": "css"` forces the fallback. Titles accept `\n` for two lines.
+
+## Optional HUD
+
+Use `hud` to script bottom-left event chat, a hotbar, inventory or a 3×3 crafting table. The layer appears only when authored in the storyboard. See [HUD events, timing and item stacks](HUD.md).
 
 `"subtitles": [ { "t": 6, "dur": 2, "who": "Hero", "text": "Hello!" } ]`,
 `"titles": [ { "t": 0.4, "dur": 2.2, "text": "BLOCKREEL", "color": "#fff", "size": 64 } ]`.

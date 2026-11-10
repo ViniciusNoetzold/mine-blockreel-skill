@@ -1,15 +1,19 @@
 // BlockReel engine: deterministic Three.js scene player.  window.renderAt(t) draws the frame for time t (seconds).
 import * as THREE from 'three';
-import { ease, getEase, clamp01, actorState, lookState, aimAngles, worldTime, noise, hurtAt } from './anim.js';
+import { ease, getEase, clamp01, actorState, lookState, aimAngles, worldTime, noise, hurtAt, clipState } from './anim.js';
 import { extrudeItem, mountItem } from './items.js';
+import { itemAsset } from './asset-refs.js';
 import { equip, shieldMesh } from './equip.js';
 import { loadFont, textCanvas, wrapRuns } from './font.js';
+import { createHud } from './hud.js';
 import { buildParticles } from './particles.js';
 import { makeFace, faceStateAt } from './face.js';
 import { skyTexture, lightingAt, createWeather, createSky, createLightning } from './env.js';
 import { createPost, usesPost } from './post.js';
 import { buildMob } from './mobs.js';
 import { buildGeoModel } from './geo.js';
+import { buildWolf } from './wolf.js';
+import { actorSize } from './actor-size.js';
 import { parseChanges, blockState, crackTextures, buildProps } from './world.js';
 import { expandWorld, groundHeight } from './worldgen.js';
 import { meshWorld, computeLight, resolveDef, pixelMipmaps, FACES, CHUNK } from './mesher.js';
@@ -274,20 +278,45 @@ function updateWorld(t) {
 }
 
 // -------------------------------------------------------------- player ----
-function uvRect(x, y, w, h) { // skin pixels (origin top-left) -> [TL, TR, BL, BR] uv corners
-  const f = (px, py) => [px / 64, 1 - py / 64];
-  return [f(x, y), f(x + w, y), f(x, y + h), f(x + w, y + h)];
-}
-function boxGeo(w, h, d, u, v, grow = 0) {
-  const g = new THREE.BoxGeometry((w + grow * 2) * PX, (h + grow * 2) * PX, (d + grow * 2) * PX);
+function boxGeo(w, h, d, u, v, atlasHeight, grow = 0, depthGrow = grow) {
+  const g = new THREE.BoxGeometry((w + grow * 2) * PX, (h + grow * 2) * PX, (d + depthGrow * 2) * PX);
+  const uvRect = (x, y, width, height) => {
+    // Keep the sampling footprint inside this face, even on glancing edges beside a filled hair texel.
+    const inset = 1 / 32;
+    const f = (px, py) => [px / 64, 1 - py / atlasHeight];
+    return [f(x + inset, y + inset), f(x + width - inset, y + inset),
+      f(x + inset, y + height - inset), f(x + width - inset, y + height - inset)];
+  };
   const r = {
     top: uvRect(u + d, v, w, d), bottom: uvRect(u + d + w, v, w, d), right: uvRect(u, v + d, d, h),
     front: uvRect(u + d, v + d, w, h), left: uvRect(u + d + w, v + d, d, h), back: uvRect(u + 2 * d + w, v + d, w, h),
   };
   const order = ['left', 'right', 'top', 'bottom', 'front', 'back']; // three: +x -x +y -y +z -z (character faces +z)
   const uv = g.attributes.uv;
-  order.forEach((face, i) => r[face].forEach((c, j) => uv.setXY(i * 4 + j, c[0], c[1])));
-  uv.needsUpdate = true; return g;
+  const bounds = new THREE.Float32BufferAttribute(new Float32Array(uv.count * 4), 4);
+  order.forEach((face, i) => {
+    const [left, top] = r[face][0], [right, bottom] = r[face][3];
+    r[face].forEach(([u, v], j) => {
+      uv.setXY(i * 4 + j, u, v);
+      bounds.setXYZW(i * 4 + j, left, bottom, right, top);
+    });
+  });
+  uv.needsUpdate = true;
+  g.setAttribute('skinBounds', bounds);
+  return g;
+}
+
+function clampSkinUV(material) {
+  // MSAA can interpolate outside the UV rectangle at grazing edges of a translucent skin face.
+  // Clamp before sampling so a transparent hat side never picks up the hair texels of its neighbor.
+  material.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <uv_pars_vertex>', '#include <uv_pars_vertex>\nattribute vec4 skinBounds; varying vec4 vSkinBounds;')
+      .replace('#include <uv_vertex>', '#include <uv_vertex>\nvSkinBounds = skinBounds;');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <uv_pars_fragment>', '#include <uv_pars_fragment>\nvarying vec4 vSkinBounds;')
+      .replace('#include <map_fragment>', THREE.ShaderChunk.map_fragment.replace('map, vMapUv', 'map, clamp(vMapUv, vSkinBounds.xy, vSkinBounds.zw)'));
+  };
 }
 
 function detectSlim(img) {
@@ -307,12 +336,16 @@ function nametag(text) {
   sp.scale.set((c.width / 4) * 0.025, (c.height / 4) * 0.025, 1); sp.renderOrder = 5; return sp;
 }
 
-// mobs: the game's own geometry when cached (tools/vanilla.py mobs; any of ~70 mobs), else the built-in creeper/pig/spider rigs
+// Cached game geometry or one of the original BlockReel mob rigs.
 let mobIndex = null;
 async function makeMob(name, cfg) {
+  const { scale, height } = actorSize(cfg, name);
+  const wolf = cfg.type === 'wolf';
+  if (wolf && cfg.rig !== undefined && !['builtin', 'vanilla'].includes(cfg.rig)) throw new Error(`Actor "${name}": wolf rig must be builtin or vanilla`);
+  if (wolf && cfg.rig === 'builtin' && (cfg.geo || cfg.variant)) throw new Error(`Actor "${name}": wolf variants and custom geometry need the vanilla rig`);
   if (mobIndex === null) mobIndex = story.textures !== 'builtin' && await exists('/work/vanilla/mobs/index.json') ? (await getJSON('/work/vanilla/mobs/index.json')).mobs : {};
   let m;
-  if (cfg.geo || mobIndex[cfg.type]) {
+  if (cfg.geo || (!(wolf && cfg.rig === 'builtin') && mobIndex[cfg.type])) {
     // "baby": true -> the game's own baby model and texture when it has one (else the adult at half size, head scaled by its scripts);
     // "variant": "cold" | "siamese" | "librarian"... -> another coat/breed/biome/profession (work/vanilla/mobs/index.json lists them)
     const ent = mobIndex[cfg.type] || {}; let geoFile = ent.geo, texFile = ent.texture ?? cfg.type + '.png'; let halve = false;
@@ -321,64 +354,120 @@ async function makeMob(name, cfg) {
     if (cfg.baby && ent.baby) { geoFile = ent.baby.geo; texFile = (ent.baby.variants || {})[v] || ent.baby.texture; }
     else { const vv = (ent.variants || {})[v]; if (vv) { texFile = vv.texture; geoFile = vv.geo || geoFile; } halve = !!cfg.baby; }
     const geoUrl = cfg.geo ? resolve(cfg.geo) : `/work/vanilla/mobs/${geoFile}`;
-    const texUrl = cfg.texture && !cfg.texture.startsWith('/core/builtin/') ? resolve(cfg.texture) : `/work/vanilla/mobs/${texFile}`;
+    const texUrl = cfg.texture && (cfg.geo || !cfg.texture.startsWith('/core/builtin/')) ? resolve(cfg.texture) : `/work/vanilla/mobs/${texFile}`;
     const geo = await getJSON(geoUrl); // emissive mobs (blaze, magma cube, glow squid) carry a glow map: lit in the dark like the game
     const glowUrl = texUrl.replace(/\.png$/, '.glow.png');
     const glow = !cfg.texture && await exists(glowUrl) ? await pixelTex(glowUrl) : null;
-    m = buildGeoModel(THREE, geo, await pixelTex(texUrl), { ...cfg, glow, scale: (cfg.scale ?? 1) * (halve ? 0.5 : 1) });
+    m = buildGeoModel(THREE, geo, await pixelTex(texUrl), { ...cfg, glow, scale: scale * (halve ? 0.5 : 1) });
+  } else if (wolf && cfg.rig !== 'vanilla' && !cfg.variant) {
+    const texture = await pixelTex(resolve(cfg.texture ?? '/core/builtin/mobs/wolf.png'));
+    m = buildWolf(THREE, texture, { ...cfg, scale });
   } else {
     if (!['creeper', 'pig', 'spider'].includes(cfg.type)) throw new Error(`mob "${cfg.type}" needs the game's geometry: run python tools/vanilla.py mobs`);
-    m = buildMob(THREE, cfg.type, await pixelTex(resolve(cfg.texture)), cfg);
+    m = buildMob(THREE, cfg.type, await pixelTex(resolve(cfg.texture)), { ...cfg, scale });
+  }
+  if (height !== undefined) {
+    const bounds = new THREE.Box3().setFromObject(m.root, true);
+    const nativeHeight = bounds.max.y - bounds.min.y;
+    if (!(nativeHeight > 0 && Number.isFinite(nativeHeight))) throw new Error(`Actor "${name}": cannot measure standing height`);
+    const ratio = height / nativeHeight;
+    m.root.scale.multiplyScalar(ratio);
+    m.headY *= ratio;
+    m.eyeY *= ratio;
+    if (m.eyeZ !== undefined) m.eyeZ *= ratio;
   }
   m.root.position.set(...(cfg.pos || [0, 1, 0])); scene.add(m.root);
-  if (cfg.nametag) { const sp = nametag(cfg.nametag); sp.position.set(0, m.headY + 0.55, 0); m.root.add(sp); }
+  if (cfg.nametag) { const sp = nametag(cfg.nametag); sp.position.set(0, m.headY / m.root.scale.x + 0.55, 0); m.root.add(sp); }
   m.head.rotation.order = 'YXZ';
   return { name, cfg, mob: m, mats: m.mats, root: m.root, head: m.head, face: { update() {} }, headY: m.headY, eyeY: m.eyeY, _pos: [...(cfg.pos || [0, 1, 0])], _heading: 0, _headPose: [0, 0, 0] };
 }
 
-// an item sprite (extruded) if one exists with that name, otherwise a small block
+// Resolve icons and in-hand sprites from the same asset definitions.
 const itemCache = new Map();
-async function heldObject(name) {
-  const cands = [`${BASE}items/${name}.png`, vanillaDir && `/work/vanilla/items/${name}.png`, `/core/builtin/items/${name}.png`].filter(Boolean);
-  for (const u of cands) {
-    if (!(await exists(u))) continue;
-    if (!itemCache.has(u)) itemCache.set(u, (async () => { const img = await loadImg(u); const tex = await pixelTex(u); return { img, tex }; })());
-    const { img, tex } = await itemCache.get(u); return { item: extrudeItem(THREE, img, tex) };
+const spriteUrls = new Map();
+function spriteUrl(id, asset) {
+  if (!spriteUrls.has(id)) spriteUrls.set(id, (async () => {
+    if (asset.texture) {
+      const url = resolve(asset.texture);
+      if (await exists(url)) return url;
+      throw new Error(`item "${id}" texture is missing: ${asset.texture}`);
+    }
+    const { name } = asset;
+    const candidates = [`${BASE}items/${name}.png`, vanillaDir && `/work/vanilla/items/${name}.png`, `/core/builtin/items/${name}.png`];
+    for (const url of candidates) if (url && await exists(url)) return url;
+    return null;
+  })());
+  return spriteUrls.get(id);
+}
+
+async function itemIconUrl(id) {
+  const asset = itemAsset(id, story.items);
+  const sprite = await spriteUrl(id, asset);
+  if (sprite) return sprite;
+  const def = defOf(asset.name);
+  return blockTexUrl(def.side || def.all || def.top || asset.name);
+}
+
+async function heldObject(id) {
+  const asset = itemAsset(id, story.items);
+  const url = await spriteUrl(id, asset);
+  if (url) {
+    if (!itemCache.has(url)) itemCache.set(url, pixelTex(url));
+    const tex = await itemCache.get(url);
+    const img = tex.image;
+    if (asset.texture && (img.width > 128 || img.height > 128)) {
+      throw new Error(`item "${id}" sprite must fit within 128 × 128 pixels`);
+    }
+    return { item: extrudeItem(THREE, img, tex, asset.size, asset.grip) };
   }
-  const d = defOf(name); if (window.__missing.includes(name)) return null;
-  const mats = await blockMaterials(name); const m = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.34, 0.34), mats); m.castShadow = true; void d; return { mesh: m };
+  const { name } = asset;
+  if (window.__missing.includes(name)) return null;
+  const mats = await blockMaterials(name);
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.34, 0.34), mats);
+  mesh.castShadow = true;
+  return { mesh };
 }
 
 async function makePlayer(name, cfg) {
+  const { scale, height } = actorSize(cfg, name);
   const url = resolve(cfg.skin);
   const img = await loadImg(url);
   const tex = await pixelTex(url);
   let slim = cfg.model === 'slim' || ((cfg.model ?? 'auto') === 'auto' && detectSlim(img));
   const legacy = img.height === img.width / 2;
   const aw = slim ? 3 : 4;
+  const atlasHeight = legacy ? 32 : 64;
+  const box = (w, h, d, u, v, grow, depthGrow) => boxGeo(w, h, d, u, v, atlasHeight, grow, depthGrow);
   const base = new THREE.MeshLambertMaterial({ map: tex, alphaTest: 0.5, transparent: false });
   const over = new THREE.MeshLambertMaterial({ map: tex, alphaTest: 0.5, transparent: true });
+  clampSkinUV(over);
   const root = new THREE.Group(); const inner = new THREE.Group(); root.add(inner);
   const upper = new THREE.Group(); upper.position.set(0, 12 * PX, 0); inner.add(upper); // hip pivot: torso, head and arms lean together
-  const limb = (parent, w, h, d, u, v, ou, ov, pivot, dy = 0, rise = 0) => { // rise: how far the box extends ABOVE its pivot (arms: 2 px, so the shoulder is flush with the top of the torso)
-    const g = new THREE.Group(); g.position.set(pivot[0] * PX, (pivot[1] - dy) * PX, pivot[2] * PX);
-    const a = new THREE.Mesh(boxGeo(w, h, d, u, v), base); a.position.y = (-h / 2 + rise) * PX; a.castShadow = true; g.add(a);
-    const b = new THREE.Mesh(boxGeo(w, h, d, ou, ov, 0.5), over); b.position.y = (-h / 2 + rise) * PX; g.add(b);
+  const limb = (parent, w, h, d, u, v, ou, ov, pivot, shell, rise = 0) => {
+    const g = new THREE.Group(); g.position.set(...pivot.map((c) => c * PX));
+    // A tiny arm depth offset and distinct shell sizes prevent coplanar surfaces at skin seams.
+    const a = new THREE.Mesh(box(w, h, d, u, v, 0, rise ? 0.025 : 0), base);
+    a.position.y = (-h / 2 + rise) * PX; a.castShadow = true; g.add(a);
+    if (!legacy) {
+      const b = new THREE.Mesh(box(w, h, d, ou, ov, shell), over);
+      b.position.y = a.position.y; g.add(b);
+    }
     parent.add(g); return g;
   };
   const head = new THREE.Group(); head.position.set(0, 12 * PX, 0);
   const face = makeFace(THREE, img, head, PX, (t) => { t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter; t.generateMipmaps = false; t.colorSpace = THREE.SRGBColorSpace; });
-  const hm = new THREE.Mesh(boxGeo(8, 8, 8, 0, 0), face.material); hm.position.y = 4 * PX; hm.castShadow = true; head.add(hm);
-  const hat = new THREE.Mesh(boxGeo(8, 8, 8, 32, 0, 0.5), over); hat.position.y = 4 * PX; head.add(hat); upper.add(head);
+  const hm = new THREE.Mesh(box(8, 8, 8, 0, 0), face.material); hm.position.y = 4 * PX; hm.castShadow = true; head.add(hm);
+  const hat = new THREE.Mesh(box(8, 8, 8, 32, 0, 0.5), over); hat.position.y = 4 * PX; head.add(hat); upper.add(head);
   const body = new THREE.Group(); body.position.set(0, 6 * PX, 0);
-  const bm = new THREE.Mesh(boxGeo(8, 12, 4, 16, 16), base); bm.castShadow = true; body.add(bm);
-  const jm = new THREE.Mesh(boxGeo(8, 12, 4, 16, 32, 0.5), over); body.add(jm); upper.add(body);
-  const ax = slim ? 5.5 : 6;
-  const rArm = limb(upper, aw, 12, 4, 40, 16, 40, 32, [-ax, 22, 0], 12, 2);
-  // legacy 64x32 skins have no left limbs: mirror the right ones
-  const lArm = legacy ? limb(upper, aw, 12, 4, 40, 16, 40, 16, [ax, 22, 0], 12, 2) : limb(upper, aw, 12, 4, 32, 48, 48, 48, [ax, 22, 0], 12, 2);
-  const rLeg = limb(inner, 4, 12, 4, 0, 16, 0, 32, [-2, 12, 0]);
-  const lLeg = legacy ? limb(inner, 4, 12, 4, 0, 16, 0, 16, [2, 12, 0]) : limb(inner, 4, 12, 4, 16, 48, 0, 48, [2, 12, 0]);
+  const bm = new THREE.Mesh(box(8, 12, 4, 16, 16), base); bm.castShadow = true; body.add(bm);
+  if (!legacy) body.add(new THREE.Mesh(box(8, 12, 4, 16, 32, 0.30), over));
+  upper.add(body);
+  const ax = 4 + aw / 2 + 0.05;
+  const rArm = limb(upper, aw, 12, 4, 40, 16, 40, 32, [-ax, 10, 0], 0.40, 2);
+  // Legacy 64x32 skins only have a head overlay and one side of the base limbs.
+  const lArm = legacy ? limb(upper, aw, 12, 4, 40, 16, 0, 0, [ax, 10, 0], 0, 2) : limb(upper, aw, 12, 4, 32, 48, 48, 48, [ax, 10, 0], 0.40, 2);
+  const rLeg = limb(inner, 4, 12, 4, 0, 16, 0, 32, [-2.02, 12, 0], 0.32);
+  const lLeg = legacy ? limb(inner, 4, 12, 4, 0, 16, 0, 0, [2.02, 12, 0], 0) : limb(inner, 4, 12, 4, 16, 48, 0, 48, [2.02, 12, 0], 0.35);
   if (legacy) { lArm.scale.x = -1; lLeg.scale.x = -1; }
   // held items: everything this actor holds at any time (cfg.holding / cfg.offhand and timeline "holding" / "offhand" switches)
   const hands = { right: {}, left: {} };
@@ -386,7 +475,7 @@ async function makePlayer(name, cfg) {
   for (const sg of story.timeline || []) if (sg.actor === name) { if (sg.holding) wants.right.add(sg.holding); if (sg.offhand) wants.left.add(sg.offhand); }
   for (const side of ['right', 'left']) for (const it of wants[side]) {
     const arm = side === 'right' ? rArm : lArm;
-    if (it === 'shield') { // the game's shield, upright along the outside of the forearm; turned to face forward while blocking
+    if (it === 'shield' || it === 'minecraft:shield') { // the game's shield, upright along the outside of the forearm; turned to face forward while blocking
       const sh = await shieldMesh(THREE, pixelTex, exists); if (!sh) continue;
       const hold = new THREE.Group(); hold.position.set((side === 'left' ? 2.6 : -2.6) * PX, -7 * PX, 1.5 * PX); hold.rotation.y = (side === 'left' ? 1 : -1) * Math.PI / 2;
       sh.userData.shield = true; hold.add(sh); arm.add(hold); hold.visible = false; hands[side][it] = hold; continue;
@@ -399,10 +488,11 @@ async function makePlayer(name, cfg) {
   }
   // name tag
   if (cfg.nametag) { const sp = nametag(cfg.nametag); sp.position.set(0, 2.32, 0); root.add(sp); }
-  const sc = cfg.scale ?? 1; root.scale.setScalar(sc);
+  const sc = height === undefined ? scale : height / 2; root.scale.setScalar(sc);
   head.rotation.order = 'YXZ'; upper.rotation.order = 'YXZ';
   scene.add(root);
-  const eq = await equip(THREE, { head, body, rArm, lArm, rLeg, lLeg }, cfg, pixelTex, exists);
+  const capeCues = (story.timeline || []).filter((s) => s.actor === name && 'cape' in s);
+  const eq = await equip(THREE, { head, body, rArm, lArm, rLeg, lLeg }, cfg, pixelTex, exists, resolve, capeCues);
   for (const m of [base, over, face.material]) { m.emissiveMap = m.map; m.emissive = new THREE.Color(0, 0, 0); }
   return { name, cfg, root, inner, upper, head, body, rArm, lArm, rLeg, lLeg, face, hands, equip: eq, mats: [base, over, face.material], headY: 1.9 * sc, eyeY: 1.62 * sc, _pos: [...(cfg.pos || [0, 1, 0])], _heading: 0 };
 }
@@ -421,9 +511,12 @@ const actorCtx = { posOf: (n, tt, depth) => (actors[n] ? actorState(story, actor
 function applyActor(a, t) {
   const st = actorState(story, a, t, actorCtx);
   a.root.visible = !st.hidden;
-  if (a.mob) { // mobs: position + heading here, limbs in mobs.js
-    a.mob.update(st, t); a.root.position.set(st.pos[0], st.pos[1] - (st.clip === 'swell' ? 0 : 0), st.pos[2]); a.root.rotation.set(0, st.heading, 0);
-    a._pos = st.pos; a._heading = st.heading; a._headPose = [a.head.rotation.x, a.head.rotation.y, 0]; a._hurt = hurtAt(story, a, t); return;
+  if (a.mob) {
+    a.mob.update(st, t);
+    a._pos = [st.pos[0], st.pos[1] + st.jumpY, st.pos[2]];
+    a.root.position.set(...a._pos); a.root.rotation.set(0, st.heading, 0);
+    a._heading = st.heading; a._headPose = [a.head.rotation.x, a.head.rotation.y, a.head.rotation.z];
+    a._hurt = hurtAt(story, a, t); a._clip = st.clip; return;
   }
   const p = st.pose;
   a._headPose = p.head;
@@ -431,24 +524,25 @@ function applyActor(a, t) {
   a.rArm.rotation.set(p.rArm[0], p.rArm[1], p.rArm[2]); a.lArm.rotation.set(p.lArm[0], p.lArm[1], p.lArm[2]);
   a.rLeg.rotation.set(p.rLeg[0], p.rLeg[1], p.rLeg[2]); a.lLeg.rotation.set(p.lLeg[0], p.lLeg[1], p.lLeg[2]);
   a.upper.rotation.set(p.bodyRx + p.body[0], p.body[1], p.body[2]);
-  a.root.position.set(st.pos[0], st.pos[1] + p.bob + st.jumpY - p.sink, st.pos[2]);
+  a.root.position.set(st.pos[0], st.pos[1] + (p.bob - p.sink) * a.root.scale.x + st.jumpY, st.pos[2]);
   a.root.rotation.order = 'YXZ'; a.root.rotation.set(p.pitch || 0, st.heading + p.spinY, p.roll);
   a._pos = st.pos; a._heading = st.heading; a._hurt = hurtAt(story, a, t);
   if (a.hands) for (const side of ['right', 'left']) { // which item is in each hand now
     const key = side === 'right' ? 'holding' : 'offhand'; let cur = side === 'right' ? a.cfg.holding : a.cfg.offhand;
     for (const sg of story.timeline || []) { if (sg.actor !== a.name || sg.t > t) continue; if (key in sg) cur = sg[key]; }
     for (const [n, g] of Object.entries(a.hands[side])) {
-      g.visible = n === cur; if (side === 'right' && n !== 'shield') g.rotation.x = p.wrist || 0;
-      if (n === 'shield') { const blocking = /guard|block/.test(st.clip); g.rotation.set(blocking ? 1.1 : 0, (side === 'left' ? 1 : -1) * (blocking ? 0.15 : Math.PI / 2), 0); }
+      const shield = n === 'shield' || n === 'minecraft:shield';
+      g.visible = n === cur; if (side === 'right' && !shield) g.rotation.x = p.wrist || 0;
+      if (shield) { const blocking = /guard|block/.test(st.clip); g.rotation.set(blocking ? 1.1 : 0, (side === 'left' ? 1 : -1) * (blocking ? 0.15 : Math.PI / 2), 0); }
     }
   }
-  if (a.equip) a.equip.update(st, t);
+  if (a.equip) a.equip.update(st, t, (time) => clipState(story, a, time));
   a._clip = st.clip;
   // riding: { "do": "ride", "mount": "horse1" } puts the actor on the mount's saddle, turning with it (the mount moves itself)
   const mt = st.seg && st.seg.mount && actors[st.seg.mount];
   if (mt && st.clip === 'ride') {
     const seat = st.seg.seat ?? SEATS[mt.cfg.type] ?? Math.max(0.4, (mt.headY || 1.4) * 0.55); const back = st.seg.seatBack ?? SEAT_BACK[mt.cfg.type] ?? 0;
-    const h = mt._heading; const pos = [mt._pos[0] - Math.sin(h) * back, mt._pos[1] + seat - 0.62, mt._pos[2] - Math.cos(h) * back];
+    const h = mt._heading; const pos = [mt._pos[0] - Math.sin(h) * back, mt._pos[1] + seat - 0.62 * a.root.scale.x, mt._pos[2] - Math.cos(h) * back];
     a.root.position.set(pos[0], pos[1], pos[2]); a.root.rotation.y = h + p.spinY; a._pos = pos; a._heading = h;
   }
 }
@@ -457,16 +551,20 @@ const SEATS = { horse: 1.45, donkey: 1.3, skeleton_horse: 1.45, zombie_horse: 1.
 const SEAT_BACK = { horse: 0.1, donkey: 0.1, camel: 0.25, pig: 0.0 };
 
 // head follows a look-at target (actor, [x,y,z] or "camera"); camPos is null until the camera is placed
+function eyePoint(a) {
+  const forward = a.mob?.eyeZ ?? 0;
+  return [a._pos[0] + Math.sin(a._heading) * forward, a._pos[1] + a.eyeY, a._pos[2] + Math.cos(a._heading) * forward];
+}
 function targetPoint(tg, camPos) {
   if (tg === 'camera') return camPos ? [camPos.x, camPos.y, camPos.z] : null;
   if (Array.isArray(tg)) return tg;
-  const o = actors[tg]; return o ? [o._pos[0], o._pos[1] + o.eyeY, o._pos[2]] : null;
+  const o = actors[tg]; return o ? eyePoint(o) : null;
 }
 function applyLook(a, t, camPos) {
   const ls = lookState(story, a, t); const hp = a._headPose || [0, 0, 0];
   let dyaw = 0, dpitch = 0;
   if (ls) {
-    const aim = (tg) => { if (tg === null || tg === undefined) return [0, 0]; const pt = targetPoint(tg, camPos); return pt ? aimAngles(a._pos, a._heading, a.eyeY, pt, ls.limit) : [0, 0]; };
+    const aim = (tg) => { if (tg === null || tg === undefined) return [0, 0]; const pt = targetPoint(tg, camPos); return pt ? aimAngles(eyePoint(a), a._heading, 0, pt, ls.limit) : [0, 0]; };
     const [p1, y1] = aim(ls.target), [p0, y0] = aim(ls.prev);
     dpitch = p0 + (p1 - p0) * ls.w; dyaw = y0 + (y1 - y0) * ls.w;
   }
@@ -496,7 +594,7 @@ function applyCamera(t, wt) {
   if (shot.first) { // first-person: camera at the actor's eyes, looking where the head looks
     const a = actors[shot.first.actor ?? shot.first]; const fwd = new THREE.Vector3(0, 0, 1);
     fwd.applyEuler(new THREE.Euler(a.head.rotation.x, a._heading + a.head.rotation.y, 0, 'YXZ'));
-    pos = new THREE.Vector3(a._pos[0], a._pos[1] + a.eyeY, a._pos[2]).addScaledVector(fwd, 0.14); look = pos.clone().add(fwd);
+    pos = new THREE.Vector3(...eyePoint(a)).addScaledVector(fwd, 0.14 * a.root.scale.x); look = pos.clone().add(fwd);
     a.head.visible = false; // hide the own head (arms stay in view)
   } else if (shot.orbit) {
     const o = shot.orbit; const c = vec(o.center); const ang = (o.from + (o.to - o.from) * e) * Math.PI / 180;
@@ -521,6 +619,7 @@ function applyCamera(t, wt) {
 // ------------------------------------------------------------ overlays ----
 // subtitles in the chat format (<Name> line) and titles, drawn with the game font; canvases are cached per string
 const ovCache = new Map(); let lastSub = null, lastTitle = null;
+let updateHud = null;
 function applyOverlays(t) {
   const sub = document.getElementById('sub'); const title = document.getElementById('title');
   const W = story.size?.[0] ?? 1280, H = story.size?.[1] ?? 720;
@@ -631,6 +730,7 @@ async function init() {
   if (vanillaDir) Object.assign(blockDefs, (await getJSON(`${vanillaDir}/index.json`)).blocks);
   window.__textures = vanillaDir ? 'vanilla' : 'builtin';
   if (projBlocksDir && await exists(`${BASE}${projBlocksDir}/index.json`)) Object.assign(blockDefs, (await getJSON(`${BASE}${projBlocksDir}/index.json`)).blocks);
+  if (story.hud) updateHud = await createHud(story.hud, stage, W, H, lb ? barPct : 0, itemIconUrl);
   await buildWorld();
   for (const [n, cfg] of Object.entries(story.actors || {})) actors[n] = cfg.type && cfg.type !== 'player' ? await makeMob(n, cfg) : await makePlayer(n, cfg);
   particles = await buildParticles(THREE, scene, { ...story, fx: [...(story.fx || []), ...worldFx] }, particleCtx);
@@ -666,7 +766,7 @@ function collectQA(t, camPos) {
     const pts = [head, chest, feet]; const vis = pts.filter(inView).length;
     const toCam = new THREE.Vector3(camPos.x - a._pos[0], 0, camPos.z - a._pos[2]).normalize();
     const fwd = new THREE.Vector3(Math.sin(a._heading + a.head.rotation.y), 0, Math.cos(a._heading + a.head.rotation.y));
-    out.actors[n] = { visiblePoints: vis, ndc: [chest.x, chest.y], behindCamera: chest.z >= 1, facingCamera: fwd.dot(toCam), visible: a.root.visible, distance: Math.hypot(camPos.x - a._pos[0], camPos.y - a._pos[1], camPos.z - a._pos[2]), insideBlock: solid(new THREE.Vector3(a._pos[0], a._pos[1] + 1, a._pos[2])) };
+    out.actors[n] = { visiblePoints: vis, ndc: [chest.x, chest.y], behindCamera: chest.z >= 1, facingCamera: fwd.dot(toCam), visible: a.root.visible, distance: Math.hypot(camPos.x - a._pos[0], camPos.y - a._pos[1], camPos.z - a._pos[2]), insideBlock: solid(new THREE.Vector3(a._pos[0], a._pos[1] + a.headY * 0.5, a._pos[2])) };
   }
   const sp = document.querySelector('#sub span');
   if (sp) { const r = sp.getBoundingClientRect(), st = document.getElementById('stage').getBoundingClientRect(); out.subtitle = { clipped: r.left < st.left - 1 || r.right > st.right + 1 || r.top < st.top || r.bottom > st.bottom, width: r.width, height: r.height }; }
@@ -731,7 +831,7 @@ window.renderAt = (t) => {
   const camPos = applyCamera(t, wt);
   for (const a of Object.values(actors)) { const ls = lookState(story, a, wt); if (ls && (ls.target === 'camera' || ls.prev === 'camera')) applyLook(a, wt, camPos); }
   applyLighting(t, wt, camPos); followShadow(camPos); lightActors(); cullChunks(camPos); weather && weather.update(wt, camPos);
-  applyOverlays(t); applyTransitions(t);
+  applyOverlays(t); updateHud?.(t, wt); applyTransitions(t);
   if (post) { const shot = currentShot(t) || {}; let fd; const f = shot.focus; if (f !== undefined) { const tp = (x) => { const v = typeof x === 'number' ? null : vec(x); return v ? camPos.distanceTo(v) : x; }; const f0 = tp(f), f1 = shot.focusTo !== undefined ? tp(shot.focusTo) : f0; const e = getEase(shot.ease || 'smooth')(clamp01((wt - worldTime(story, shot.t)) / (shot.dur ?? 3))); fd = f0 + (f1 - f0) * e; }
     post.render(t, [style.post, story.post, shot.post], fd); }
   else renderer.render(scene, camera);
@@ -761,8 +861,19 @@ window.__pathCheck = (step = 0.05) => {
       let hit = null;
       if (a._clip === 'ride') { if (open[n]) { close(n, out.actors, t); } continue; } // a rider sits inside its mount's box
       if (a.root.visible) {
-        const r = 0.22 * (a.cfg.scale ?? 1), ys = [0.15, a.headY * 0.5, a.headY * 0.9];
-        outer: for (const y of ys) for (const [dx, dz] of [[0, 0], [r, r], [r, -r], [-r, r], [-r, -r]]) {
+        const scale = a.root.scale.x;
+        const ys = [0.15 * scale, a.headY * 0.5, a.headY * 0.9];
+        const bounds = a.mob?.footprint;
+        let samples;
+        if (bounds) {
+          const s = Math.sin(a._heading), c = Math.cos(a._heading), w = bounds.width;
+          samples = [[0, 0], [w, bounds.front], [-w, bounds.front], [w, bounds.back], [-w, bounds.back]]
+            .map(([x, z]) => [scale * (x * c + z * s), scale * (-x * s + z * c)]);
+        } else {
+          const r = 0.22 * scale;
+          samples = [[0, 0], [r, r], [r, -r], [-r, r], [-r, -r]];
+        }
+        outer: for (const y of ys) for (const [dx, dz] of samples) {
           const k = `${Math.floor(a._pos[0] + dx)},${Math.floor(a._pos[1] + y)},${Math.floor(a._pos[2] + dz)}`; const b = blockAt(k, wt);
           if (b && !PASSABLE.has(b)) { hit = { block: b, pos: k.split(',').map(Number) }; break outer; }
         }

@@ -154,7 +154,9 @@ More formats include channel openings, building timelapses, quiet slice-of-life 
 | Area | Capabilities |
 | --- | --- |
 | Worlds | Biomes, caves, generated villages, props, animated world changes, weather, and block lighting |
-| Characters | Classic or slim skins, personas based on a photo, mob variants and babies, equipment, and facial acting |
+| Characters | Classic and slim skins, custom height, portable wolf rig, facial acting, and blended emotes. [Mob guide](docs/MOBS.md) |
+| Equipment | Animated and swappable capes, shields, and custom mod sprites for held items. [Equipment guide](docs/EQUIPMENT.md) |
+| Optional HUD | Event chat, hotbar, inventory, and staged recipes. [HUD guide](docs/HUD.md) |
 | Camera and effects | Orbit, handheld, first person, rack focus, speed ramps, particles, and color grading |
 | Sound | Original score, timed effects, optional offline voices, and dialogue ducking |
 | Delivery | MP4, GIF, re-rendered vertical 9:16, SRT subtitles, and a thumbnail |

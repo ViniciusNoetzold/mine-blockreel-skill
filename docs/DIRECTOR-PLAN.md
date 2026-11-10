@@ -38,9 +38,17 @@ Re-running `compose.py` overwrites it, so prefer fixing the plan.
 | `nametags` | `true` to show floating name tags (off by default: cinematic) |
 | `cameraSide` | `"right"` (default) or `"left"`: which side of the line of action the camera stays on |
 
+Use a positive `height` in blocks for a short or tall cast member (`"height": 1.15`), or set a relative `scale`. Cast a wolf with
+`{"mob": "wolf", "rig": "builtin"}` and direct `howl`, `sniff`, `play_bow`, and other [wolf performances](MOBS.md#direct-a-wolf-as-the-lead)
+through `act` beats. The compiler adjusts the camera for the wolf and the cast's requested sizes.
+
 Biomes: `plains forest taiga desert snowy nether wasteland` (top block, trees, plants). Structures:
 `house tower ruins shrine pillar campfire` at `"pos": [x, null, z]` (null = on the ground). Keep structures out of the arena;
 `compose` prints a warning when two structures overlap or one cuts into the arena.
+
+See [capes and mod items](EQUIPMENT.md) for cast equipment, timeline swaps, and the top-level `items` registry. For social emotes and reactions, use an `act` beat with a supported [timeline clip](STORYBOARD.md#timeline-segments).
+
+The optional `hud` object carries [chat, hotbar, inventory and crafting cues](HUD.md) into the storyboard. To log a Creeper death, set `hud.chat.auto: true` and use `then: "die"` on a `creeper` beat with an actor target. The compiler inserts a chat message at the blast.
 
 ## Beats
 

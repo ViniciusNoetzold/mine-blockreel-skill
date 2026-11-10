@@ -1,8 +1,8 @@
 // Held items: a 16x16 item sprite extruded into a 1-pixel-thick 3D model, the way the game draws swords, tools and sticks
 // in a hand. Front and back are the sprite; every opaque pixel on an outline gets a 1x1 side face coloured by that pixel.
-// Item names resolve: project items/ folder -> original textures in work/vanilla/items -> CC0 sprites in core/builtin/items.
+// Texture resolution is shared between this renderer and the HUD in engine.js.
 
-export function extrudeItem(THREE, img, tex, size = 0.85) {
+export function extrudeItem(THREE, img, tex, size = 0.85, grip = [3.5 / 16, 12.5 / 16]) {
   const W = img.width, H = img.height; const c = document.createElement('canvas'); c.width = W; c.height = H;
   const g = c.getContext('2d'); g.drawImage(img, 0, 0); const d = g.getImageData(0, 0, W, H).data;
   const op = (x, y) => x >= 0 && y >= 0 && x < W && y < H && d[(y * W + x) * 4 + 3] > 127;
@@ -26,7 +26,7 @@ export function extrudeItem(THREE, img, tex, size = 0.85) {
   geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeBoundingSphere();
   const mat = new THREE.MeshLambertMaterial({ map: tex, alphaTest: 0.5, side: THREE.FrontSide });
   const mesh = new THREE.Mesh(geo, mat); mesh.castShadow = true;
-  return { mesh, mat, px };
+  return { mesh, grip: [(0.5 - grip[0]) * W * px, (grip[1] - 0.5) * H * px] };
 }
 
 // Mount an item in a hand. `arm` is the arm group (pivot at the shoulder; the hand is 10 px below it).
@@ -37,8 +37,8 @@ export function mountItem(THREE, arm, item, opts = {}) {
   hold.position.set(0, -10 * PX, (opts.forward ?? 1) * PX); arm.add(hold);
   const grip = new THREE.Group(); hold.add(grip);
   grip.rotation.set(opts.tilt ?? 0.15, -Math.PI / 2 * (opts.left ? -1 : 1), 0);
-  const m = item.mesh; const s = item.px; // the grip pixel (about 3,12 of 16) sits in the fist
-  m.position.set((8 - 3.5) * s, (12.5 - 8) * s, 0);
+  const m = item.mesh;
+  m.position.set(...item.grip, 0);
   grip.add(m);
   return hold;
 }
