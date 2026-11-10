@@ -1,6 +1,6 @@
 ---
 name: blockreel
-description: Make Minecraft animated videos from a prompt (and optionally a reference image, the user's skins, textures or a photo of the user, turned into their skin) - fights like "me vs Herobrine", cinematic shorts, YouTube channel openings and dialogue episodes - rendered in code with the original game look, font and sound by default (fetched locally), held swords and tools, terrain and buildings, lightning and magic, an original score and offline character voices. A director compiler turns a short beat plan into a full film. Runs briefing, web research, script and shot list, builds the film, does a mandatory visual QA (including a dense check that nobody walks through blocks) and delivers the film with its sound. Use when the user wants a Minecraft animation, short film, intro/opening, episode or scene with blocky characters. Skins and texture packs have their own skills.
+description: Direct and render Minecraft-style animated films, cinematic shorts, intros, and episodes from a prompt or references. Build block worlds, cast skins, stage shots, mix original music and effects, and deliver a reviewed MP4 using BlockReel. For standalone skins or resource packs, use the dedicated skills.
 ---
 
 # BlockReel
@@ -8,26 +8,23 @@ description: Make Minecraft animated videos from a prompt (and optionally a refe
 You direct and build short blocky animations as code, then render them to MP4 frame by frame.
 No video model is involved: every frame comes from a Three.js scene driven by a JSON storyboard.
 
-**The flow is A → E. Do not jump to the storyboard (D) before you have a brief and a shot list (A–C).**
-Quality comes from preparation and from looking at your own frames (E), not from more JSON.
+**Choose the workflow before building.** For supported beats and straightforward shorts, compile a plan, review the generated shot list, then preview and run QA. For cinematic shorts, multi-scene episodes, or exact delivery requirements, use `docs/CINEMATIC-WORKFLOW.md` from the runtime checkout to lock the brief, timing, and visual direction before the final render. Research when it informs a creative or technical decision.
 
-## 0. Bootstrap (first use)
+## 0. Bootstrap
 
-```bash
-export BLOCKREEL_HOME="${BLOCKREEL_HOME:-$HOME/blockreel}"
-[ -d "$BLOCKREEL_HOME" ] || git clone https://github.com/ViniciusNoetzold/mine-blockreel-skill- "$BLOCKREEL_HOME"
-cd "$BLOCKREEL_HOME" && npm install && pip install -r requirements.txt
-python tools/vanilla.py fetch    # ORIGINAL game textures + mob/chest/steve/alex textures -> work/vanilla/ (local cache, ~45 KB)
-python tools/vanilla.py sounds   # ORIGINAL game sound effects -> work/vanilla/sounds/ (local cache, ~1.5 MB, no music)
-python tools/vanilla.py font     # the game's font (name tags, chat subtitles, titles), read from client.jar with HTTP ranges (~1 MB)
+Reuse a working checkout when available. The marketplace installs the skill files. Open the guides and run the tools from the runtime checkout. If needed, clone it:
+
+```sh
+git clone https://github.com/ViniciusNoetzold/mine-blockreel-skill-.git blockreel
+cd blockreel
+npm ci
+python -m pip install -r requirements.txt
+python -m playwright install chromium
 ```
-**Look like the game by default.** Unless the user asks for their own textures, films use the original textures from the cache
-(the engine picks them up automatically; `"textures": "builtin"` opts out to the CC0 originals). Mobs: `/work/vanilla/entity/zombie.png`,
-`creeper.png`, `pig.png`, `spider.png`; default skins `steve.png` / `alex.png`. These files are Mojang's: they stay in `work/` on the
-user's machine and are **never** committed or shipped (`docs/LEGAL.md`).
-Needs Node 20+, Python 3.11+, ffmpeg and Chrome/Chromium (set `CHROME_PATH`, or run
-`python -m playwright install chromium`). Work in `$BLOCKREEL_HOME/films/<name>/` or in the
-folder the user started in; never write inside `core/`.
+
+Use Node 20+, Python 3.11+, FFmpeg and FFprobe. With a compatible installed Chrome, set `CHROME_PATH` to its executable instead of downloading Chromium. Run commands from the checkout root and put film sources in `films/<name>/` or a project folder requested by the user.
+
+Use the bundled originals for a self-contained public example. For local game fidelity, fetch the optional cache with `python tools/vanilla.py fetch`, `sounds`, and `font`. See `docs/LEGAL.md` before distributing a render or project. Keep all fetched game assets in the ignored `work/` cache. To reproduce a public example, use a clean cache and explicit original assets. The `"textures": "builtin"` setting controls textures. Sound, skins, and fonts have their own lookup paths.
 
 ## 1. Guides (read when you reach that step)
 
@@ -39,6 +36,7 @@ folder the user started in; never write inside `core/`.
 | `TECHNIQUE.md` | pipeline, units, performance, extending the engine |
 | `docs/STORYBOARD.md` | the exact `story.json` schema (the only source of truth for fields) |
 | `docs/QA.md` | step E: the checklist and `tools/qa.py` |
+| `docs/CINEMATIC-WORKFLOW.md` | exact timing, multi-scene continuity, shot review, audio and final media checks |
 | `styles/<style>/STYLE.md` | the look of the chosen style |
 | `docs/SKINS.md`, `docs/BLOCK-ATLAS.md`, `docs/RESOURCE-PACKS.md`, `docs/MOBS.md` | asset work |
 | `docs/COVERAGE.md` | what the engine can and cannot animate yet: check it before promising a scene |
@@ -59,17 +57,18 @@ For a fight, a duel, a reveal, a short story with a few characters: write a **be
 instead of 500) and better (coverage, choreography, sound and score are done by rules that were checked frame by frame).
 
 ```bash
-python tools/compose.py --example > films/<name>/plan.json   # "me vs Herobrine": start from it, edit cast/world/beats
+python tools/compose.py --example
+# Save and adapt the example as films/<name>/plan.json (UTF-8).
 python tools/compose.py films/<name>/plan.json --out films/<name>
-python tools/render.py films/<name>/story.json --preset preview --workers 4 --out films/<name>/preview.mp4
+python tools/render.py films/<name>/story.json --preset preview --out films/<name>/preview.mp4
 ```
-Every beat and option: `docs/DIRECTOR-PLAN.md`. Still do A (briefing), C (look at `shotlist.md`), E (QA) - skip B for simple requests.
+See `docs/DIRECTOR-PLAN.md` for supported beats. Record the brief (A), review the compiler's shot list (C), and complete QA (E).
 Write the plan in the user's language (subtitles, title, end card). Mix beats freely: **not every film is a fight**. The skill is for
 any Minecraft animation the user imagines: comedy (`examples/creeper-surprise`), survival and chases (`examples/zombie-night`),
 builds and timelapses (`build`), mining (`mine`), dialogue episodes (`line`/`look`), calm moods (`walk`/`act`/`wait`), slice of life with
 villagers, babies and ambient `also` actions (`examples/village-life`), action
 (`examples/herobrine-duel`). When a beat does not exist for what the user wants, use `act` (any clip) and world `changes`, or write that
-part of `story.json` by hand after compiling.
+part of the storyboard by hand. Save manual edits in a separate source or a repeatable post-compile script, since recompiling replaces the generated storyboard and shot list.
 
 **Prompt → plan, worked example.** *"Me faça no Minecraft numa batalha contra o Herobrine"*: the user = `persona` from their photo
 (or their skin, or ask once), Herobrine = `preset: herobrine`, `eyes: glow`, `hidden: true` (he arrives by `reveal`); night style;
@@ -112,9 +111,9 @@ If something is missing and a sensible default exists, choose it and *say which 
 Ask a question only when the answer changes the whole film (e.g. "do you have skins for these characters?").
 Save the result to `films/<name>/brief.md` (template in `docs/PREPRODUCTION.md`).
 
-## B. Research (web, recorded with links)
+## B. Research (when it changes a production decision)
 
-Use WebSearch / WebFetch. Write everything to `films/<name>/research.md`, every claim with a link:
+Use targeted research for unfamiliar techniques, references the user wants matched, or externally sourced assets. Record sources and the production decisions they informed in `films/<name>/research.md`:
 
 1. **Animation language for the tone**: pacing, camera, comedy timing / horror dread / epic scale.
 2. **Rigid-body character animation**: anticipation, overshoot, follow-through, squash substitutes, impact frames.
@@ -156,16 +155,13 @@ energy shape (quiet → loud → quiet), shot lengths per the tone, every line s
 3. **Test stills.** `python tools/render.py story.json --frame <t> --out check.png` and LOOK at the image
    (framing first, then light, then acting).
 4. **Preview.** `python tools/render.py story.json --out preview.mp4 --fps 12 --scale 0.5`.
-5. **Sound (not optional).** Build every file the `audio` block points at: original game effects from `work/vanilla/sounds/`
-   (explosions, doors, chests, mobs, hits, steps, rain, thunder, fire), made-up sounds only where the game has none (whoosh,
-   riser: the game's music has other rights holders), an ORIGINAL score that follows the energy shape
+5. **Sound (unless the brief calls for silence).** Build every file the `audio` block points at. Use original or licensed sound effects for public projects, and reserve cached game effects for permitted local work. Compose an original score that follows the energy shape
    (`python tools/score.py --out music.wav --duration 30 --sections calm:0:7,build:7:15,battle:15:23,silence:23:26,dawn:26:30`), and voices: the user's recordings first; otherwise `tools/voice.py` (offline only: Piper neural voices fetched with
    `python tools/voice.py fetch`, e.g. `--voice piper:faber`, or the Windows OneCore voices `daniel`/`maria` with SSML pauses and emphasis),
    with a character preset (`hero`, `villain`, `monster`, `child`, `narrator`, `radio`). Fit each line inside its shot: measure it, then
    adjust `--rate` or the shot length. See `films/`-style `make_audio.py` in `docs/GENRES.md`.
    `python tools/audio.py story.json --out mix.wav`, listen, then render with audio (or mux the mix into the silent render).
-6. **Final render.** `python tools/render.py story.json --workers 4 --out film.mp4`. Software GL renders a 40 s 720p film in about
-   10 minutes with 4 workers (a 12 fps half-size preview in about 2): tell the user how long a long film will take.
+6. **Final render.** `python tools/render.py story.json --workers 4 --out film.mp4`. Benchmark a short segment at target resolution before estimating time or choosing a worker count. Each worker loads the world in a separate browser.
    Economy: compose → preview → QA on stills → only then the final render; never re-render the whole film to check one shot
    (`--frame t` or `--start/--end`).
 
@@ -184,8 +180,9 @@ It renders at least 8 spread frames (opening, every shot change, close-ups, endi
 automatic checks (camera inside a block, actor out of frame, face pointing away from camera, subtitle clipped, shot
 longer than the limit for its tone). Then **open every frame image and look at it** and judge what the script cannot:
 skin holes, odd shadows, awkward pose, unclear story, pacing. Fix, re-render, repeat until clean.
-Record the result in `films/<name>/qa.md` (template in `docs/QA.md`): what you checked, what you found, what you fixed,
-and what you could not verify. Only then deliver `film.mp4` plus the project folder.
+After the final render, play the encoded file with sound. Check the opening, key sync points, and ending. Use `tools/check_media.py` with the target duration, size, fps, and `--require-audio` when sound is requested.
+
+Record the visual and media checks in `films/<name>/qa.md` (see `docs/QA.md`). Resolve each FAIL and record a decision for every WARN. Deliver the MP4 plus its reproducible project sources.
 
 ## Rules
 

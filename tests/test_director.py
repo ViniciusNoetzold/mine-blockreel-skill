@@ -47,8 +47,9 @@ def test_sample_reads_photo_colours(tmp_path):
     assert p["skin"] == "#c89678" and p["hair"]["color"] == "#1e140a" and p["top"]["color"] == "#143ca0"
 
 
-def test_herobrine_from_a_steve_texture_has_white_eyes():
-    steve = Image.new("RGBA", (64, 64), (120, 90, 60, 255)); p = Path("/tmp/_br_steve.png"); steve.save(p)
+def test_herobrine_from_a_steve_texture_has_white_eyes(tmp_path):
+    p = tmp_path / "steve.png"
+    Image.new("RGBA", (64, 64), (120, 90, 60, 255)).save(p)
     im = persona.herobrine_from_steve(p)
     assert all(im.getpixel((x, 12)) == (255, 255, 255, 255) for x in (9, 10, 13, 14))
 
@@ -61,7 +62,7 @@ def compile_example(tmp_path, music=False, textures=None):
     (tmp_path / "plan.json").write_text(json.dumps(plan))
     args = [str(tmp_path / "plan.json"), "--out", str(tmp_path / "film")] + ([] if music else ["--no-music"])
     assert compose.main(args) == 0
-    return json.loads((tmp_path / "film" / "story.json").read_text())
+    return json.loads((tmp_path / "film" / "story.json").read_text(encoding="utf-8"))
 
 
 def test_director_compiles_the_example(tmp_path):
@@ -76,7 +77,7 @@ def test_director_compiles_the_example(tmp_path):
         assert {s["do"] for s in st["timeline"] if "do" in s} <= clips | {"walk", "run"}
     assert any(s.get("do") == "die" and s.get("vanish") for s in st["timeline"]), "the finisher makes Herobrine vanish"
     assert st.get("lightning") and st.get("timeRemap") and st.get("transitions")
-    assert (tmp_path / "film" / "shotlist.md").read_text().count("|") > 50
+    assert (tmp_path / "film" / "shotlist.md").read_text(encoding="utf-8").count("|") > 50
     assert (tmp_path / "film" / "skins" / "me.png").exists() and (tmp_path / "film" / "skins" / "herobrine.png").exists()
     assert "nametag" not in st["actors"]["me"], "cinematic default: no floating name tags"
     assert compose.Film({"beats": []}, tmp_path).merge_sections() == []
@@ -87,8 +88,25 @@ def test_director_music_follows_the_beats(tmp_path):
         pytest.skip("ffmpeg missing")
     st = compile_example(tmp_path, music=True)
     assert st["audio"]["music"]["file"] == "music.wav" and (tmp_path / "film" / "music.wav").stat().st_size > 100000
-    sl = (tmp_path / "film" / "shotlist.md").read_text()
+    sl = (tmp_path / "film" / "shotlist.md").read_text(encoding="utf-8")
     assert "battle" in sl and "silence" in sl and "dawn" in sl
+
+
+def test_director_preserves_dialogue_without_music_or_sfx(tmp_path):
+    import compose
+    plan = {
+        "title": "A última missão",
+        "cast": {"João": {}},
+        "beats": [{"beat": "line", "who": "João", "text": "Já cheguei!", "voice": "line.wav"}],
+    }
+    plan_path = tmp_path / "plan.json"
+    plan_path.write_text(json.dumps(plan), encoding="utf-8")
+    out = tmp_path / "film"
+    assert compose.main([str(plan_path), "--out", str(out), "--no-music"]) == 0
+    story = json.loads((out / "story.json").read_text(encoding="utf-8"))
+    assert story["title"] == plan["title"]
+    assert story["audio"] == {"sfx": [], "dialogue": [{"file": "line.wav", "t": 0.1, "actor": "João"}]}
+    assert "João" in (out / "shotlist.md").read_text(encoding="utf-8")
 
 
 def test_composed_film_renders_with_builtin_textures(tmp_path):
@@ -131,13 +149,13 @@ def test_every_shipped_plan_compiles(tmp_path, example):
     import compose
     if not shutil.which("node"):
         pytest.skip("node is needed to expand structures for build beats")
-    plan = json.loads((ROOT / "examples" / example / "plan.json").read_text())
+    plan = json.loads((ROOT / "examples" / example / "plan.json").read_text(encoding="utf-8"))
     plan["textures"] = "builtin"
     for c in plan.get("cast", {}).values():
         c["classic"] = False
     (tmp_path / "plan.json").write_text(json.dumps(plan))
     assert compose.main([str(tmp_path / "plan.json"), "--out", str(tmp_path / "f"), "--no-music"]) == 0
-    st = json.loads((tmp_path / "f" / "story.json").read_text())
+    st = json.loads((tmp_path / "f" / "story.json").read_text(encoding="utf-8"))
     assert st["duration"] > 20 and len(st["camera"]) >= 8
     if example == "creeper-surprise":
         places = [c for c in st["changes"] if "place" in c]
@@ -152,10 +170,10 @@ def test_village_plan_ambient_life_babies_variants(tmp_path):
     import compose
     if not shutil.which("node") or not (ROOT / "work" / "vanilla" / "mobs" / "index.json").exists():
         pytest.skip("needs node and the game's mob cache (python tools/vanilla.py mobs)")
-    plan = json.loads((ROOT / "examples" / "village-life" / "plan.json").read_text())
+    plan = json.loads((ROOT / "examples" / "village-life" / "plan.json").read_text(encoding="utf-8"))
     (tmp_path / "plan.json").write_text(json.dumps(plan))
     assert compose.main([str(tmp_path / "plan.json"), "--out", str(tmp_path / "f"), "--no-music"]) == 0
-    st = json.loads((tmp_path / "f" / "story.json").read_text())
+    st = json.loads((tmp_path / "f" / "story.json").read_text(encoding="utf-8"))
     a = st["actors"]
     assert a["calf"]["baby"] is True and a["librarian"]["variant"] == "librarian" and a["horse"]["parts"] == ["saddle"]
     walks = [s for s in st["timeline"] if s["actor"] == "kid" and s.get("do") == "walk"]

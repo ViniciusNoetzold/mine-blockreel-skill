@@ -47,4 +47,4 @@ The first-person actor is never reported as out of frame.
 ## Found and fixed
 ## Could not verify (audio, in-game behaviour, etc.)
 ```
-Re-run `tools/qa.py` after fixes. Deliver only when no FAIL remains and every WARN has a recorded decision.
+Re-run `tools/qa.py` after fixes. Resolve each FAIL and record a decision for every WARN. For the final render, verify the encoded duration, frame rate, dimensions, and requested audio using [the media check](CINEMATIC-WORKFLOW.md#5-verify-the-encoded-delivery). Review playback with sound and record any limits on that review.

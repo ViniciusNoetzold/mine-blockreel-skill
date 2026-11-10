@@ -84,7 +84,8 @@ def build(story, base_dir, start=0.0, end=None):
         if mus_label and duck:
             amt = float(duck.get("amount", 0.35))
             ratio = max(2.0, min(20.0, 1.0 / max(amt, 0.05)))  # lower amount -> stronger compression
-            chains.append("[dlgbus]asplit=2[dlgkey][dlgout]")
+            chains.append("[dlgbus]asplit=2[dlgkeyraw][dlgout]")
+            chains.append(f"[dlgkeyraw]apad=whole_dur={dur:.6f}[dlgkey]")
             chains.append(f"{mus_label}[dlgkey]sidechaincompress=threshold=0.01:ratio={ratio:.1f}:attack=40:release=450:makeup=1[musd]")
             mix_in += ["[musd]", "[dlgout]"]
         else:
@@ -92,8 +93,8 @@ def build(story, base_dir, start=0.0, end=None):
     elif mus_label:
         mix_in.append(mus_label)
     mix_in += sfx_labels
-    chains.append("".join(mix_in) + f"amix=inputs={len(mix_in)}:normalize=0,alimiter=limit=0.95,atrim=0:{dur:.3f}[aout]" if len(mix_in) > 1
-                  else f"{mix_in[0]}alimiter=limit=0.95,atrim=0:{dur:.3f}[aout]")
+    mix = "".join(mix_in) + f"amix=inputs={len(mix_in)}:normalize=0," if len(mix_in) > 1 else mix_in[0]
+    chains.append(f"{mix}apad,alimiter=limit=0.95,atrim=0:{dur:.6f}[aout]")
     return inputs, ";".join(chains), "[aout]"
 
 

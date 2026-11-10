@@ -793,9 +793,9 @@ class Film:
                 audio["music"] = {"file": "music.wav", "volume": m.get("volume", 0.55), "fadeIn": 0.5, "fadeOut": 1.5, "duck": {"amount": 0.4}}
             else:
                 print("score failed:", r.stderr[-400:], file=sys.stderr)
-        if audio.get("sfx") or audio.get("music"):
+        if any(audio.values()):
             self.story["audio"] = audio
-        (self.out / "story.json").write_text(json.dumps(self.story, ensure_ascii=False, indent=1))
+        (self.out / "story.json").write_text(json.dumps(self.story, ensure_ascii=False, indent=1), encoding="utf-8")
         self.shotlist()
         return self.story
 
@@ -821,7 +821,7 @@ class Film:
             lines.append(f"| {i + 1} | {t:.2f} | {d:.2f} | {k} | {a or '-'} | {b or '-'} |")
         lines += ["", f"Duration {self.t:.1f} s, {len(self.shots)} shots, {len(self.sfx)} game sound cues, music sections: " +
                   ", ".join(f"{k} {a:.1f}-{b:.1f}" for k, a, b in self.merge_sections())]
-        (self.out / "shotlist.md").write_text("\n".join(lines) + "\n")
+        (self.out / "shotlist.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 EXAMPLE = {
@@ -872,7 +872,7 @@ def main(argv=None):
     print(f"wrote {out / 'story.json'}  ({st['duration']:.1f} s, {len(st['camera'])} shots, {len(st['timeline'])} actions, "
           f"{len(st.get('audio', {}).get('sfx', []))} sound cues{', music' if st.get('audio', {}).get('music') else ''})  +  shotlist.md")
     if not SND.exists():
-        print("note: no game sounds cached (python tools/vanilla.py sounds); the film has music only", file=sys.stderr)
+        print("note: no game sounds cached (python tools/vanilla.py sounds); automatic game sound cues are skipped", file=sys.stderr)
     return 0
 
 

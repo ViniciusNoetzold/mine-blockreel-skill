@@ -62,6 +62,19 @@ def test_ducking_and_timing_in_a_real_mix(tmp_path):
     assert goertzel(seg(1.0, 2.5), 1000) < 0.02   # and absent before it
     assert goertzel(seg(6.05, 6.45), 800) > 0.1   # sfx at 6 s
     assert goertzel(seg(1.0, 2.5), 800) < 0.02
+    assert goertzel(seg(7.0, 9.0), 440) > free * 0.8  # music recovers after the last line
+
+
+@pytest.mark.skipif(not shutil.which("ffmpeg"), reason="ffmpeg not installed")
+def test_short_sound_leaves_a_silent_tail_for_the_video(tmp_path):
+    tone(tmp_path / "hit.wav", 800, 0.25)
+    story = {"duration": 3, "audio": {"sfx": [{"file": "hit.wav", "t": 0.5}]}}
+    out = tmp_path / "mix.wav"
+    assert audio.render_audio(story, tmp_path, out)
+    xs, sr = read(out)
+    assert len(xs) == 3 * sr
+    assert goertzel(xs[int(0.52 * sr):int(0.72 * sr)], 800) > 0.1
+    assert not any(xs[sr:])
 
 
 def test_score_follows_sections(tmp_path):

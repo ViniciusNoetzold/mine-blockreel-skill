@@ -38,6 +38,26 @@ def test_prepare_story_writes_a_render_copy_only_when_needed(tmp_path):
     assert p2 != sp and p2.name.startswith(".") and json.loads(p2.read_text())["size"] == [1080, 1920] and s2["size"] == [1080, 1920]
 
 
+def test_render_range_propagates_encoder_failure(tmp_path, monkeypatch):
+    import io
+    from contextlib import nullcontext
+    from unittest.mock import Mock
+
+    import render
+    playwright = pytest.importorskip("playwright.sync_api")
+    browser, page = Mock(), Mock()
+    page.screenshot.return_value = b"frame"
+    encoder = Mock(stdin=io.BytesIO(), args=["ffmpeg"])
+    encoder.wait.return_value = 1
+    monkeypatch.setattr(playwright, "sync_playwright", nullcontext)
+    monkeypatch.setattr(render, "serve", lambda _: (None, 0))
+    monkeypatch.setattr(render, "open_page", lambda *_: (browser, page))
+    monkeypatch.setattr(render.subprocess, "Popen", lambda *_, **__: encoder)
+    with pytest.raises(subprocess.CalledProcessError):
+        render.render_range(tmp_path / "story.json", {}, 30, 1, 0, 1, tmp_path / "film.mp4", 18, False)
+    browser.close.assert_called_once()
+
+
 @pytest.mark.skipif(not shutil.which("ffmpeg"), reason="ffmpeg missing")
 def test_gif_export(tmp_path):
     import export

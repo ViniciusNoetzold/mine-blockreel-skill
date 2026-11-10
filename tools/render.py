@@ -134,7 +134,8 @@ def render_range(story_path, story, fps, scale, n0, n1, out, crf, gpu, quiet=Fal
     with sync_playwright() as pw:
         browser, page = open_page(pw, port, story_path, story, scale, gpu, allow_missing)
         ff = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "image2pipe", "-framerate", str(fps), "-i", "-",
-                               "-c:v", "libx264", "-preset", "veryfast", "-crf", str(crf), "-pix_fmt", "yuv420p", str(out)], stdin=subprocess.PIPE)
+                               "-c:v", "libx264", "-preset", "veryfast", "-crf", str(crf), "-pix_fmt", "yuv420p",
+                               "-movflags", "+faststart", str(out)], stdin=subprocess.PIPE)
         for i in range(n0, n1):
             if mblur > 1:  # average sub-frames across half a frame (a 180-degree shutter): deterministic motion blur
                 import io
@@ -151,8 +152,11 @@ def render_range(story_path, story, fps, scale, n0, n1, out, crf, gpu, quiet=Fal
                 ff.stdin.write(page.screenshot(type="png"))
             if not quiet and (i - n0) % max(1, int(fps)) == 0:
                 print(f"\r{i - n0}/{n1 - n0} frames", end="", flush=True)
-        ff.stdin.close(); ff.wait()
+        ff.stdin.close()
+        returncode = ff.wait()
         browser.close()
+        if returncode:
+            raise subprocess.CalledProcessError(returncode, ff.args)
 
 
 def main(argv=None):
@@ -228,14 +232,16 @@ def main(argv=None):
             if any(codes):
                 print("a worker failed", codes, file=sys.stderr); return 2
             lst = tmp / "parts.txt"; lst.write_text("".join(f"file '{p.as_posix()}'\n" for p in parts))
-            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(lst), "-c", "copy", str(silent)], check=True)
+            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(lst), "-c", "copy",
+                            "-movflags", "+faststart", str(silent)], check=True)
         # audio
         mixed = False
         if not a.no_audio:
             import audio
             wav = tmp / "mix.wav"
             if audio.render_audio(story, story_path.parent, wav, a.start, end):
-                subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(silent), "-i", str(wav), "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", str(a.out)], check=True)
+                subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(silent), "-i", str(wav), "-c:v", "copy", "-c:a", "aac",
+                                "-b:a", "192k", "-shortest", "-movflags", "+faststart", str(a.out)], check=True)
                 mixed = True
         if not mixed:
             shutil.copyfile(silent, a.out)
