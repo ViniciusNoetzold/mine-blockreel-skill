@@ -8,6 +8,7 @@
   <a href="https://github.com/ViniciusNoetzold/mine-blockreel-skill/actions/workflows/ci.yml"><img src="https://github.com/ViniciusNoetzold/mine-blockreel-skill/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT"></a>
   <a href="plugin/skills/blockreel/SKILL.md"><img src="https://img.shields.io/badge/Claude%20Code-plugin-8A5CF6" alt="Claude Code plugin"></a>
+  <a href="https://www.skills.sh/viniciusnoetzold/mine-blockreel-skill"><img src="https://www.skills.sh/b/viniciusnoetzold/mine-blockreel-skill" alt="BlockReel on skills.sh"></a>
   <a href="https://github.com/ViniciusNoetzold/mine-blockreel-skill/stargazers"><img src="https://img.shields.io/github/stars/ViniciusNoetzold/mine-blockreel-skill?style=social" alt="GitHub stars"></a>
 </p>
 
