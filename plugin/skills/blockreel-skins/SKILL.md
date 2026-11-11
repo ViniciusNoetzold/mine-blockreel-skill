@@ -1,11 +1,14 @@
 ---
 name: blockreel-skins
 description: Design a polished Minecraft player skin (64x64 PNG, classic or slim) from a character idea, with web research, a colour-ramp palette plan, layered painting in code, validation, and a 4-angle turntable preview you must look at and iterate on. Use when the user asks for a skin, a character design for a film, or wants to improve or convert a skin. Part of BlockReel; the main blockreel skill calls this one.
+license: MIT
 ---
 
 # BlockReel skins
 
-Work in the BlockReel folder (`$BLOCKREEL_HOME`, see the `blockreel` skill bootstrap). Put each skin in `work/skins/<name>/`
+Reuse a BlockReel checkout containing `core/skin.py`. If needed, clone and set up the runtime. Run commands and resolve project files from the checkout root. [Runtime setup](https://github.com/ViniciusNoetzold/mine-blockreel-skill#run-the-tools-directly)
+
+Put each skin in `work/skins/<name>/`
 (gitignored) or `films/<name>/skins/`. **Never copy someone else's skin**; take ideas, not pixels.
 
 ## 0. The user sent a skin

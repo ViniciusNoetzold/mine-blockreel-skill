@@ -1,11 +1,14 @@
 ---
 name: blockreel-textures
 description: Design a coherent set of Minecraft block/item textures (16x, 32x or 64x) with web research, one palette plan for the whole set, code-generated or hand-painted tiles, a tiling/seam and palette checker, an in-scene preview rendered by the engine, and a resource-pack zip built with a researched and cited pack format. Use when the user wants a texture pack, custom block textures, or to improve a set. Part of BlockReel; the main blockreel skill calls this one.
+license: MIT
 ---
 
 # BlockReel textures
 
-Work in the BlockReel folder. Put each set in `work/textures/<name>/` (gitignored) or `films/<name>/textures/`. The folder mirrors
+Reuse a BlockReel checkout containing `core/pack.py`. If needed, clone and set up the runtime. Run commands and resolve project files from the checkout root. [Runtime setup](https://github.com/ViniciusNoetzold/mine-blockreel-skill#run-the-tools-directly)
+
+Put each set in `work/textures/<name>/` (gitignored) or `films/<name>/textures/`. The folder mirrors
 `assets/minecraft/textures/` (`block/…`, `item/…`). **Never copy game textures**; originals only (the repo's demo set is CC0).
 
 ## 1. Briefing (at most one short question)

@@ -1,11 +1,14 @@
 ---
 name: blockreel-builds
 description: Recreate a house, facade, large build, or city from reference images or a brief as an editable Minecraft-style blueprint and render its block-by-block construction as a timelapse. Use for staged builds, neighborhood construction, and portrait or landscape reveals.
+license: MIT
 ---
 
 # BlockReel Builds
 
-Use the BlockReel runtime checkout and read `docs/BUILD-TIMELAPSE.md`. The agent reads the supplied images and authors the blueprint. The compiler validates and animates those blocks. Use the worked example in `examples/house-timelapse/` to check a new setup.
+Reuse a BlockReel checkout containing `tools/build_timelapse.py`. If needed, clone and set up the runtime. Run commands and resolve project files from the checkout root. [Runtime setup](https://github.com/ViniciusNoetzold/mine-blockreel-skill#run-the-tools-directly)
+
+Read `docs/BUILD-TIMELAPSE.md`. The agent reads the supplied images and authors the blueprint. The compiler validates and animates those blocks. Use the worked example in `examples/house-timelapse/` to check a new setup.
 
 ## Match the reference
 

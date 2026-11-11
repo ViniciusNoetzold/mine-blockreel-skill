@@ -27,9 +27,19 @@
 
 ## Quick start
 
+### Install the Agent Skills
+
+With Node.js 22.20 or later, use the [skills CLI](https://www.skills.sh/docs/cli). Choose one or more of the four BlockReel skills and your agent when prompted.
+
+```bash
+npx skills add ViniciusNoetzold/mine-blockreel-skill
+```
+
+Installing the skills makes their instructions available to the agent. For rendering, set up the BlockReel checkout and its dependencies using [the runtime instructions below](#run-the-tools-directly). Your agent needs a terminal and access to the project files.
+
 ### Use BlockReel in Codex
 
-Clone the repository and open the cloned folder as your Codex project. Start your film request by asking Codex to read `plugin/skills/blockreel/SKILL.md` from that checkout. The marketplace commands below install the Claude Code plugin.
+Open the BlockReel checkout as your Codex project. Invoke `$blockreel` after installing the skill, or ask Codex to read `plugin/skills/blockreel/SKILL.md` directly from the checkout.
 
 ### Use the Claude Code plugin
 

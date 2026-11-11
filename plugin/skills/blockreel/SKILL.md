@@ -1,6 +1,7 @@
 ---
 name: blockreel
 description: Direct and render Minecraft-style animated films, cinematic shorts, vertical Reels, intros, and episodes from a prompt or references. Build block worlds, cast skins, stage shots, mix original music and effects, and deliver a reviewed MP4 using BlockReel. For standalone skins or resource packs, use the dedicated skills.
+license: MIT
 ---
 
 # BlockReel
@@ -18,7 +19,7 @@ For a standalone house, facade, or city construction timelapse, use `plugin/skil
 
 ## 0. Bootstrap
 
-Reuse a working checkout when available. The Claude Code marketplace installs the skill files. In Codex, open the runtime checkout as the project and have Codex read this file if the skill is not installed. Run the tools from the checkout. If needed, clone it:
+Reuse a working checkout that contains `tools/render.py` and `package-lock.json`. Skill installers can provide this skill folder on its own. Run the renderer and resolve the project files named below from the runtime checkout root. If needed, clone and set up the runtime:
 
 ```sh
 git clone https://github.com/ViniciusNoetzold/mine-blockreel-skill.git blockreel
@@ -159,7 +160,7 @@ Give each scene a change the viewer can perceive in action, composition, light, 
    - Skin given as a screenshot / scaled image → `python core/skin.py snap in.png out.png --crop x0,y0,x1,y1`, then `validate`.
      If rows are missing, say so and ask for the full image.
    - Skin as a rendered 3D picture of a character → cannot be turned into a texture reliably. Say so.
-   - Skin to create or improve → run the **`blockreel-skins`** skill (`/blockreel:blockreel-skins`): research, palette plan, layered painting,
+    - Skin to create or improve → follow the **`blockreel-skins`** skill in `plugin/skills/blockreel-skins/SKILL.md`: research, palette plan, layered painting,
      `python tools/turntable.py skin.png --out tt.png` and at least 2 looked-at rounds. Block/item textures or a resource pack → **`blockreel-textures`**
      (`core/tilecheck.py`, `tools/pack_preview.py`, `core/pack.py`). Use the results inside the film (`story.json` skin paths / `blocks` folder).
    - The user sends a **photo of themself** → persona skin (section above). Herobrine and other characters → `core/persona.py preset`.
