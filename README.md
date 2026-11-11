@@ -51,6 +51,8 @@ claude plugin install blockreel@blockreel-market
 
 Start a Claude Code session and invoke `/blockreel:blockreel`. Follow the skill's setup instructions for the renderer checkout.
 
+[Distribution and Claude directory package](docs/DISTRIBUTION.md)
+
 <details>
 <summary><b>Update an existing installation</b></summary>
 
