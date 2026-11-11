@@ -51,6 +51,8 @@ claude plugin install blockreel@blockreel-market
 
 Abra uma sessão no Claude Code e chame `/blockreel:blockreel`. Siga as instruções da skill para preparar o repositório do renderizador.
 
+[Distribuição e pacote para o diretório do Claude](docs/DISTRIBUTION.md)
+
 <details>
 <summary><b>Atualize uma instalação existente</b></summary>
 
